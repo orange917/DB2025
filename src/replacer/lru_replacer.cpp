@@ -25,14 +25,16 @@ bool LRUReplacer::victim(frame_id_t* frame_id) {
     std::scoped_lock lock{latch_};  //  如果编译报错可以替换成其他lock
 
     // Todo:
-    //  利用lru_replacer中的LRUlist_,LRUHash_实现LRU策略
+    //  利用lru_replacer中的LRUlist_,LRUhash_实现LRU策略
     //  选择合适的frame指定为淘汰页面,赋值给*frame_id
     if(LRUlist_.empty()) {
         return false;  // 如果没有可淘汰的页面，返回false
     }
-    *frame_id = LRUlist_.back();  // 获取LRU列表的最后一个元素作为淘汰页面
-    LRUlist_.pop_back();  // 从LRU列表中移除该页面
-    LRUhash_.erase(*frame_id);  // 从哈希表中移除该页面
+    // 获取LRUlist的最后一个元素，即最久未使用的frame
+    *frame_id = LRUlist_.back();
+    // 从LRUlist中移除该frame
+    LRUlist_.pop_back();
+    LRUhash_.erase(*frame_id);
     return true;
 }
 
@@ -45,11 +47,13 @@ void LRUReplacer::pin(frame_id_t frame_id) {
     // Todo:
     // 固定指定id的frame
     // 在数据结构中移除该frame
-    auto it = LRUhash_.find(frame_id);
-    if (it != LRUhash_.end()) {
-        // 如果frame_id存在于哈希表中，移除它
-        LRUlist_.erase(it->second);  // 从LRU列表中移除
-        LRUhash_.erase(it);  // 从哈希表中移除
+    // 如果这个frame_id存在于LRUhash_中，表示它是可淘汰的，需要将其移除
+    auto iter = LRUhash_.find(frame_id);
+    if (iter != LRUhash_.end()) {
+        // 从LRUlist中移除该frame
+        LRUlist_.erase(iter->second);
+        // 从哈希表中移除该frame
+        LRUhash_.erase(iter);
     }
 }
 
@@ -61,20 +65,17 @@ void LRUReplacer::unpin(frame_id_t frame_id) {
     // Todo:
     //  支持并发锁
     //  选择一个frame取消固定
-    std::scoped_lock lock{latch_};
-    auto it = LRUhash_.find(frame_id);
-    if(it == LRUhash_.end()) {
-        // 如果frame_id不存在于哈希表中,我们放到LRU列表的前面
-        LRUlist_.push_front(frame_id);
-        LRUhash_[frame_id] = LRUlist_.begin();
+    std::scoped_lock lock{latch_};  // 获取锁以保证线程安全
+
+    // 如果frame_id已经在可淘汰列表中，不需要再次添加
+    if (LRUhash_.find(frame_id) != LRUhash_.end()) {
+        return;
     }
-    else {
-        // 如果frame_id存在于哈希表中，表示该页面可以被淘汰
-        LRUlist_.erase(LRUlist_[frame_id]);  // 从LRU列表中移除旧位置
-        LRUlist_.push_front(frame_id);
-        // 更新哈希表中的位置
-        LRUhash_[frame_id] = LRUlist_.begin();
-    }
+
+    // 将frame添加到LRUlist的前面（最新使用）
+    LRUlist_.push_front(frame_id);
+    // 在哈希表中记录该frame的位置
+    LRUhash_[frame_id] = LRUlist_.begin();
 }
 
 /**
