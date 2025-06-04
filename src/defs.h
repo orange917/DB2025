@@ -40,9 +40,9 @@ struct Rid {
         return !(x == y);
     }
 
-    friend std::ostream &operator<<(std::ostream &os, const Rid &rid) {
-        return os << '(' << rid.page_no << ", " << rid.slot_no << ')';
-    }
+    // friend std::ostream &operator<<(std::ostream &os, const Rid &rid) {
+    //     return os << '(' << rid.page_no << ", " << rid.slot_no << ')';
+    // }
     // 
     // Rid() : page_no(-1), slot_no(-1) {}
 
