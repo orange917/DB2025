@@ -131,15 +131,15 @@ void check_equal(const RmFileHandle *file_handle,
     for (RmScan scan(file_handle); !scan.is_end(); scan.next()) {
         assert(mock.count(scan.rid()) > 0);
         auto rec = file_handle->get_record(scan.rid(), nullptr);
-        if (rec == nullptr) {
-            std::cerr << "Failed to get record at " << scan.rid() << std::endl;
-            assert(false);
-        }
         assert(memcmp(rec->data, mock.at(scan.rid()).c_str(), file_handle->file_hdr_.record_size) == 0);
         num_records++;
     }
-    std::cout << "Scanned records: " << num_records << ", Mock records: " << mock.size() << std::endl;
     assert(num_records == mock.size());
+}
+
+// std::cout can call this, for example: std::cout << rid
+std::ostream &operator<<(std::ostream &os, const Rid &rid) {
+    return os << '(' << rid.page_no << ", " << rid.slot_no << ')';
 }
 
 /** 注意：每个测试点只测试了单个文件！
@@ -661,3 +661,4 @@ TEST(RecordManagerTest, SimpleTest) {
     rm_manager->close_file(file_handle.get());
     rm_manager->destroy_file(filename);
 }
+
