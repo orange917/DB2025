@@ -15,6 +15,7 @@ See the Mulan PSL v2 for more details. */
 #include <cstddef>
 #include <memory>
 #include <defs.h>
+#include <iostream>
 
 /**
  * @description: 获取当前表中记录号为rid的记录
@@ -26,9 +27,33 @@ std::unique_ptr<RmRecord> RmFileHandle::get_record(const Rid& rid, Context* cont
     // Todo:
     // 1. 获取指定记录所在的page handle
     // 2. 初始化一个指向RmRecord的指针（赋值其内部的data和size）
+    
+    // 首先检查rid的有效性
+    if (rid.page_no < RM_FIRST_RECORD_PAGE || rid.page_no >= file_hdr_.num_pages || 
+        rid.slot_no < 0 || rid.slot_no >= file_hdr_.num_records_per_page) {
+        throw RecordNotFoundError(rid.page_no, rid.slot_no);
+    }
+
     RmPageHandle page_handle = fetch_page_handle(rid.page_no);
-    char* record_data = page_handle.get_slot(rid.slot_no);
-    return std::make_unique<RmRecord>(file_hdr_.record_size, record_data);
+    if (page_handle.page == nullptr || page_handle.bitmap == nullptr) {
+        throw RecordNotFoundError(rid.page_no, rid.slot_no);
+    }
+
+    if(Bitmap::is_set(page_handle.bitmap, rid.slot_no)) {
+        // 存在记录返回对应rid的RmRecord指针
+        char* slot = page_handle.get_slot(rid.slot_no);
+        if (slot == nullptr) {
+            buffer_pool_manager_->unpin_page(page_handle.page->get_page_id(), false);
+            throw RecordNotFoundError(rid.page_no, rid.slot_no);
+        }
+        auto record_ptr = std::make_unique<RmRecord>(file_hdr_.record_size, slot);
+        buffer_pool_manager_->unpin_page(page_handle.page->get_page_id(), false);
+        return record_ptr;
+    } else {   
+        // 不存在记录抛出错误
+        buffer_pool_manager_->unpin_page(page_handle.page->get_page_id(), false);
+        throw RecordNotFoundError(rid.page_no, rid.slot_no);
+    }
 }
 
 /**
@@ -37,7 +62,7 @@ std::unique_ptr<RmRecord> RmFileHandle::get_record(const Rid& rid, Context* cont
  * @param {Context*} context
  * @return {Rid} 插入的记录的记录号（位置）
  */
-Rid RmFileHandle::insert_record(char* buf, Context* context) {
+ Rid RmFileHandle::insert_record(char* buf, Context* context) {
     // Todo:
     // 1. 获取当前未满的page handle
     // 2. 在page handle中找到空闲slot位置
@@ -45,27 +70,39 @@ Rid RmFileHandle::insert_record(char* buf, Context* context) {
     // 4. 更新page_handle.page_hdr中的数据结构
     // 注意考虑插入一条记录后页面已满的情况，需要更新file_hdr_.first_free_page_no
     RmPageHandle page_handle = create_page_handle();
-    if(page_handle.page != nullptr)
-    {
+    if(page_handle.page != nullptr) {
         // 找到空闲的slot位置
-        int slot_no = Bitmap::first_bit(0, page_handle.bitmap, file_hdr_.num_records_per_page);
-        char *slot = page_handle.get_slot(slot_no);
-        // 将buf复制到空闲slot位置
-        if (slot != nullptr) {
+        int slot_no = Bitmap::first_bit(false, page_handle.bitmap, file_hdr_.num_records_per_page);
+        if (slot_no < file_hdr_.num_records_per_page) {
+            char *slot = page_handle.get_slot(slot_no);
+            // 将buf复制到空闲slot位置
             std::memcpy(slot, buf, file_hdr_.record_size);
             // 更新page_hdr中的数据结构
             page_handle.page_hdr->num_records += 1;
             Bitmap::set(page_handle.bitmap, slot_no); // 标记该slot为已使用
+            
             if(page_handle.page_hdr->num_records == file_hdr_.num_records_per_page) {
                 // 如果插入后页面已满，更新file_hdr_.first_free_page_no
-                file_hdr_.first_free_page_no = page_handle.page_hdr->next_free_page_no;
+                int current_page_no = page_handle.page->get_page_id().page_no;
+                page_handle.page_hdr->next_free_page_no = file_hdr_.first_free_page_no;
+                file_hdr_.first_free_page_no = current_page_no;
             }
-            buffer_pool_manager_->unpin_page(page_handle.page->get_page_id(), true); // 解除对页面的锁定
-            // 返回记录号
-            return Rid(page_handle.page->get_page_id().page_no, slot_no);
+            
+            buffer_pool_manager_->unpin_page(page_handle.page->get_page_id(), true);
+            
+            // 创建并返回记录号
+            Rid rid;
+            rid.page_no = page_handle.page->get_page_id().page_no;
+            rid.slot_no = slot_no;
+            return rid;
         }
     }
-    return Rid(-1, -1); // 如果没有找到空闲slot，返回无效的Rid
+    
+    // 如果没有找到空闲slot，返回无效的Rid
+    Rid rid;
+    rid.page_no = -1;
+    rid.slot_no = -1;
+    return rid;
 }
 
 /**
@@ -104,17 +141,19 @@ void RmFileHandle::delete_record(const Rid& rid, Context* context) {
     RmPageHandle page_handle = fetch_page_handle(rid.page_no);
     if (page_handle.page != nullptr) {
         char* slot = page_handle.get_slot(rid.slot_no);
-        if (slot != nullptr) {
-            // 清空slot数据
+        if (slot != nullptr && Bitmap::is_set(page_handle.bitmap, rid.slot_no)) {
+            // 先清除数据
             std::memset(slot, 0, file_hdr_.record_size);
-            // 更新page_hdr中的数据结构
+            // 然后更新bitmap和页头
+            Bitmap::reset(page_handle.bitmap, rid.slot_no);
             page_handle.page_hdr->num_records -= 1;
-            Bitmap::reset(page_handle.bitmap, rid.slot_no); // 标记该slot为未使用
+            
+            // 如果页面未满，更新文件头
             if (page_handle.page_hdr->num_records < file_hdr_.num_records_per_page) {
-                // 如果删除后页面未满，更新file_hdr_.first_free_page_no
                 release_page_handle(page_handle);
             }
-            buffer_pool_manager_->unpin_page(page_handle.page->get_page_id(), true); // 解除对页面的锁定
+            
+            buffer_pool_manager_->unpin_page(page_handle.page->get_page_id(), true);
         }
     }
 }
@@ -152,15 +191,25 @@ void RmFileHandle::update_record(const Rid& rid, char* buf, Context* context) {
 RmPageHandle RmFileHandle::fetch_page_handle(int page_no) const {
     // Todo:
     // 使用缓冲池获取指定页面，并生成page_handle返回给上层
-    // if page_no is invalid, throw PageNotExistError exception
-    if(page_no >= 0 && page_no < file_hdr_.num_pages){
-        PageId page_id;
-        page_id.fd = fd_;
-        page_id.page_no = page_no;
-        Page *page = buffer_pool_manager_->fetch_page(page_id);
-        return RmPageHandle(&file_hdr_, page);
+    // 检查page_no是否在有效范围内
+    if (page_no < RM_FIRST_RECORD_PAGE || page_no >= file_hdr_.num_pages) {
+       return RmPageHandle(nullptr, nullptr);
     }
-    return RmPageHandle(nullptr, nullptr); // 如果page_no无效，返回一个空的RmPageHandle
+
+    PageId page_id;
+    page_id.fd = fd_;
+    page_id.page_no = page_no;
+
+    // 从缓冲池获取页面
+    Page *page = buffer_pool_manager_->fetch_page(page_id);
+
+    // 检查页面获取是否成功
+    if (page == nullptr) {
+        return RmPageHandle(nullptr, nullptr);
+    }
+
+    // 返回有效的页面句柄
+    return RmPageHandle(&file_hdr_, page);
 }
 
 /**
@@ -179,13 +228,19 @@ RmPageHandle RmFileHandle::create_new_page_handle() {
 
     // 更新page handle中的相关信息
     if(page != nullptr){
+        // 先更新file_hdr_中的页面数量
+        file_hdr_.num_pages += 1;
+        
         RmPageHandle page_handle(&file_hdr_, page);
-        // 更新file_hdr_中的信息
-        file_hdr_.num_pages += 1; // 增加页面数量
-        file_hdr_.first_free_page_no = page_handle.page_hdr->next_free_page_no; // 更新第一个空闲页为当前文件头中的第一个空闲页
+        // 更新page handle中的信息
         page_handle.page_hdr->num_records = 0; // 新页面初始没有记录
         page_handle.page_hdr->next_free_page_no = file_hdr_.first_free_page_no; // 新页面的下一个空闲页为当前文件头中的第一个空闲页
+        file_hdr_.first_free_page_no = page_handle.page->get_page_id().page_no; // 将新页面设置为第一个空闲页
         Bitmap::init(page_handle.bitmap, file_hdr_.bitmap_size);
+        
+        // 将文件头写回磁盘
+        disk_manager_->write_page(fd_, RM_FILE_HDR_PAGE, (char *)&file_hdr_, sizeof(file_hdr_));
+        
         // 将新页面的page handle返回给上层
         return page_handle;
     }
@@ -209,7 +264,14 @@ RmPageHandle RmFileHandle::create_page_handle() {
         return create_new_page_handle();
     }
     // 如果有空闲页，获取第一个空闲页
-    return fetch_page_handle(file_hdr_.first_free_page_no);
+    if (file_hdr_.first_free_page_no >= 0 && file_hdr_.first_free_page_no < file_hdr_.num_pages) {
+        RmPageHandle page_handle = fetch_page_handle(file_hdr_.first_free_page_no);
+        if (page_handle.page != nullptr) {
+            return page_handle;
+        }
+    }
+    // 如果first_free_page_no无效或获取页面失败，创建一个新页面
+    return create_new_page_handle();
 }
 
 /**
@@ -220,6 +282,12 @@ void RmFileHandle::release_page_handle(RmPageHandle&page_handle) {
     // 当page从已满变成未满，考虑如何更新：
     // 1. page_handle.page_hdr->next_free_page_no
     // 2. file_hdr_.first_free_page_no
-    page_handle.page_hdr->next_free_page_no = file_hdr_.first_free_page_no; // 将当前页的下一个空闲页设置为文件头中的第一个空闲页
-    file_hdr_.first_free_page_no = page_handle.page->get_page_id().page_no; // 更新文件头中的第一个空闲页为当前页
+    int current_page_no = page_handle.page->get_page_id().page_no;
+    if (current_page_no >= 0 && current_page_no < file_hdr_.num_pages) {
+        page_handle.page_hdr->next_free_page_no = file_hdr_.first_free_page_no; // 将当前页的下一个空闲页设置为文件头中的第一个空闲页
+        file_hdr_.first_free_page_no = current_page_no; // 更新文件头中的第一个空闲页为当前页
+        
+        // 将文件头写回磁盘
+        disk_manager_->write_page(fd_, RM_FILE_HDR_PAGE, (char *)&file_hdr_, sizeof(file_hdr_));
+    }
 }

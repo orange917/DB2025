@@ -13,7 +13,7 @@ See the Mulan PSL v2 for more details. */
 #include "defs.h"
 #include "storage/buffer_pool_manager.h"
 
-constexpr int RM_NO_PAGE = -1;
+constexpr int RM_NO_PAGE = -2;
 constexpr int RM_FILE_HDR_PAGE = 0;
 constexpr int RM_FIRST_RECORD_PAGE = 1;
 constexpr int RM_MAX_RECORD_SIZE = 512;
@@ -54,19 +54,34 @@ struct RmRecord {
 
     RmRecord(const RmRecord& other) {
         size = other.size;
-        data = new char[size];
-        memcpy(data, other.data, size);
-        allocated_ = true;
+        if (other.allocated_) {
+            data = new char[size];
+            memcpy(data, other.data, size);
+            allocated_ = true;
+        } else {
+            data = other.data;
+            allocated_ = false;
+        }
     };
 
 
-    RmRecord &operator=(const RmRecord& other) {
+    RmRecord& operator=(const RmRecord& other) {
+    if (this != &other) {
+        if (allocated_) {
+            delete[] data;
+        }
         size = other.size;
-        data = new char[size];
-        memcpy(data, other.data, size);
-        allocated_ = true;
+        if (other.allocated_) {
+            data = new char[size];
+            memcpy(data, other.data, size);
+            allocated_ = true;
+        } else {
+            data = other.data;
+            allocated_ = false;
+        }
+        }
         return *this;
-    };
+    }
 
     RmRecord(int size_) {
         size = size_;
@@ -80,6 +95,18 @@ struct RmRecord {
         memcpy(data, data_, size_);
         allocated_ = true;
     }
+
+    // RmRecord(int size_, char* data_, bool copy = false) {
+    //     size = size_;
+    //     if (copy) {
+    //         data = new char[size_];
+    //         memcpy(data, data_, size_);
+    //         allocated_ = true;
+    //     } else {
+    //         data = data_;
+    //         allocated_ = false;
+    //     }
+    // }
 
     void SetData(char* data_) {
         memcpy(data, data_, size);

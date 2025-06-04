@@ -36,12 +36,18 @@ struct Rid {
         return x.page_no == y.page_no && x.slot_no == y.slot_no;
     }
 
-    friend bool operator!=(const Rid &x, const Rid &y) { return !(x == y); }
-    // 
-    Rid() : page_no(-1), slot_no(-1) {}
+    friend bool operator!=(const Rid &x, const Rid &y) {
+        return !(x == y);
+    }
 
-    // Parameterized constructor
-    Rid(int p_no, int s_no) : page_no(p_no), slot_no(s_no) {}
+    friend std::ostream &operator<<(std::ostream &os, const Rid &rid) {
+        return os << '(' << rid.page_no << ", " << rid.slot_no << ')';
+    }
+    // 
+    // Rid() : page_no(-1), slot_no(-1) {}
+
+    // // Parameterized constructor
+    // Rid(int p_no, int s_no) : page_no(p_no), slot_no(s_no) {}
 };
 
 enum ColType {
