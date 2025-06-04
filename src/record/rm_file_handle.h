@@ -29,6 +29,12 @@ struct RmPageHandle {
     char *slots;                // page->data的第三部分，存储表的记录，指针指向首地址，每个slot的长度为file_hdr->record_size
 
     RmPageHandle(const RmFileHdr *fhdr_, Page *page_) : file_hdr(fhdr_), page(page_) {
+        if (file_hdr == nullptr || page == nullptr) {
+            page_hdr = nullptr;
+            bitmap = nullptr;
+            slots = nullptr;
+            return;
+        }
         page_hdr = reinterpret_cast<RmPageHdr *>(page->get_data() + page->OFFSET_PAGE_HDR);
         bitmap = page->get_data() + sizeof(RmPageHdr) + page->OFFSET_PAGE_HDR;
         slots = bitmap + file_hdr->bitmap_size;
@@ -36,6 +42,9 @@ struct RmPageHandle {
 
     // 返回指定slot_no的slot存储收地址
     char* get_slot(int slot_no) const {
+        if (file_hdr == nullptr || page == nullptr) {
+            return nullptr;
+        }
         return slots + slot_no * file_hdr->record_size;  // slots的首地址 + slot个数 * 每个slot的大小(每个record的大小)
     }
 };
@@ -67,28 +76,22 @@ class RmFileHandle {
 
     /* 判断指定位置上是否已经存在一条记录，通过Bitmap来判断 */
     bool is_record(const Rid &rid) const {
-        if (rid.page_no >= file_hdr_.num_pages || rid.page_no < 0 ||
-            rid.slot_no >= file_hdr_.num_records_per_page || rid.slot_no < 0) {
-            return false;  // 超出范围
-        }
-
         RmPageHandle page_handle = fetch_page_handle(rid.page_no);
-        if (page_handle.page == nullptr) {
-            return false;  // 页面不存在
-        }
-
-        bool result = Bitmap::is_set(page_handle.bitmap, rid.slot_no);
-        buffer_pool_manager_->unpin_page({.fd = fd_, .page_no = rid.page_no}, false);
-        return result;
+        return Bitmap::is_set(page_handle.bitmap, rid.slot_no);  // page的slot_no位置上是否有record
     }
 
+    std::unique_ptr<RmRecord> get_record_without_lock(const Rid &rid, Context *context) const;
     std::unique_ptr<RmRecord> get_record(const Rid &rid, Context *context) const;
 
     Rid insert_record(char *buf, Context *context);
 
     void insert_record(const Rid &rid, char *buf);
 
+    void recover_insert_record(const Rid& rid, char* buf);
+
     void delete_record(const Rid &rid, Context *context);
+
+    void recover_delete_record(const Rid& rid, Context* context);
 
     void update_record(const Rid &rid, char *buf, Context *context);
 
@@ -96,6 +99,13 @@ class RmFileHandle {
 
     RmPageHandle fetch_page_handle(int page_no) const;
 
+    void update_page_lsn(int page_no, lsn_t lsn) const;
+    
+    void load_record(char* buf, int record_num);
+
+    void write_file_hdr();
+
+    int get_records_num();
    private:
     RmPageHandle create_page_handle();
 

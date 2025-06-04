@@ -38,13 +38,19 @@ class Bitmap {
      * @param curr 要找的从起始地址开始的偏移为[curr+1,max_n)
      * @return 找到了就返回偏移位置，没找到就返回max_n
      */
-    static int next_bit(bool bit, const char *bm, int max_n, int curr) {
-        for (int i = curr + 1; i < max_n; i++) {
-            if (is_set(bm, i) == bit) {
+    static int next_bit(bool value, const char* bitmap, int size, int start) {
+        // 确保 start 在有效范围内
+        if (start < -1 || start >= size) {
+            return size;
+        }
+        
+        // 从 start + 1 开始搜索
+        for (int i = start + 1; i < size; i++) {
+            if (is_set(bitmap, i) == value) {
                 return i;
             }
         }
-        return max_n;
+        return size;  // 没有找到，返回 size
     }
 
     // 找第一个为0 or 1的位

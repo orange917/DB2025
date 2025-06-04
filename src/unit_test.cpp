@@ -120,10 +120,8 @@ void check_equal(const RmFileHandle *file_handle,
     }
     // Randomly get record
     for (int i = 0; i < 10; i++) {
-        Rid rid(
-            rand() % file_handle->file_hdr_.num_pages,
-            rand() % file_handle->file_hdr_.num_records_per_page
-        );
+        Rid rid = {.page_no = 1 + rand() % (file_handle->file_hdr_.num_pages - 1),
+                   .slot_no = rand() % file_handle->file_hdr_.num_records_per_page};
         bool mock_exist = mock.count(rid) > 0;
         bool rm_exist = file_handle->is_record(rid);
         assert(rm_exist == mock_exist);
@@ -133,15 +131,15 @@ void check_equal(const RmFileHandle *file_handle,
     for (RmScan scan(file_handle); !scan.is_end(); scan.next()) {
         assert(mock.count(scan.rid()) > 0);
         auto rec = file_handle->get_record(scan.rid(), nullptr);
+        if (rec == nullptr) {
+            std::cerr << "Failed to get record at " << scan.rid() << std::endl;
+            assert(false);
+        }
         assert(memcmp(rec->data, mock.at(scan.rid()).c_str(), file_handle->file_hdr_.record_size) == 0);
         num_records++;
     }
+    std::cout << "Scanned records: " << num_records << ", Mock records: " << mock.size() << std::endl;
     assert(num_records == mock.size());
-}
-
-// std::cout can call this, for example: std::cout << rid
-std::ostream &operator<<(std::ostream &os, const Rid &rid) {
-    return os << '(' << rid.page_no << ", " << rid.slot_no << ')';
 }
 
 /** 注意：每个测试点只测试了单个文件！
