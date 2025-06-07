@@ -17,6 +17,7 @@ See the Mulan PSL v2 for more details. */
 #include "bitmap.h"
 #include "common/context.h"
 #include "rm_defs.h"
+#include "rm_scan.h"
 
 class RmManager;
 
@@ -106,6 +107,12 @@ class RmFileHandle {
     void write_file_hdr();
 
     int get_records_num();
+
+    // 创建一个新的扫描器
+    std::unique_ptr<RmScan> create_scan() const {
+        return std::make_unique<RmScan>(this);
+    }
+
    private:
     RmPageHandle create_page_handle();
 
