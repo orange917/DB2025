@@ -250,7 +250,7 @@ src/system/CMakeFiles/system.dir/sm_manager.cpp.o: \
  /usr/include/c++/11/condition_variable \
  /home/code/db2025/src/recovery/log_manager.h \
  /home/code/db2025/src/recovery/log_defs.h \
- /home/code/db2025/src/record/rm.h /home/code/db2025/src/record/rm_scan.h \
+ /home/code/db2025/src/record/rm_scan.h /home/code/db2025/src/record/rm.h \
  /home/code/db2025/src/record/rm_manager.h \
  /home/code/db2025/src/record_printer.h /usr/include/c++/11/iomanip \
  /usr/include/c++/11/locale \

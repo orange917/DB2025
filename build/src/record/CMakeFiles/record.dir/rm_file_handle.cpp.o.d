@@ -236,4 +236,5 @@ src/record/CMakeFiles/record.dir/rm_file_handle.cpp.o: \
  /home/code/db2025/src/transaction/concurrency/lock_manager.h \
  /usr/include/c++/11/condition_variable \
  /home/code/db2025/src/recovery/log_manager.h \
- /home/code/db2025/src/recovery/log_defs.h /usr/include/c++/11/cstddef
+ /home/code/db2025/src/recovery/log_defs.h \
+ /home/code/db2025/src/record/rm_scan.h /usr/include/c++/11/cstddef

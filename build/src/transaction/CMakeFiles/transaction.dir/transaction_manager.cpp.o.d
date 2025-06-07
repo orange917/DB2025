@@ -253,4 +253,5 @@ src/transaction/CMakeFiles/transaction.dir/transaction_manager.cpp.o: \
  /home/code/db2025/src/record/rm_file_handle.h \
  /home/code/db2025/src/record/bitmap.h /usr/include/c++/11/cinttypes \
  /usr/include/inttypes.h /home/code/db2025/src/common/context.h \
+ /home/code/db2025/src/record/rm_scan.h \
  /home/code/db2025/src/common/exception.h
