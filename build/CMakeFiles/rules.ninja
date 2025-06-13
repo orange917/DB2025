@@ -7,7 +7,7 @@
 
 # =============================================================================
 # Project: RMDB
-# Configurations: Debug
+# Configurations: Release
 # =============================================================================
 # =============================================================================
 
@@ -22,7 +22,7 @@ rule CUSTOM_COMMAND
 #############################################
 # Rule for compiling CXX files.
 
-rule CXX_COMPILER__rmdb_Debug
+rule CXX_COMPILER__rmdb_Release
   depfile = $DEP_FILE
   deps = gcc
   command = /usr/bin/clang++ $DEFINES $INCLUDES $FLAGS -MD -MT $out -MF $DEP_FILE -o $out -c $in
@@ -32,7 +32,7 @@ rule CXX_COMPILER__rmdb_Debug
 #############################################
 # Rule for linking CXX executable.
 
-rule CXX_EXECUTABLE_LINKER__rmdb_Debug
+rule CXX_EXECUTABLE_LINKER__rmdb_Release
   command = $PRE_LINK && /usr/bin/clang++ $FLAGS $LINK_FLAGS $in -o $TARGET_FILE $LINK_PATH $LINK_LIBRARIES && $POST_BUILD
   description = Linking CXX executable $TARGET_FILE
   restat = $RESTAT
@@ -41,7 +41,7 @@ rule CXX_EXECUTABLE_LINKER__rmdb_Debug
 #############################################
 # Rule for compiling CXX files.
 
-rule CXX_COMPILER__unit_test_Debug
+rule CXX_COMPILER__unit_test_Release
   depfile = $DEP_FILE
   deps = gcc
   command = /usr/bin/clang++ $DEFINES $INCLUDES $FLAGS -MD -MT $out -MF $DEP_FILE -o $out -c $in
@@ -51,7 +51,7 @@ rule CXX_COMPILER__unit_test_Debug
 #############################################
 # Rule for linking CXX executable.
 
-rule CXX_EXECUTABLE_LINKER__unit_test_Debug
+rule CXX_EXECUTABLE_LINKER__unit_test_Release
   command = $PRE_LINK && /usr/bin/clang++ $FLAGS $LINK_FLAGS $in -o $TARGET_FILE $LINK_PATH $LINK_LIBRARIES && $POST_BUILD
   description = Linking CXX executable $TARGET_FILE
   restat = $RESTAT
@@ -60,7 +60,7 @@ rule CXX_EXECUTABLE_LINKER__unit_test_Debug
 #############################################
 # Rule for compiling CXX files.
 
-rule CXX_COMPILER__analyze_Debug
+rule CXX_COMPILER__analyze_Release
   depfile = $DEP_FILE
   deps = gcc
   command = /usr/bin/clang++ $DEFINES $INCLUDES $FLAGS -MD -MT $out -MF $DEP_FILE -o $out -c $in
@@ -70,7 +70,7 @@ rule CXX_COMPILER__analyze_Debug
 #############################################
 # Rule for linking CXX static library.
 
-rule CXX_STATIC_LIBRARY_LINKER__analyze_Debug
+rule CXX_STATIC_LIBRARY_LINKER__analyze_Release
   command = $PRE_LINK && /usr/bin/cmake -E rm -f $TARGET_FILE && /usr/bin/llvm-ar qc $TARGET_FILE $LINK_FLAGS $in && /usr/bin/llvm-ranlib $TARGET_FILE && $POST_BUILD
   description = Linking CXX static library $TARGET_FILE
   restat = $RESTAT
@@ -79,7 +79,7 @@ rule CXX_STATIC_LIBRARY_LINKER__analyze_Debug
 #############################################
 # Rule for compiling CXX files.
 
-rule CXX_COMPILER__record_Debug
+rule CXX_COMPILER__record_Release
   depfile = $DEP_FILE
   deps = gcc
   command = /usr/bin/clang++ $DEFINES $INCLUDES $FLAGS -MD -MT $out -MF $DEP_FILE -o $out -c $in
@@ -89,7 +89,7 @@ rule CXX_COMPILER__record_Debug
 #############################################
 # Rule for linking CXX static library.
 
-rule CXX_STATIC_LIBRARY_LINKER__record_Debug
+rule CXX_STATIC_LIBRARY_LINKER__record_Release
   command = $PRE_LINK && /usr/bin/cmake -E rm -f $TARGET_FILE && /usr/bin/llvm-ar qc $TARGET_FILE $LINK_FLAGS $in && /usr/bin/llvm-ranlib $TARGET_FILE && $POST_BUILD
   description = Linking CXX static library $TARGET_FILE
   restat = $RESTAT
@@ -98,7 +98,7 @@ rule CXX_STATIC_LIBRARY_LINKER__record_Debug
 #############################################
 # Rule for compiling CXX files.
 
-rule CXX_COMPILER__records_Debug
+rule CXX_COMPILER__records_Release
   depfile = $DEP_FILE
   deps = gcc
   command = /usr/bin/clang++ $DEFINES $INCLUDES $FLAGS -MD -MT $out -MF $DEP_FILE -o $out -c $in
@@ -108,7 +108,7 @@ rule CXX_COMPILER__records_Debug
 #############################################
 # Rule for linking CXX shared library.
 
-rule CXX_SHARED_LIBRARY_LINKER__records_Debug
+rule CXX_SHARED_LIBRARY_LINKER__records_Release
   command = $PRE_LINK && /usr/bin/clang++ -fPIC $LANGUAGE_COMPILE_FLAGS $ARCH_FLAGS $LINK_FLAGS -shared $SONAME_FLAG$SONAME -o $TARGET_FILE $in $LINK_PATH $LINK_LIBRARIES && $POST_BUILD
   description = Linking CXX shared library $TARGET_FILE
   restat = $RESTAT
@@ -117,7 +117,7 @@ rule CXX_SHARED_LIBRARY_LINKER__records_Debug
 #############################################
 # Rule for compiling CXX files.
 
-rule CXX_COMPILER__index_Debug
+rule CXX_COMPILER__index_Release
   depfile = $DEP_FILE
   deps = gcc
   command = /usr/bin/clang++ $DEFINES $INCLUDES $FLAGS -MD -MT $out -MF $DEP_FILE -o $out -c $in
@@ -127,7 +127,7 @@ rule CXX_COMPILER__index_Debug
 #############################################
 # Rule for linking CXX static library.
 
-rule CXX_STATIC_LIBRARY_LINKER__index_Debug
+rule CXX_STATIC_LIBRARY_LINKER__index_Release
   command = $PRE_LINK && /usr/bin/cmake -E rm -f $TARGET_FILE && /usr/bin/llvm-ar qc $TARGET_FILE $LINK_FLAGS $in && /usr/bin/llvm-ranlib $TARGET_FILE && $POST_BUILD
   description = Linking CXX static library $TARGET_FILE
   restat = $RESTAT
@@ -136,7 +136,7 @@ rule CXX_STATIC_LIBRARY_LINKER__index_Debug
 #############################################
 # Rule for compiling CXX files.
 
-rule CXX_COMPILER__system_Debug
+rule CXX_COMPILER__system_Release
   depfile = $DEP_FILE
   deps = gcc
   command = /usr/bin/clang++ $DEFINES $INCLUDES $FLAGS -MD -MT $out -MF $DEP_FILE -o $out -c $in
@@ -146,7 +146,7 @@ rule CXX_COMPILER__system_Debug
 #############################################
 # Rule for linking CXX static library.
 
-rule CXX_STATIC_LIBRARY_LINKER__system_Debug
+rule CXX_STATIC_LIBRARY_LINKER__system_Release
   command = $PRE_LINK && /usr/bin/cmake -E rm -f $TARGET_FILE && /usr/bin/llvm-ar qc $TARGET_FILE $LINK_FLAGS $in && /usr/bin/llvm-ranlib $TARGET_FILE && $POST_BUILD
   description = Linking CXX static library $TARGET_FILE
   restat = $RESTAT
@@ -155,7 +155,7 @@ rule CXX_STATIC_LIBRARY_LINKER__system_Debug
 #############################################
 # Rule for compiling CXX files.
 
-rule CXX_COMPILER__execution_Debug
+rule CXX_COMPILER__execution_Release
   depfile = $DEP_FILE
   deps = gcc
   command = /usr/bin/clang++ $DEFINES $INCLUDES $FLAGS -MD -MT $out -MF $DEP_FILE -o $out -c $in
@@ -165,7 +165,7 @@ rule CXX_COMPILER__execution_Debug
 #############################################
 # Rule for linking CXX static library.
 
-rule CXX_STATIC_LIBRARY_LINKER__execution_Debug
+rule CXX_STATIC_LIBRARY_LINKER__execution_Release
   command = $PRE_LINK && /usr/bin/cmake -E rm -f $TARGET_FILE && /usr/bin/llvm-ar qc $TARGET_FILE $LINK_FLAGS $in && /usr/bin/llvm-ranlib $TARGET_FILE && $POST_BUILD
   description = Linking CXX static library $TARGET_FILE
   restat = $RESTAT
@@ -174,7 +174,7 @@ rule CXX_STATIC_LIBRARY_LINKER__execution_Debug
 #############################################
 # Rule for compiling CXX files.
 
-rule CXX_COMPILER__parser_Debug
+rule CXX_COMPILER__parser_Release
   depfile = $DEP_FILE
   deps = gcc
   command = /usr/bin/clang++ $DEFINES $INCLUDES $FLAGS -MD -MT $out -MF $DEP_FILE -o $out -c $in
@@ -184,7 +184,7 @@ rule CXX_COMPILER__parser_Debug
 #############################################
 # Rule for linking CXX static library.
 
-rule CXX_STATIC_LIBRARY_LINKER__parser_Debug
+rule CXX_STATIC_LIBRARY_LINKER__parser_Release
   command = $PRE_LINK && /usr/bin/cmake -E rm -f $TARGET_FILE && /usr/bin/llvm-ar qc $TARGET_FILE $LINK_FLAGS $in && /usr/bin/llvm-ranlib $TARGET_FILE && $POST_BUILD
   description = Linking CXX static library $TARGET_FILE
   restat = $RESTAT
@@ -193,7 +193,7 @@ rule CXX_STATIC_LIBRARY_LINKER__parser_Debug
 #############################################
 # Rule for compiling CXX files.
 
-rule CXX_COMPILER__test_parser_Debug
+rule CXX_COMPILER__test_parser_Release
   depfile = $DEP_FILE
   deps = gcc
   command = /usr/bin/clang++ $DEFINES $INCLUDES $FLAGS -MD -MT $out -MF $DEP_FILE -o $out -c $in
@@ -203,7 +203,7 @@ rule CXX_COMPILER__test_parser_Debug
 #############################################
 # Rule for linking CXX executable.
 
-rule CXX_EXECUTABLE_LINKER__test_parser_Debug
+rule CXX_EXECUTABLE_LINKER__test_parser_Release
   command = $PRE_LINK && /usr/bin/clang++ $FLAGS $LINK_FLAGS $in -o $TARGET_FILE $LINK_PATH $LINK_LIBRARIES && $POST_BUILD
   description = Linking CXX executable $TARGET_FILE
   restat = $RESTAT
@@ -212,7 +212,7 @@ rule CXX_EXECUTABLE_LINKER__test_parser_Debug
 #############################################
 # Rule for compiling CXX files.
 
-rule CXX_COMPILER__planner_Debug
+rule CXX_COMPILER__planner_Release
   depfile = $DEP_FILE
   deps = gcc
   command = /usr/bin/clang++ $DEFINES $INCLUDES $FLAGS -MD -MT $out -MF $DEP_FILE -o $out -c $in
@@ -222,7 +222,7 @@ rule CXX_COMPILER__planner_Debug
 #############################################
 # Rule for linking CXX static library.
 
-rule CXX_STATIC_LIBRARY_LINKER__planner_Debug
+rule CXX_STATIC_LIBRARY_LINKER__planner_Release
   command = $PRE_LINK && /usr/bin/cmake -E rm -f $TARGET_FILE && /usr/bin/llvm-ar qc $TARGET_FILE $LINK_FLAGS $in && /usr/bin/llvm-ranlib $TARGET_FILE && $POST_BUILD
   description = Linking CXX static library $TARGET_FILE
   restat = $RESTAT
@@ -231,7 +231,7 @@ rule CXX_STATIC_LIBRARY_LINKER__planner_Debug
 #############################################
 # Rule for compiling CXX files.
 
-rule CXX_COMPILER__storage_Debug
+rule CXX_COMPILER__storage_Release
   depfile = $DEP_FILE
   deps = gcc
   command = /usr/bin/clang++ $DEFINES $INCLUDES $FLAGS -MD -MT $out -MF $DEP_FILE -o $out -c $in
@@ -241,7 +241,7 @@ rule CXX_COMPILER__storage_Debug
 #############################################
 # Rule for linking CXX static library.
 
-rule CXX_STATIC_LIBRARY_LINKER__storage_Debug
+rule CXX_STATIC_LIBRARY_LINKER__storage_Release
   command = $PRE_LINK && /usr/bin/cmake -E rm -f $TARGET_FILE && /usr/bin/llvm-ar qc $TARGET_FILE $LINK_FLAGS $in && /usr/bin/llvm-ranlib $TARGET_FILE && $POST_BUILD
   description = Linking CXX static library $TARGET_FILE
   restat = $RESTAT
@@ -250,7 +250,7 @@ rule CXX_STATIC_LIBRARY_LINKER__storage_Debug
 #############################################
 # Rule for compiling CXX files.
 
-rule CXX_COMPILER__lru_replacer_Debug
+rule CXX_COMPILER__lru_replacer_Release
   depfile = $DEP_FILE
   deps = gcc
   command = /usr/bin/clang++ $DEFINES $INCLUDES $FLAGS -MD -MT $out -MF $DEP_FILE -o $out -c $in
@@ -260,7 +260,7 @@ rule CXX_COMPILER__lru_replacer_Debug
 #############################################
 # Rule for linking CXX static library.
 
-rule CXX_STATIC_LIBRARY_LINKER__lru_replacer_Debug
+rule CXX_STATIC_LIBRARY_LINKER__lru_replacer_Release
   command = $PRE_LINK && /usr/bin/cmake -E rm -f $TARGET_FILE && /usr/bin/llvm-ar qc $TARGET_FILE $LINK_FLAGS $in && /usr/bin/llvm-ranlib $TARGET_FILE && $POST_BUILD
   description = Linking CXX static library $TARGET_FILE
   restat = $RESTAT
@@ -269,7 +269,7 @@ rule CXX_STATIC_LIBRARY_LINKER__lru_replacer_Debug
 #############################################
 # Rule for compiling CXX files.
 
-rule CXX_COMPILER__transaction_Debug
+rule CXX_COMPILER__transaction_Release
   depfile = $DEP_FILE
   deps = gcc
   command = /usr/bin/clang++ $DEFINES $INCLUDES $FLAGS -MD -MT $out -MF $DEP_FILE -o $out -c $in
@@ -279,7 +279,7 @@ rule CXX_COMPILER__transaction_Debug
 #############################################
 # Rule for linking CXX static library.
 
-rule CXX_STATIC_LIBRARY_LINKER__transaction_Debug
+rule CXX_STATIC_LIBRARY_LINKER__transaction_Release
   command = $PRE_LINK && /usr/bin/cmake -E rm -f $TARGET_FILE && /usr/bin/llvm-ar qc $TARGET_FILE $LINK_FLAGS $in && /usr/bin/llvm-ranlib $TARGET_FILE && $POST_BUILD
   description = Linking CXX static library $TARGET_FILE
   restat = $RESTAT
@@ -288,7 +288,7 @@ rule CXX_STATIC_LIBRARY_LINKER__transaction_Debug
 #############################################
 # Rule for compiling CXX files.
 
-rule CXX_COMPILER__recovery_Debug
+rule CXX_COMPILER__recovery_Release
   depfile = $DEP_FILE
   deps = gcc
   command = /usr/bin/clang++ $DEFINES $INCLUDES $FLAGS -MD -MT $out -MF $DEP_FILE -o $out -c $in
@@ -298,7 +298,7 @@ rule CXX_COMPILER__recovery_Debug
 #############################################
 # Rule for linking CXX static library.
 
-rule CXX_STATIC_LIBRARY_LINKER__recovery_Debug
+rule CXX_STATIC_LIBRARY_LINKER__recovery_Release
   command = $PRE_LINK && /usr/bin/cmake -E rm -f $TARGET_FILE && /usr/bin/llvm-ar qc $TARGET_FILE $LINK_FLAGS $in && /usr/bin/llvm-ranlib $TARGET_FILE && $POST_BUILD
   description = Linking CXX static library $TARGET_FILE
   restat = $RESTAT
@@ -307,7 +307,7 @@ rule CXX_STATIC_LIBRARY_LINKER__recovery_Debug
 #############################################
 # Rule for compiling CXX files.
 
-rule CXX_COMPILER__recoverys_Debug
+rule CXX_COMPILER__recoverys_Release
   depfile = $DEP_FILE
   deps = gcc
   command = /usr/bin/clang++ $DEFINES $INCLUDES $FLAGS -MD -MT $out -MF $DEP_FILE -o $out -c $in
@@ -317,7 +317,7 @@ rule CXX_COMPILER__recoverys_Debug
 #############################################
 # Rule for linking CXX shared library.
 
-rule CXX_SHARED_LIBRARY_LINKER__recoverys_Debug
+rule CXX_SHARED_LIBRARY_LINKER__recoverys_Release
   command = $PRE_LINK && /usr/bin/clang++ -fPIC $LANGUAGE_COMPILE_FLAGS $ARCH_FLAGS $LINK_FLAGS -shared $SONAME_FLAG$SONAME -o $TARGET_FILE $in $LINK_PATH $LINK_LIBRARIES && $POST_BUILD
   description = Linking CXX shared library $TARGET_FILE
   restat = $RESTAT
@@ -326,7 +326,7 @@ rule CXX_SHARED_LIBRARY_LINKER__recoverys_Debug
 #############################################
 # Rule for compiling CXX files.
 
-rule CXX_COMPILER__gmock_Debug
+rule CXX_COMPILER__gmock_Release
   depfile = $DEP_FILE
   deps = gcc
   command = /usr/bin/clang++ $DEFINES $INCLUDES $FLAGS -MD -MT $out -MF $DEP_FILE -o $out -c $in
@@ -336,7 +336,7 @@ rule CXX_COMPILER__gmock_Debug
 #############################################
 # Rule for linking CXX static library.
 
-rule CXX_STATIC_LIBRARY_LINKER__gmock_Debug
+rule CXX_STATIC_LIBRARY_LINKER__gmock_Release
   command = $PRE_LINK && /usr/bin/cmake -E rm -f $TARGET_FILE && /usr/bin/llvm-ar qc $TARGET_FILE $LINK_FLAGS $in && /usr/bin/llvm-ranlib $TARGET_FILE && $POST_BUILD
   description = Linking CXX static library $TARGET_FILE
   restat = $RESTAT
@@ -345,7 +345,7 @@ rule CXX_STATIC_LIBRARY_LINKER__gmock_Debug
 #############################################
 # Rule for compiling CXX files.
 
-rule CXX_COMPILER__gmock_main_Debug
+rule CXX_COMPILER__gmock_main_Release
   depfile = $DEP_FILE
   deps = gcc
   command = /usr/bin/clang++ $DEFINES $INCLUDES $FLAGS -MD -MT $out -MF $DEP_FILE -o $out -c $in
@@ -355,7 +355,7 @@ rule CXX_COMPILER__gmock_main_Debug
 #############################################
 # Rule for linking CXX static library.
 
-rule CXX_STATIC_LIBRARY_LINKER__gmock_main_Debug
+rule CXX_STATIC_LIBRARY_LINKER__gmock_main_Release
   command = $PRE_LINK && /usr/bin/cmake -E rm -f $TARGET_FILE && /usr/bin/llvm-ar qc $TARGET_FILE $LINK_FLAGS $in && /usr/bin/llvm-ranlib $TARGET_FILE && $POST_BUILD
   description = Linking CXX static library $TARGET_FILE
   restat = $RESTAT
@@ -364,7 +364,7 @@ rule CXX_STATIC_LIBRARY_LINKER__gmock_main_Debug
 #############################################
 # Rule for compiling CXX files.
 
-rule CXX_COMPILER__gtest_Debug
+rule CXX_COMPILER__gtest_Release
   depfile = $DEP_FILE
   deps = gcc
   command = /usr/bin/clang++ $DEFINES $INCLUDES $FLAGS -MD -MT $out -MF $DEP_FILE -o $out -c $in
@@ -374,7 +374,7 @@ rule CXX_COMPILER__gtest_Debug
 #############################################
 # Rule for linking CXX static library.
 
-rule CXX_STATIC_LIBRARY_LINKER__gtest_Debug
+rule CXX_STATIC_LIBRARY_LINKER__gtest_Release
   command = $PRE_LINK && /usr/bin/cmake -E rm -f $TARGET_FILE && /usr/bin/llvm-ar qc $TARGET_FILE $LINK_FLAGS $in && /usr/bin/llvm-ranlib $TARGET_FILE && $POST_BUILD
   description = Linking CXX static library $TARGET_FILE
   restat = $RESTAT
@@ -383,7 +383,7 @@ rule CXX_STATIC_LIBRARY_LINKER__gtest_Debug
 #############################################
 # Rule for compiling CXX files.
 
-rule CXX_COMPILER__gtest_main_Debug
+rule CXX_COMPILER__gtest_main_Release
   depfile = $DEP_FILE
   deps = gcc
   command = /usr/bin/clang++ $DEFINES $INCLUDES $FLAGS -MD -MT $out -MF $DEP_FILE -o $out -c $in
@@ -393,7 +393,7 @@ rule CXX_COMPILER__gtest_main_Debug
 #############################################
 # Rule for linking CXX static library.
 
-rule CXX_STATIC_LIBRARY_LINKER__gtest_main_Debug
+rule CXX_STATIC_LIBRARY_LINKER__gtest_main_Release
   command = $PRE_LINK && /usr/bin/cmake -E rm -f $TARGET_FILE && /usr/bin/llvm-ar qc $TARGET_FILE $LINK_FLAGS $in && /usr/bin/llvm-ranlib $TARGET_FILE && $POST_BUILD
   description = Linking CXX static library $TARGET_FILE
   restat = $RESTAT

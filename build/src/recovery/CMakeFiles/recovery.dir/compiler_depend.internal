@@ -595,4 +595,5 @@ src/recovery/CMakeFiles/recovery.dir/log_recovery.cpp.o
  /home/code/db2025/src/common/context.h
  /home/code/db2025/src/transaction/concurrency/lock_manager.h
  /usr/include/c++/11/condition_variable
+ /home/code/db2025/src/record/rm_scan.h
 

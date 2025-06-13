@@ -592,7 +592,8 @@ src/recovery/CMakeFiles/recovery.dir/log_recovery.cpp.o: ../src/recovery/log_rec
   /usr/include/inttypes.h \
   ../src/common/context.h \
   ../src/transaction/concurrency/lock_manager.h \
-  /usr/include/c++/11/condition_variable
+  /usr/include/c++/11/condition_variable \
+  ../src/record/rm_scan.h
 
 
 /usr/include/inttypes.h:
@@ -764,6 +765,8 @@ src/recovery/CMakeFiles/recovery.dir/log_recovery.cpp.o: ../src/recovery/log_rec
 /usr/include/x86_64-linux-gnu/bits/types/timer_t.h:
 
 /usr/include/x86_64-linux-gnu/bits/endianness.h:
+
+../src/record/rm_scan.h:
 
 /usr/include/c++/11/unordered_set:
 

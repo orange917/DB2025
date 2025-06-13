@@ -172,6 +172,14 @@ class IxIndexHandle {
    public:
     IxIndexHandle(DiskManager *disk_manager, BufferPoolManager *buffer_pool_manager, int fd);
 
+    // 添加公共方法
+    int get_fd() const { return fd_; }
+    
+    // 添加公共方法用于获取节点
+    IxNodeHandle *get_node(int page_no) const {
+        return fetch_node(page_no);
+    }
+
     // for search
     bool get_value(const char *key, std::vector<Rid> *result, Transaction *transaction);
 

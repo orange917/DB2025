@@ -304,6 +304,7 @@ src/record/CMakeFiles/record.dir/rm_file_handle.cpp.o: ../src/record/rm_file_han
   /usr/include/c++/11/condition_variable \
   ../src/recovery/log_manager.h \
   ../src/recovery/log_defs.h \
+  ../src/record/rm_scan.h \
   /usr/include/c++/11/cstddef
 
 src/record/CMakeFiles/record.dir/rm_scan.cpp.o: ../src/record/rm_scan.cpp \

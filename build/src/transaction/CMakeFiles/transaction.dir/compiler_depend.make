@@ -621,6 +621,7 @@ src/transaction/CMakeFiles/transaction.dir/transaction_manager.cpp.o: ../src/tra
   /usr/include/c++/11/cinttypes \
   /usr/include/inttypes.h \
   ../src/common/context.h \
+  ../src/record/rm_scan.h \
   ../src/common/exception.h
 
 src/transaction/CMakeFiles/transaction.dir/watermark.cpp.o: ../src/transaction/watermark.cpp \
@@ -1383,6 +1384,8 @@ src/transaction/CMakeFiles/transaction.dir/watermark.cpp.o: ../src/transaction/w
 /usr/include/x86_64-linux-gnu/bits/setjmp.h:
 
 /usr/include/x86_64-linux-gnu/bits/types/__fpos64_t.h:
+
+../src/record/rm_scan.h:
 
 /usr/include/x86_64-linux-gnu/bits/types/FILE.h:
 

@@ -42,39 +42,159 @@ class IndexScanExecutor : public AbstractExecutor {
         tab_name_ = std::move(tab_name);
         tab_ = sm_manager_->db_.get_table(tab_name_);
         conds_ = std::move(conds);
-        // index_no_ = index_no;
-        index_col_names_ = index_col_names; 
-        index_meta_ = *(tab_.get_index_meta(index_col_names_));
+        index_col_names_ = index_col_names;
+        index_meta_ = *tab_.get_index_meta(index_col_names_);
         fh_ = sm_manager_->fhs_.at(tab_name_).get();
         cols_ = tab_.cols;
         len_ = cols_.back().offset + cols_.back().len;
-        std::map<CompOp, CompOp> swap_op = {
-            {OP_EQ, OP_EQ}, {OP_NE, OP_NE}, {OP_LT, OP_GT}, {OP_GT, OP_LT}, {OP_LE, OP_GE}, {OP_GE, OP_LE},
-        };
-
-        for (auto &cond : conds_) {
-            if (cond.lhs_col.tab_name != tab_name_) {
-                // lhs is on other table, now rhs must be on this table
-                assert(!cond.is_rhs_val && cond.rhs_col.tab_name == tab_name_);
-                // swap lhs and rhs
-                std::swap(cond.lhs_col, cond.rhs_col);
-                cond.op = swap_op.at(cond.op);
-            }
-        }
         fed_conds_ = conds_;
     }
 
     void beginTuple() override {
-        
+        // 创建索引扫描器
+        std::string index_name = sm_manager_->get_ix_manager()->get_index_name(tab_name_, index_col_names_);
+        auto ih = sm_manager_->ihs_.at(index_name).get();
+        Iid lower = Iid{-1, -1};  // 从第一个记录开始
+        Iid upper = Iid{-1, -1};  // 到最后一个记录结束
+        scan_ = std::make_unique<IxScan>(ih, lower, upper, sm_manager_->get_bpm());
+        scan_->next();
     }
 
     void nextTuple() override {
-        
+        scan_->next();
     }
 
     std::unique_ptr<RmRecord> Next() override {
+        while (!scan_->is_end()) {
+            auto record = fh_->get_record(scan_->rid(), context_);
+            bool match = true;
+            for (const auto &cond : conds_) {
+                if (!check_condition(record.get(), cond)) {
+                    match = false;
+                    break;
+                }
+            }
+            if (match) {
+                rid_ = scan_->rid();
+                scan_->next();
+                return record;
+            }
+            scan_->next();
+        }
         return nullptr;
     }
 
     Rid &rid() override { return rid_; }
+
+   private:
+    bool check_condition(RmRecord *record, const Condition &cond) {
+        // 获取左值的列元数据
+        const ColMeta *lhs_col = nullptr;
+        auto lhs_iter = get_col(cols_, cond.lhs_col);
+        if (lhs_iter != cols_.end()) {
+            lhs_col = &(*lhs_iter);
+        } else {
+            // 如果找不到列，尝试去掉表名前缀
+            std::string col_name = cond.lhs_col.tab_name.empty() ? cond.lhs_col.col_name : cond.lhs_col.col_name;
+            for (const auto &col : cols_) {
+                if (col.name == col_name) {
+                    lhs_col = &col;
+                    break;
+                }
+            }
+        }
+        if (!lhs_col) {
+            return false;
+        }
+        char *lhs_data = record->data + lhs_col->offset;
+
+        // 获取右值
+        char *rhs_data;
+        if (cond.is_rhs_val) {
+            // 如果右值是常量
+            if (cond.rhs_val.type == TYPE_INT) {
+                int val = cond.rhs_val.int_val;
+                return compare_int(lhs_data, &val, cond.op);
+            } else if (cond.rhs_val.type == TYPE_FLOAT) {
+                float val = cond.rhs_val.float_val;
+                return compare_float(lhs_data, &val, cond.op);
+            } else if (cond.rhs_val.type == TYPE_STRING) {
+                return compare_string(lhs_data, cond.rhs_val.str_val.c_str(), cond.op, lhs_col->len);
+            }
+        } else {
+            // 如果右值是列
+            const ColMeta *rhs_col = nullptr;
+            auto rhs_iter = get_col(cols_, cond.rhs_col);
+            if (rhs_iter != cols_.end()) {
+                rhs_col = &(*rhs_iter);
+            } else {
+                // 如果找不到列，尝试去掉表名前缀
+                std::string col_name = cond.rhs_col.tab_name.empty() ? cond.rhs_col.col_name : cond.rhs_col.col_name;
+                for (const auto &col : cols_) {
+                    if (col.name == col_name) {
+                        rhs_col = &col;
+                        break;
+                    }
+                }
+            }
+            if (!rhs_col) {
+                return false;
+            }
+            rhs_data = record->data + rhs_col->offset;
+            return compare_data(lhs_data, rhs_data, cond.op, lhs_col->len);
+        }
+        return false;
+    }
+
+    bool compare_int(char *lhs, const int *rhs, CompOp op) {
+        int lhs_val = *(int *)lhs;
+        switch (op) {
+            case OP_EQ: return lhs_val == *rhs;
+            case OP_NE: return lhs_val != *rhs;
+            case OP_LT: return lhs_val < *rhs;
+            case OP_GT: return lhs_val > *rhs;
+            case OP_LE: return lhs_val <= *rhs;
+            case OP_GE: return lhs_val >= *rhs;
+            default: return false;
+        }
+    }
+
+    bool compare_float(char *lhs, const float *rhs, CompOp op) {
+        float lhs_val = *(float *)lhs;
+        switch (op) {
+            case OP_EQ: return lhs_val == *rhs;
+            case OP_NE: return lhs_val != *rhs;
+            case OP_LT: return lhs_val < *rhs;
+            case OP_GT: return lhs_val > *rhs;
+            case OP_LE: return lhs_val <= *rhs;
+            case OP_GE: return lhs_val >= *rhs;
+            default: return false;
+        }
+    }
+
+    bool compare_string(char *lhs, const char *rhs, CompOp op, int len) {
+        int cmp = memcmp(lhs, rhs, len);
+        switch (op) {
+            case OP_EQ: return cmp == 0;
+            case OP_NE: return cmp != 0;
+            case OP_LT: return cmp < 0;
+            case OP_GT: return cmp > 0;
+            case OP_LE: return cmp <= 0;
+            case OP_GE: return cmp >= 0;
+            default: return false;
+        }
+    }
+
+    bool compare_data(char *lhs, char *rhs, CompOp op, int len) {
+        int cmp = memcmp(lhs, rhs, len);
+        switch (op) {
+            case OP_EQ: return cmp == 0;
+            case OP_NE: return cmp != 0;
+            case OP_LT: return cmp < 0;
+            case OP_GT: return cmp > 0;
+            case OP_LE: return cmp <= 0;
+            case OP_GE: return cmp >= 0;
+            default: return false;
+        }
+    }
 };

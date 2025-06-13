@@ -28,7 +28,17 @@ Transaction * TransactionManager::begin(Transaction* txn, LogManager* log_manage
     // 4. 返回当前事务指针
     // 如果需要支持MVCC请在上述过程中添加代码
     
-    return nullptr;
+    if (txn == nullptr) {
+        // 生成新的事务ID
+        txn_id_t new_id = next_txn_id_.fetch_add(1);
+        txn = new Transaction(new_id);
+    }
+
+    // 把开始事务加入到全局事务表中
+    std::unique_lock<std::mutex> lock(latch_); // Protect txn_map
+    txn_map[txn->get_transaction_id()] = txn;
+    
+    return txn;
 }
 
 /**

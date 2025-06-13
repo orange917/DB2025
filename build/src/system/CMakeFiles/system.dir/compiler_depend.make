@@ -320,8 +320,11 @@ src/system/CMakeFiles/system.dir/sm_manager.cpp.o: ../src/system/sm_manager.cpp 
   /usr/include/c++/11/condition_variable \
   ../src/recovery/log_manager.h \
   ../src/recovery/log_defs.h \
-  ../src/record/rm.h \
   ../src/record/rm_scan.h \
+  /usr/include/c++/11/set \
+  /usr/include/c++/11/bits/stl_set.h \
+  /usr/include/c++/11/bits/stl_multiset.h \
+  ../src/record/rm.h \
   ../src/record/rm_manager.h \
   ../src/record_printer.h \
   /usr/include/c++/11/iomanip \
@@ -354,6 +357,10 @@ src/system/CMakeFiles/system.dir/sm_manager.cpp.o: ../src/system/sm_manager.cpp 
 /usr/include/c++/11/bits/locale_facets_nonio.h:
 
 ../src/record_printer.h:
+
+/usr/include/c++/11/bits/stl_multiset.h:
+
+/usr/include/c++/11/set:
 
 ../src/recovery/log_defs.h:
 
@@ -572,6 +579,8 @@ src/system/CMakeFiles/system.dir/sm_manager.cpp.o: ../src/system/sm_manager.cpp 
 /usr/include/x86_64-linux-gnu/bits/time.h:
 
 /usr/include/x86_64-linux-gnu/bits/select.h:
+
+/usr/include/c++/11/bits/stl_set.h:
 
 /usr/include/x86_64-linux-gnu/bits/struct_stat.h:
 
