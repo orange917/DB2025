@@ -250,5 +250,5 @@ void BufferPoolManager::flush_all_pages(int fd) {
             page->is_dirty_ = false;
         }
     }
-
 }
+

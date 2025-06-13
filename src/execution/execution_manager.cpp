@@ -70,7 +70,7 @@ void QlManager::run_mutli_query(std::shared_ptr<Plan> plan, Context *context){
             }
             default:
                 throw InternalError("Unexpected field type");
-                break;  
+                break;
         }
     }
 }
@@ -144,62 +144,79 @@ void QlManager::run_cmd_utility(std::shared_ptr<Plan> plan, txn_id_t *txn_id, Co
 }
 
 // 执行select语句，select语句的输出除了需要返回客户端外，还需要写入output.txt文件中
-void QlManager::select_from(std::unique_ptr<AbstractExecutor> executorTreeRoot, std::vector<TabCol> sel_cols, 
-                            Context *context) {
-    std::vector<std::string> captions;
-    captions.reserve(sel_cols.size());
-    for (auto &sel_col : sel_cols) {
-        captions.push_back(sel_col.col_name);
-    }
-
-    // Print header into buffer
-    RecordPrinter rec_printer(sel_cols.size());
-    rec_printer.print_separator(context);
-    rec_printer.print_record(captions, context);
-    rec_printer.print_separator(context);
-    // print header into file
-    std::fstream outfile;
-    outfile.open("output.txt", std::ios::out | std::ios::app);
-    outfile << "|";
-    for(int i = 0; i < captions.size(); ++i) {
-        outfile << " " << captions[i] << " |";
-    }
-    outfile << "\n";
-
-    // Print records
-    size_t num_rec = 0;
-    // 执行query_plan
-    for (executorTreeRoot->beginTuple(); !executorTreeRoot->is_end(); executorTreeRoot->nextTuple()) {
-        auto Tuple = executorTreeRoot->Next();
-        std::vector<std::string> columns;
-        for (auto &col : executorTreeRoot->cols()) {
-            std::string col_str;
-            char *rec_buf = Tuple->data + col.offset;
-            if (col.type == TYPE_INT) {
-                col_str = std::to_string(*(int *)rec_buf);
-            } else if (col.type == TYPE_FLOAT) {
-                col_str = std::to_string(*(float *)rec_buf);
-            } else if (col.type == TYPE_STRING) {
-                col_str = std::string((char *)rec_buf, col.len);
-                col_str.resize(strlen(col_str.c_str()));
-            }
-            columns.push_back(col_str);
+void QlManager::select_from(std::unique_ptr<AbstractExecutor> executorTreeRoot, std::vector<TabCol> sel_cols, Context *context) {
+    try {
+        std::vector<std::string> captions;
+        captions.reserve(sel_cols.size());
+        for (auto &sel_col : sel_cols) {
+            captions.push_back(sel_col.col_name);
         }
-        // print record into buffer
-        rec_printer.print_record(columns, context);
-        // print record into file
+
+        // Print header into buffer
+        RecordPrinter rec_printer(sel_cols.size());
+        rec_printer.print_separator(context);
+        rec_printer.print_record(captions, context);
+        rec_printer.print_separator(context);
+
+        // print header into file
+        std::fstream outfile;
+        outfile.open("output.txt", std::ios::out | std::ios::app);
         outfile << "|";
-        for(int i = 0; i < columns.size(); ++i) {
-            outfile << " " << columns[i] << " |";
+        for(int i = 0; i < captions.size(); ++i) {
+            outfile << " " << captions[i] << " |";
         }
         outfile << "\n";
-        num_rec++;
+
+        // Print records
+        size_t num_rec = 0;
+        executorTreeRoot->beginTuple();
+        
+        while (!executorTreeRoot->is_end()) {
+            auto tuple = executorTreeRoot->Next();
+            if (!tuple) {
+                executorTreeRoot->nextTuple();
+                continue;
+            }
+
+            std::vector<std::string> columns;
+            for (auto &col : executorTreeRoot->cols()) {
+                std::string col_str;
+                char *rec_buf = tuple->data + col.offset;
+                if (col.type == TYPE_INT) {
+                    col_str = std::to_string(*(int *)rec_buf);
+                } else if (col.type == TYPE_FLOAT) {
+                    col_str = std::to_string(*(float *)rec_buf);
+                } else if (col.type == TYPE_STRING) {
+                    col_str = std::string((char *)rec_buf, col.len);
+                    col_str.resize(strlen(col_str.c_str()));
+                }
+                columns.push_back(col_str);
+            }
+
+            // print record into buffer
+            rec_printer.print_record(columns, context);
+            // print record into file
+            outfile << "|";
+            for(int i = 0; i < columns.size(); ++i) {
+                outfile << " " << columns[i] << " |";
+            }
+            outfile << "\n";
+            num_rec++;
+            
+            executorTreeRoot->nextTuple();
+        }
+        
+        outfile.close();
+        // Print footer into buffer
+        rec_printer.print_separator(context);
+        // Print record count into buffer
+        std::string footer = "Total " + std::to_string(num_rec) + " records";
+        rec_printer.print_record(std::vector<std::string>{footer}, context);
+        
+    } catch (const std::exception& e) {
+        std::cerr << "Error in select_from: " << e.what() << std::endl;
+        throw;
     }
-    outfile.close();
-    // Print footer into buffer
-    rec_printer.print_separator(context);
-    // Print record count into buffer
-    RecordPrinter::print_record_count(num_rec, context);
 }
 
 // 执行DML语句

@@ -35,8 +35,18 @@ class RmManager {
         if (record_size < 1 || record_size > RM_MAX_RECORD_SIZE) {
             throw InvalidRecordSizeError(record_size);
         }
+        
+        // 检查文件是否已存在
+        if (disk_manager_->is_file(filename)) {
+            throw FileExistsError(filename);
+        }
+        
+        // 创建文件
         disk_manager_->create_file(filename);
         int fd = disk_manager_->open_file(filename);
+        if (fd < 0) {
+            throw FileNotFoundError(filename);
+        }
 
         // 初始化file header
         RmFileHdr file_hdr{};
@@ -48,8 +58,7 @@ class RmManager {
             (BITMAP_WIDTH * (PAGE_SIZE - 1 - (int)sizeof(RmFileHdr)) + 1) / (1 + record_size * BITMAP_WIDTH);
         file_hdr.bitmap_size = (file_hdr.num_records_per_page + BITMAP_WIDTH - 1) / BITMAP_WIDTH;
 
-        // 将file header写入磁盘文件（名为file name，文件描述符为fd）中的第0页
-        // head page直接写入磁盘，没有经过缓冲区的NewPage，那么也就不需要FlushPage
+        // 将file header写入磁盘文件
         disk_manager_->write_page(fd, RM_FILE_HDR_PAGE, (char *)&file_hdr, sizeof(file_hdr));
         disk_manager_->close_file(fd);
     }

@@ -14,6 +14,7 @@ See the Mulan PSL v2 for more details. */
 #include <unistd.h>
 
 #include <fstream>
+#include <set>
 
 #include "index/ix.h"
 #include "record/rm.h"
@@ -210,10 +211,32 @@ void SmManager::desc_table(const std::string& tab_name, Context* context) {
  * @param {Context*} context
  */
 void SmManager::create_table(const std::string& tab_name, const std::vector<ColDef>& col_defs, Context* context) {
+    // 检查表名是否为空
+    if (tab_name.empty()) {
+        throw TableNotFoundError("Table name cannot be empty");
+    }
+
+    // 检查表是否已存在
     if (db_.is_table(tab_name)) {
         throw TableExistsError(tab_name);
     }
-    // Create table meta
+
+    // 检查列定义是否为空
+    if (col_defs.empty()) {
+        throw InvalidValueCountError();
+    }
+
+    // 检查列名是否重复
+    std::set<std::string> col_names;
+    for (const auto& col_def : col_defs) {
+        if (col_names.find(col_def.name) != col_names.end()) {
+            throw ColumnNotFoundError(col_def.name);
+            std::cout << "Column name '" << col_def.name << "' is duplicated." << std::endl;
+        }
+        col_names.insert(col_def.name);
+    }
+
+    // 创建表元数据
     int curr_offset = 0;
     TabMeta tab;
     tab.name = tab_name;
@@ -227,14 +250,24 @@ void SmManager::create_table(const std::string& tab_name, const std::vector<ColD
         curr_offset += col_def.len;
         tab.cols.push_back(col);
     }
-    // Create & open record file
-    int record_size = curr_offset;  // record_size就是col meta所占的大小（表的元数据也是以记录的形式进行存储的）
-    rm_manager_->create_file(tab_name, record_size);
-    db_.tabs_[tab_name] = tab;
-    // fhs_[tab_name] = rm_manager_->open_file(tab_name);
-    fhs_.emplace(tab_name, rm_manager_->open_file(tab_name));
 
-    flush_meta();
+    // 创建并打开记录文件
+    int record_size = curr_offset;
+    try {
+        rm_manager_->create_file(tab_name, record_size);
+        db_.tabs_[tab_name] = tab;
+        fhs_.emplace(tab_name, rm_manager_->open_file(tab_name));
+        flush_meta();
+    } catch (const std::exception& e) {
+        // 如果创建失败，清理已创建的资源
+        if (db_.tabs_.find(tab_name) != db_.tabs_.end()) {
+            db_.tabs_.erase(tab_name);
+        }
+        if (fhs_.find(tab_name) != fhs_.end()) {
+            fhs_.erase(tab_name);
+        }
+        throw;
+    }
 }
 
 /**
@@ -247,14 +280,28 @@ void SmManager::drop_table(const std::string& tab_name, Context* context) {
         throw TableNotFoundError(tab_name);
     }
 
-    // 删除表的文件句柄
+    // 获取文件的位置
     auto it = fhs_.find(tab_name);
     if (it != fhs_.end()) {
+        // 先刷新所有脏页到磁盘
+        buffer_pool_manager_->flush_all_pages(it->second->GetFd());
+        
+        // 删除buffer pool中的所有相关页面
+        auto file_handle = it->second.get();
+        auto scan = file_handle->create_scan();
+        while (!scan->is_end()) {
+            auto rid = scan->rid();
+            PageId page_id = {it->second->GetFd(), rid.page_no};
+            buffer_pool_manager_->delete_page(page_id);
+            scan->next();
+        }
+        
+        // 关闭并删除文件句柄
         rm_manager_->close_file(it->second.get());
         fhs_.erase(it);
     }
 
-    // 删除表的索引句柄
+    // 删除表的索引
     for(auto it = db_.tabs_[tab_name].indexes.begin(); it != db_.tabs_[tab_name].indexes.end(); it++) {
         std::vector<std::string> col_names;
         for(const auto& col : it->cols) {
@@ -263,10 +310,36 @@ void SmManager::drop_table(const std::string& tab_name, Context* context) {
         auto ix_name = ix_manager_->get_index_name(tab_name, col_names);
         auto ix_it = ihs_.find(ix_name);
         if(ix_it != ihs_.end()) {
+            // 获取索引文件的文件描述符
+            int fd = ix_it->second->get_fd();
+            // 刷新索引文件的脏页
+            buffer_pool_manager_->flush_all_pages(fd);
+            
+            // 删除索引文件的页面
+            auto index_handle = ix_it->second.get();
+            // 从第一个叶子节点开始遍历
+            Iid iid = index_handle->leaf_begin();
+            Iid end = index_handle->leaf_end();
+            while (iid != end) {
+                PageId page_id = {fd, iid.page_no};
+                buffer_pool_manager_->delete_page(page_id);
+                iid.slot_no++;
+                if (iid.slot_no >= index_handle->get_node(iid.page_no)->get_size()) {
+                    iid.page_no = index_handle->get_node(iid.page_no)->get_next_leaf();
+                    iid.slot_no = 0;
+                }
+            }
+            
             ix_manager_->close_index(ix_it->second.get());
             ihs_.erase(ix_it);
         }
     }
+
+    // 删除tabs
+    db_.tabs_.erase(tab_name);
+    
+    // 刷新元数据到磁盘
+    flush_meta();
 }
 
 /**
