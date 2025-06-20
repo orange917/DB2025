@@ -1,0 +1,50 @@
+| Tables |
+| Tables |
+| t1 |
+failure
+failure
+failure
+failure
+| Tables |
+| grade |
+| t1 |
+| Tables |
+| grade |
+failure
+| Tables |
+| grade |
+failure
+failure
+| Tables |
+| grade |
+failure
+failure
+failure
+failure
+failure
+failure
+| Tables |
+| grade |
+| Tables |
+| grade |
+| Tables |
+| grade |
+| name | id | score |
+| Data Structure | 1 | 90.500000 |
+| Data Structure | 2 | 95.000000 |
+| Calculus | 2 | 92.000000 |
+| Calculus | 1 | 88.500000 |
+failure
+| name | id | score |
+| Data Structure | 1 | 90.500000 |
+| Data Structure | 2 | 95.000000 |
+| Calculus | 2 | 92.000000 |
+| Calculus | 1 | 88.500000 |
+failure
+| score | name | id |
+| 90.500000 | Data Structure | 1 |
+| 95.000000 | Data Structure | 2 |
+| 92.000000 | Calculus | 2 |
+| 88.500000 | Calculus | 1 |
+| Tables |
+| grade |

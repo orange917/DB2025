@@ -49,3 +49,8 @@ failure
 failure
 failure
 | Tables |
+failure
+| Tables |
+| id |
+| name |
+| name | id | score |
