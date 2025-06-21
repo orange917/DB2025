@@ -115,3 +115,88 @@ failure
 | 90.500000 | Data Structure | 1 |
 | 95.000000 | Data Structure | 2 |
 | 92.000000 | Calculus | 2 |
+| Tables |
+failure
+| name | id | score |
+| Data Structure | 1 | 90.500000 |
+| Data Structure | 2 | 95.000000 |
+| Calculus | 2 | 92.000000 |
+| Calculus | 1 | 88.500000 |
+| score | name | id |
+| 90.500000 | Data Structure | 1 |
+| 95.000000 | Data Structure | 2 |
+| 92.000000 | Calculus | 2 |
+| id |
+| 1 |
+| 2 |
+| name |
+| Data Structure |
+| Calculus |
+| name | id | score |
+| Data Structure | 1 | 90.500000 |
+| name | id | score |
+| name | id | score |
+| Data Structure | 1 | 90.500000 |
+| Data Structure | 2 | 95.000000 |
+| Calculus | 2 | 92.000000 |
+| name | id | score |
+| Data Structure | 2 | 95.000000 |
+| Calculus | 2 | 92.000000 |
+| name | id | score |
+| Data Structure | 1 | 90.500000 |
+| Calculus | 1 | 88.500000 |
+failure
+| id |
+| 1 |
+| 2 |
+| 2 |
+| 1 |
+| name | id | score |
+| Data Structure | 1 | 90.500000 |
+| Calculus | 2 | 92.000000 |
+| Calculus | 1 | 88.500000 |
+| name | id | score |
+| Data Structure | 1 | 90.500000 |
+| Calculus | 1 | 88.500000 |
+| Tables |
+| grade |
+| name | id | score |
+| Data Structure | 1 | 90.500000 |
+| Data Structure | 2 | 95.000000 |
+| Calculus | 2 | 92.000000 |
+| Calculus | 1 | 88.500000 |
+| name | id | score |
+| Data Structure | 1 | 90.500000 |
+| Data Structure | 2 | 95.000000 |
+| Calculus | 2 | 92.000000 |
+| Calculus | 1 | 88.500000 |
+| Tables |
+| grade |
+| name | id | score |
+| Data Structure | 1 | 90.500000 |
+| Data Structure | 2 | 95.000000 |
+| Calculus | 2 | 92.000000 |
+| Calculus | 1 | 88.500000 |
+| name | id | score |
+| Data Structure | 2 | 95.000000 |
+| Calculus | 2 | 92.000000 |
+| Calculus | 1 | 88.500000 |
+| name | id | score |
+| Calculus | 2 | 92.000000 |
+| Calculus | 1 | 88.500000 |
+| name | id | score |
+| Calculus | 1 | 88.500000 |
+failure
+| name | id | score |
+| Data Structure | 1 | 90.500000 |
+| Data Structure | 2 | 95.000000 |
+| Calculus | 2 | 92.000000 |
+| Calculus | 1 | 88.500000 |
+| name | id | score |
+| Data Structure | 2 | 95.000000 |
+| Calculus | 2 | 92.000000 |
+| name | id | score |
+| Data Structure | 2 | 95.000000 |
+| Calculus | 2 | 92.000000 |
+| name | id | score |
+failure

@@ -16,13 +16,14 @@ See the Mulan PSL v2 for more details. */
 #include "system/sm.h"
 
 class DeleteExecutor : public AbstractExecutor {
-   private:
+    private:
     TabMeta tab_;                   // 表的元数据
     std::vector<Condition> conds_;  // delete的条件
     RmFileHandle *fh_;              // 表的数据文件句柄
     std::vector<Rid> rids_;         // 需要删除的记录的位置
     std::string tab_name_;          // 表名称
     SmManager *sm_manager_;
+    size_t current_index_;          // 当前处理的记录索引
 
    public:
     DeleteExecutor(SmManager *sm_manager, const std::string &tab_name, std::vector<Condition> conds,
@@ -34,9 +35,39 @@ class DeleteExecutor : public AbstractExecutor {
         conds_ = conds;
         rids_ = rids;
         context_ = context;
+        current_index_ = 0;
     }
 
     std::unique_ptr<RmRecord> Next() override {
+        while (current_index_ < rids_.size()) {
+            Rid rid = rids_[current_index_++];
+
+            // 读取需要删除的记录，以便后续删除索引
+            std::unique_ptr<RmRecord> record_ptr = fh_->get_record(rid, context_);
+            RmRecord &record = *record_ptr;
+
+            // 先删除记录的索引
+            for (size_t i = 0; i < tab_.indexes.size(); ++i) {
+                auto& index = tab_.indexes[i];
+                auto ih = sm_manager_->ihs_.at(sm_manager_->get_ix_manager()->get_index_name(tab_name_, index.cols)).get();
+
+                // 创建索引键
+                char* key = new char[index.col_tot_len];
+                int offset = 0;
+                for (size_t j = 0; j < index.col_num; ++j) {
+                    memcpy(key + offset, record.data + index.cols[j].offset, index.cols[j].len);
+                    offset += index.cols[j].len;
+                }
+
+                // 删除索引项
+                ih->delete_entry(key, context_->txn_);
+                delete[] key;
+            }
+
+            // 再删除记录本身
+            fh_->delete_record(rid, context_);
+        }
+
         return nullptr;
     }
 
