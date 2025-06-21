@@ -37,9 +37,9 @@ void RmScan::next() {
             rid_.slot_no = -1;
             return;
         }
-        
+
         RmPageHandle page_handle = file_handle_->fetch_page_handle(rid_.page_no);
-        
+
         if (page_handle.page == nullptr) {
             rid_.page_no++;
             rid_.slot_no = -1;
@@ -48,19 +48,19 @@ void RmScan::next() {
 
         // 从当前slot_no之后找到下一个已占用的位置
         int next_slot = Bitmap::next_bit(true, page_handle.bitmap, file_handle_->file_hdr_.num_records_per_page, rid_.slot_no);
-        
+
         // 如果在当前页中找到了有效记录
         if (next_slot < file_handle_->file_hdr_.num_records_per_page) {
             rid_.slot_no = next_slot;
             file_handle_->buffer_pool_manager_->unpin_page(page_handle.page->get_page_id(), false);
             return;
         }
-        
+
         // 如果当前页中没有找到记录，移动到下一页
         file_handle_->buffer_pool_manager_->unpin_page(page_handle.page->get_page_id(), false);
         rid_.page_no++;
         rid_.slot_no = -1;
-        
+
         // 检查是否已经到达文件末尾
         if (rid_.page_no >= file_handle_->file_hdr_.num_pages) {
             rid_.page_no = RM_NO_PAGE;  // 使用RM_NO_PAGE常量

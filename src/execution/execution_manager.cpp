@@ -100,28 +100,28 @@ void QlManager::run_cmd_utility(std::shared_ptr<Plan> plan, txn_id_t *txn_id, Co
                 // 显示开启一个事务
                 context->txn_->set_txn_mode(true);
                 break;
-            }  
+            }
             case T_Transaction_commit:
             {
                 context->txn_ = txn_mgr_->get_transaction(*txn_id);
                 txn_mgr_->commit(context->txn_, context->log_mgr_);
                 break;
-            }    
+            }
             case T_Transaction_rollback:
             {
                 context->txn_ = txn_mgr_->get_transaction(*txn_id);
                 txn_mgr_->abort(context->txn_, context->log_mgr_);
                 break;
-            }    
+            }
             case T_Transaction_abort:
             {
                 context->txn_ = txn_mgr_->get_transaction(*txn_id);
                 txn_mgr_->abort(context->txn_, context->log_mgr_);
                 break;
-            }     
+            }
             default:
                 throw InternalError("Unexpected field type");
-                break;                        
+                break;
         }
 
     } else if(auto x = std::dynamic_pointer_cast<SetKnobPlan>(plan)) {
@@ -144,79 +144,77 @@ void QlManager::run_cmd_utility(std::shared_ptr<Plan> plan, txn_id_t *txn_id, Co
 }
 
 // 执行select语句，select语句的输出除了需要返回客户端外，还需要写入output.txt文件中
-void QlManager::select_from(std::unique_ptr<AbstractExecutor> executorTreeRoot, std::vector<TabCol> sel_cols, Context *context) {
-    try {
-        std::vector<std::string> captions;
-        captions.reserve(sel_cols.size());
-        for (auto &sel_col : sel_cols) {
-            captions.push_back(sel_col.col_name);
+void QlManager::select_from(std::unique_ptr<AbstractExecutor> executorTreeRoot, std::vector<TabCol> sel_cols, 
+                            Context *context) {
+    std::vector<std::string> captions;
+    captions.reserve(sel_cols.size());
+    for (auto &sel_col : sel_cols) {
+        captions.push_back(sel_col.col_name);
+    }
+
+    // Print header into buffer
+    RecordPrinter rec_printer(sel_cols.size());
+    rec_printer.print_separator(context);
+    rec_printer.print_record(captions, context);
+    rec_printer.print_separator(context);
+    // print header into file
+    std::fstream outfile;
+    outfile.open("output.txt", std::ios::out | std::ios::app);
+    outfile << "|";
+    for(int i = 0; i < captions.size(); ++i) {
+        outfile << " " << captions[i] << " |";
+    }
+    outfile << "\n";
+
+    // Print records
+    size_t num_rec = 0;
+    // 执行query_plan
+    // 遍历查询结果中的每一行记录
+    for (executorTreeRoot->beginTuple(); !executorTreeRoot->is_end(); executorTreeRoot->nextTuple()) {
+        // 获取当前元组
+        auto Tuple = executorTreeRoot->Next();
+        // 用于存储每一列转换后的字符串值
+        std::vector<std::string> columns;
+        // 遍历所有列，将每列的数据转换为字符串格式
+        for (auto &col : executorTreeRoot->cols()) {
+            std::string col_str;
+            // 计算当前列在元组中的实际数据位置
+            if(!Tuple->data)
+            {
+                std::cout << col.name << "Tuple data is null!" << std::endl;
+            }
+            char *rec_buf = Tuple->data + col.offset;
+            // 根据不同的数据类型进行相应的转换
+            if (col.type == TYPE_INT) {
+                // 整型转为字符串
+                col_str = std::to_string(*(int *)rec_buf);
+            } else if (col.type == TYPE_FLOAT) {
+                // 浮点型转为字符串
+                col_str = std::to_string(*(float *)rec_buf);
+            } else if (col.type == TYPE_STRING) {
+                // 字符串类型，注意处理字符串长度
+                col_str = std::string((char *)rec_buf, col.len);
+                // 移除尾部的空字符，确保字符串长度正确
+                col_str.resize(strlen(col_str.c_str()));
+            }
+            // 将转换后的字符串添加到结果集中
+            columns.push_back(col_str);
         }
-
-        // Print header into buffer
-        RecordPrinter rec_printer(sel_cols.size());
-        rec_printer.print_separator(context);
-        rec_printer.print_record(captions, context);
-        rec_printer.print_separator(context);
-
-        // print header into file
-        std::fstream outfile;
-        outfile.open("output.txt", std::ios::out | std::ios::app);
+        // print record into buffer
+        rec_printer.print_record(columns, context);
+        // print record into file
         outfile << "|";
-        for(int i = 0; i < captions.size(); ++i) {
-            outfile << " " << captions[i] << " |";
+        for(int i = 0; i < columns.size(); ++i) {
+            outfile << " " << columns[i] << " |";
         }
         outfile << "\n";
-
-        // Print records
-        size_t num_rec = 0;
-        executorTreeRoot->beginTuple();
-        
-        while (!executorTreeRoot->is_end()) {
-            auto tuple = executorTreeRoot->Next();
-            if (!tuple) {
-                executorTreeRoot->nextTuple();
-                continue;
-            }
-
-            std::vector<std::string> columns;
-            for (auto &col : executorTreeRoot->cols()) {
-                std::string col_str;
-                char *rec_buf = tuple->data + col.offset;
-                if (col.type == TYPE_INT) {
-                    col_str = std::to_string(*(int *)rec_buf);
-                } else if (col.type == TYPE_FLOAT) {
-                    col_str = std::to_string(*(float *)rec_buf);
-                } else if (col.type == TYPE_STRING) {
-                    col_str = std::string((char *)rec_buf, col.len);
-                    col_str.resize(strlen(col_str.c_str()));
-                }
-                columns.push_back(col_str);
-            }
-
-            // print record into buffer
-            rec_printer.print_record(columns, context);
-            // print record into file
-            outfile << "|";
-            for(int i = 0; i < columns.size(); ++i) {
-                outfile << " " << columns[i] << " |";
-            }
-            outfile << "\n";
-            num_rec++;
-            
-            executorTreeRoot->nextTuple();
-        }
-        
-        outfile.close();
-        // Print footer into buffer
-        rec_printer.print_separator(context);
-        // Print record count into buffer
-        std::string footer = "Total " + std::to_string(num_rec) + " records";
-        rec_printer.print_record(std::vector<std::string>{footer}, context);
-        
-    } catch (const std::exception& e) {
-        std::cerr << "Error in select_from: " << e.what() << std::endl;
-        throw;
+        num_rec++;
     }
+    outfile.close();
+    // Print footer into buffer
+    rec_printer.print_separator(context);
+    // Print record count into buffer
+    RecordPrinter::print_record_count(num_rec, context);
 }
 
 // 执行DML语句
