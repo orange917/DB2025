@@ -335,6 +335,8 @@ void SmManager::drop_table(const std::string& tab_name, Context* context) {
         }
     }
 
+    // 删除表文件
+    rm_manager_->destroy_file(tab_name);
     // 删除tabs
     db_.tabs_.erase(tab_name);
     
