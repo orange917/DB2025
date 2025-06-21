@@ -23,11 +23,18 @@ class ProjectionExecutor : public AbstractExecutor {
     std::vector<size_t> sel_idxs_;                  
 
    public:
-    ProjectionExecutor(std::unique_ptr<AbstractExecutor> prev, const std::vector<TabCol> &sel_cols) {
+   ProjectionExecutor(std::unique_ptr<AbstractExecutor> prev, const std::vector<TabCol> &sel_cols) {
+        if (!prev) {
+            throw InternalError("ProjectionExecutor: prev is null");
+        }
         prev_ = std::move(prev);
 
-        size_t curr_offset = 0;
         auto &prev_cols = prev_->cols();
+        if (prev_cols.empty()) {
+            throw InternalError("ProjectionExecutor: prev has no columns");
+        }
+
+        size_t curr_offset = 0;
         for (auto &sel_col : sel_cols) {
             auto pos = get_col(prev_cols, sel_col);
             sel_idxs_.push_back(pos - prev_cols.begin());
@@ -39,12 +46,54 @@ class ProjectionExecutor : public AbstractExecutor {
         len_ = curr_offset;
     }
 
-    void beginTuple() override {}
-
-    void nextTuple() override {}
-
+    void beginTuple() override {
+        // 初始化前一个执行器
+        prev_->beginTuple();
+    }
+    
+    void nextTuple() override {
+        // 移动前一个执行器到下一条记录
+        prev_->nextTuple();
+    }
+    
+    bool is_end() const override {
+        // 检查前一个执行器是否结束
+        return prev_->is_end();
+    }
+    
     std::unique_ptr<RmRecord> Next() override {
-        return nullptr;
+        // 如果前一个执行器已经结束，返回空
+        if (prev_->is_end()) {
+            return nullptr;
+        }
+        
+        // 从前一个执行器获取记录
+        auto prev_record = prev_->Next();
+        if (!prev_record) {
+            return nullptr;
+        }
+        
+        // 创建一个新记录，只包含要投影的列
+        auto proj_record = std::make_unique<RmRecord>(len_);
+        
+        // 将选定的列从前一个记录拷贝到新记录中
+        auto &prev_cols = prev_->cols();
+        for (size_t i = 0; i < sel_idxs_.size(); i++) {
+            size_t prev_idx = sel_idxs_[i];
+            const ColMeta &prev_col = prev_cols[prev_idx];
+            const ColMeta &proj_col = cols_[i];
+            
+            // 从前一个记录中拷贝字段数据到新记录
+            memcpy(proj_record->data + proj_col.offset,
+                   prev_record->data + prev_col.offset,
+                   prev_col.len);
+        }
+        
+        return proj_record;
+    }
+
+    const std::vector<ColMeta> &cols() const override {
+        return cols_;
     }
 
     Rid &rid() override { return _abstract_rid; }

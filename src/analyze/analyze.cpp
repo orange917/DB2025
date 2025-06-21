@@ -9,6 +9,7 @@ MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
 See the Mulan PSL v2 for more details. */
 
 #include "analyze.h"
+#include "defs.h"
 
 /**
  * @description: 分析器，进行语义分析和查询重写，需要检查不符合语义规定的部分
@@ -22,12 +23,14 @@ std::shared_ptr<Query> Analyze::do_analyze(std::shared_ptr<ast::TreeNode> parse)
     {
         // 处理表名
         query->tables = std::move(x->tabs);
-        /** TODO: 检查表是否存在 */
-        for (auto &tab_name : query->tables) {
-            if (!sm_manager_->db_.is_table(tab_name)) {
+        /** 检查表是否存在 */
+        for(auto &tab_name : query->tables)
+        {
+            if(!sm_manager_->db_.is_table(tab_name))
+            {
                 throw TableNotFoundError(tab_name);
             }
-    }
+        }
         // 处理target list，再target list中添加上表名，例如 a.id
         for (auto &sv_sel_col : x->cols) {
             TabCol sel_col = {.tab_name = sv_sel_col->tab_name, .col_name = sv_sel_col->col_name};
@@ -51,47 +54,8 @@ std::shared_ptr<Query> Analyze::do_analyze(std::shared_ptr<ast::TreeNode> parse)
         //处理where条件
         get_clause(x->conds, query->conds);
         check_clause(query->tables, query->conds);
-        
-
     } else if (auto x = std::dynamic_pointer_cast<ast::UpdateStmt>(parse)) {
         /** TODO: */
-        // 检查表是否存在
-        if (!sm_manager_->db_.is_table(x->tab_name)) {
-            throw TableNotFoundError(x->tab_name);
-        }
-        // 处理set子句
-    for (auto &update : x->set_clauses) {
-        SetClause set_clause;
-        // 设置要更新的列
-        set_clause.lhs = {.tab_name = x->tab_name, .col_name = update->col_name};
-        
-        // 根据AST中的值类型设置Value
-        if (auto val_node = std::dynamic_pointer_cast<ast::Value>(update->val)) {
-            // 如果是常量值
-            set_clause.rhs = convert_sv_value(val_node);
-        } else if (auto col_node = std::dynamic_pointer_cast<ast::Col>(update->val)) {
-            // 如果是列引用
-            std::vector<ColMeta> all_cols;
-            get_all_cols({x->tab_name}, all_cols);
-            TabCol target = {.tab_name = col_node->tab_name, .col_name = col_node->col_name};
-            target = check_column(all_cols, target); // 验证列是否存在
-            
-            // 获取列的类型并创建相应的Value
-            for (auto &col : all_cols) {
-                if (col.tab_name == target.tab_name && col.name == target.col_name) {
-                    Value col_val;
-                    col_val.type = col.type;
-                    set_clause.rhs = col_val;
-                    break;
-                }
-            }
-        }
-        query->set_clauses.push_back(set_clause);
-    }
-
-    // 处理where条件
-    get_clause(x->conds, query->conds);
-    check_clause({x->tab_name}, query->conds);
 
     } else if (auto x = std::dynamic_pointer_cast<ast::DeleteStmt>(parse)) {
         //处理where条件
@@ -128,18 +92,15 @@ TabCol Analyze::check_column(const std::vector<ColMeta> &all_cols, TabCol target
         target.tab_name = tab_name;
     } else {
         /** TODO: Make sure target column exists */
-        bool found = false;
-        for (auto &col : all_cols) {
-            if (col.tab_name == target.tab_name && col.name == target.col_name) {
-                found = true;
-                break;
+        if(sm_manager_->db_.is_table(target.tab_name)) {
+            auto &tab = sm_manager_->db_.get_table(target.tab_name);
+            if (!tab.is_col(target.col_name)) {
+                throw ColumnNotFoundError(target.col_name);
             }
-        }
-        if (!found) {
-            throw ColumnNotFoundError(target.col_name);
-        }
-        
+        } else {
+            throw TableNotFoundError(target.tab_name);
     }
+}
     return target;
 }
 
@@ -187,11 +148,23 @@ void Analyze::check_clause(const std::vector<std::string> &tab_names, std::vecto
             cond.rhs_val.init_raw(lhs_col->len);
             rhs_type = cond.rhs_val.type;
         } else {
+            // 列和列比较的情况
             TabMeta &rhs_tab = sm_manager_->db_.get_table(cond.rhs_col.tab_name);
             auto rhs_col = rhs_tab.get_col(cond.rhs_col.col_name);
             rhs_type = rhs_col->type;
         }
         if (lhs_type != rhs_type) {
+            if(lhs_type == TYPE_FLOAT && rhs_type == TYPE_INT) {
+                float float_val = static_cast<float>(cond.rhs_val.int_val);
+                cond.rhs_val.set_float(float_val);
+                rhs_type = TYPE_FLOAT;
+                continue;
+            } else if(lhs_type == TYPE_INT && rhs_type == TYPE_FLOAT) {
+                int int_val = static_cast<int>(cond.rhs_val.float_val);
+                cond.rhs_val.set_int(int_val);
+                rhs_type = TYPE_INT;
+                continue;
+            }
             throw IncompatibleTypeError(coltype2str(lhs_type), coltype2str(rhs_type));
         }
     }

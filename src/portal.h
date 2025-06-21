@@ -45,6 +45,7 @@ struct PortalStmt {
             tag(tag_), sel_cols(std::move(sel_cols_)), root(std::move(root_)), plan(std::move(plan_)) {}
 };
 
+
 class Portal
 {
    private:

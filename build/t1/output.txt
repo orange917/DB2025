@@ -48,3 +48,12 @@ failure
 | 88.500000 | Calculus | 1 |
 | Tables |
 | grade |
+| Tables |
+| grade |
+| name | id | score |
+| Data Structure | 1 | 90.500000 |
+| Data Structure | 2 | 95.000000 |
+| Calculus | 2 | 92.000000 |
+| Calculus | 1 | 88.500000 |
+| Tables |
+| grade |

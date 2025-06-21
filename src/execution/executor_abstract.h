@@ -26,7 +26,7 @@ class AbstractExecutor {
     virtual size_t tupleLen() const { return 0; };
 
     virtual const std::vector<ColMeta> &cols() const {
-        static const std::vector<ColMeta> empty_cols;
+        static std::vector<ColMeta> empty_cols;  // 返回一个静态空向量而不是空指针
         return empty_cols;
     };
 
