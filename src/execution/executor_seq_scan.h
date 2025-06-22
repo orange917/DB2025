@@ -16,10 +16,13 @@ See the Mulan PSL v2 for more details. */
 #include "executor_abstract.h"
 #include "index/ix.h"
 #include "system/sm.h"
+#include <cstring>
 #include <memory>
+#include <cmath>
 
 class SeqScanExecutor : public AbstractExecutor {
    private:
+    static constexpr float FLT_EPSILON = 1e-6; //容差
     std::string tab_name_;              // 表的名称
     std::vector<Condition> conds_;      // scan的条件
     RmFileHandle *fh_;                  // 表的数据文件句柄
@@ -104,46 +107,38 @@ class SeqScanExecutor : public AbstractExecutor {
         // 实现条件判断逻辑
         // 获取左操作数值
         auto lhs_col = get_col(cols, cond.lhs_col);
-        char *lhs_value = rec->data + lhs_col->offset;
+        const char *lhs_value = rec->data + lhs_col->offset;
 
-        // 根据右操作数是值还是列，调用不同的比较函数
+        // 根据右操作数是值还是列，进行处理
         if (cond.is_rhs_val) {
             // 右操作数是字面值
-            return compare_values(lhs_col->type, lhs_value, cond.rhs_val, cond.op);
+            // 对于浮点数字面值，特殊处理，因为它的值已预先解析
+            if (lhs_col->type == TYPE_FLOAT) {
+                float lhs_val = *(float*)lhs_value;
+                float rhs_val = cond.rhs_val.float_val;
+                switch (cond.op) {
+                    case OP_EQ: return std::fabs(lhs_val - rhs_val) <= FLT_EPSILON;
+                    case OP_NE: return std::fabs(lhs_val - rhs_val) > FLT_EPSILON;
+                    case OP_LT: return rhs_val - lhs_val > FLT_EPSILON;
+                    case OP_GT: return lhs_val - rhs_val > FLT_EPSILON;
+                    case OP_LE: return lhs_val - rhs_val <= FLT_EPSILON;
+                    case OP_GE: return rhs_val - lhs_val <= FLT_EPSILON;
+                    default: return false;
+                }
+            }
+            // 对于其他类型的字面值，使用通用的比较函数
+            return compare_values(lhs_col->type, lhs_value, cond.rhs_val.raw->data, cond.op, lhs_col->len);
         } else {
             // 右操作数也是列
             auto rhs_col = get_col(cols, cond.rhs_col);
-            char *rhs_value = rec->data + rhs_col->offset;
-            return compare_values(lhs_col->type, lhs_value, rhs_value, cond.op);
+            const char *rhs_value = rec->data + rhs_col->offset;
+            // 注意：这里假设两个列的长度相同
+            return compare_values(lhs_col->type, lhs_value, rhs_value, cond.op, lhs_col->len);
         }
     }
-    
-
-     // 比较列与字面值 (overload for value comparison)
-     bool compare_values(ColType type, const char* lhs, const Value& rhs, CompOp op) {
-        // 对于浮点数类型，直接使用解析好的浮点值进行比较
-        if (type == TYPE_FLOAT) {
-            float lhs_val = *(float*)lhs;
-            float rhs_val = rhs.float_val;
-            constexpr float EPSILON = 1e-6;
-
-            switch (op) {
-                case OP_EQ: return std::abs(lhs_val - rhs_val) < EPSILON;
-                case OP_NE: return std::abs(lhs_val - rhs_val) > EPSILON;
-                case OP_LT: return lhs_val < rhs_val;
-                case OP_GT: return lhs_val > rhs_val;
-                case OP_LE: return lhs_val <= rhs_val;
-                case OP_GE: return lhs_val >= rhs_val;
-                default: return false;
-            }
-        }
-        // 对于其他类型，调用比较两个裸指针的函数
-        return compare_values(type, lhs, rhs.raw->data, op);
-    }
-
 
     // 比较两个值是否符合指定的比较操作符
-    bool compare_values(ColType type, const char* lhs, const char* rhs, CompOp op) {
+    bool compare_values(ColType type, const char* lhs, const char* rhs, CompOp op, int len) {
         switch (type) {
             case TYPE_INT: {
                 int lhs_val = *(int*)lhs;
@@ -159,7 +154,7 @@ class SeqScanExecutor : public AbstractExecutor {
                 }
             }
             case TYPE_STRING: {
-                int cmp_result = std::strcmp(lhs, rhs);
+                int cmp_result = memcmp(lhs, rhs, len);
                 switch (op) {
                     case OP_EQ: return cmp_result == 0;
                     case OP_NE: return cmp_result != 0;

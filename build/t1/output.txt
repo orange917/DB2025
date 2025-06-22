@@ -13,115 +13,1100 @@
 | Data Structure | 2 | 95.000000 |
 | Calculus | 2 | 92.000000 |
 | Calculus | 1 | 88.500000 |
-| id | t_name | d_name | id |
-| 0 |  |  | 0 |
-| 324575120 | ‚s | êüX‚ | 115 |
-| -1837450953 | ‡s | 7πzí‡ | 115 |
-| -1837450953 | ‡s | 7πzí‡ | 115 |
-| -1837450985 | ‡s | πzí‡ | 115 |
-| -1275477913 | Ú[ | g¿˘≥Ú | 91 |
-| id | t_name | d_name |
-| -1409285968 | Ás | ∞ |
-| 324571328 | ‚s | ¿êX‚ |
-| id | t_name | d_name |
-| -1409285984 | Ás | † |
-| -1837434985 | ‡s | ó˜zí‡ |
-| id | t_name | d_name | id |
-| 0 |  |  | 0 |
-| 2113859206 | Xy | ÜÓ˛}X | 121 |
-| 2113859174 | Xy | fÓ˛}X | 121 |
-| 2113859302 | Xy | ÊÓ˛}X | 121 |
-| 2113859238 | Xy | ¶Ó˛}X | 121 |
-| 2113859014 | Xy | ∆Ì˛}X | 121 |
-| id | t_name | d_name |
-| 2113859046 | Xy | ÊÌ˛}X |
-| 2113844966 | Xy | Ê∂˛}X |
-| id | t_name | d_name |
-| -402653024 | _y | † |
-| 2113859110 | Xy | &Ó˛}X |
-| id | t_name | d_name | id |
-| 0 |  |  | 0 |
-| -550457722 | 4} | ÜÆ0ﬂ4 | 125 |
-| -550457754 | 4} | fÆ0ﬂ4 | 125 |
-| -550457626 | 4} | ÊÆ0ﬂ4 | 125 |
-| -550457914 | 4} | ∆≠0ﬂ4 | 125 |
-| -550457786 | 4} | FÆ0ﬂ4 | 125 |
-| id | t_name | d_name |
-| -751779836 |  | ¿0” |
-| -550439194 | 4} | Êˆ0ﬂ4 |
-| id | t_name | d_name | id |
-| 0 |  |  | 0 |
-| 1340976774 | 9y | ÜÆÌO9 | 121 |
-| 1340976742 | 9y | fÆÌO9 | 121 |
-| 1340976870 | 9y | ÊÆÌO9 | 121 |
-| 1340976582 | 9y | ∆≠ÌO9 | 121 |
-| 1340976710 | 9y | FÆÌO9 | 121 |
-| id | t_name | d_name |
-| -1813135356 |  | ¿Ìì |
-| 1340995302 | 9y | ÊˆÌO9 |
-| id | t_name | d_name |
-| 1340976772 | 9y | ÑÆÌO9 |
-| 1340976870 | 9y | ÊÆÌO9 |
-| id | t_name | d_name | id |
-| 0 |  |  | 0 |
-| -1847726458 | öt | ÜÓ›ëö | 116 |
-| 2045960326 | -c | Ü‡Úy- | 99 |
-| id | t_name | d_name |
-| -1847726362 | öt | ÊÓ›ëö |
-| id | t_name | d_name | id |
-| 0 |  |  | 0 |
-| -1710854522 | ß | Ünöß | 127 |
-| 60162182 | ob | Ü | 98 |
-| id | t_name | d_name |
-| -1710854426 | ß | Ênöß |
-| id | t_name | d_name | id |
-| 0 |  |  | 0 |
-| -1359974778 | Ëz | ÜnÆË | 122 |
-| -2063900538 | œ] | Ü`˚Ñœ | 93 |
-| id | t_name | d_name | id |
-| 0 |  |  | 0 |
-| 536768134 | ¯ | Ün˛¯ | 127 |
-| -1432756090 | RU | Ü‡ô™R | 85 |
-| id | t_name | d_name |
-| 536768230 | ¯ | Ên˛¯ |
-| id | t_name | d_name | id |
-| 1 | aaa | 23456 | 2 |
-| 2 | baa | 23456 | 2 |
-| 3 | bba | 23456 | 2 |
-| id | t_name | d_name | id |
-| 1 | aaa | 23456 | 2 |
-| 2 | baa | 23456 | 2 |
-| 3 | bba | 23456 | 2 |
-| id | t_name |
-| 1 | aaa |
-| 2 | baa |
-| 3 | bba |
-| d_name | id |
-| 12345 | 1 |
-| 23456 | 2 |
-| id | t_name | d_name | id |
-| 1 | aaa | 23456 | 2 |
-| 2 | baa | 23456 | 2 |
-| 3 | bba | 23456 | 2 |
-| id | t_name | d_name |
-| 2 | baa | 23456 |
-| id | t_name | d_name |
-| 2 | baa | 23456 |
-| id | t_name | d_name | id |
-| 1 | aaa | 23456 | 2 |
-| 2 | baa | 12345 | 1 |
-| 2 | baa | 23456 | 2 |
-| 3 | bba | 12345 | 1 |
-| 3 | bba | 23456 | 2 |
-| id | t_name | d_name |
-| 2 | baa | 23456 |
-| id | t_name | d_name |
-| 2 | baa | 23456 |
-| id | t_name | d_name |
-| id | t_name | d_name |
-| id | t_name | d_name |
-| 1 | aaa | 12345 |
-| 2 | baa | 23456 |
-| id | t_name | d_name |
-| 1 | aaa | 12345 |
-| 2 | baa | 23456 |
+
+| name | id | score |
+| Data Structure | 1 | 90.500000 |
+| Data Structure | 2 | 95.000000 |
+| Calculus | 2 | 92.000000 |
+| Calculus | 1 | 88.500000 |
+| score | name | id |
+| 90.500000 | Data Structure | 1 |
+| 95.000000 | Data Structure | 2 |
+| 92.000000 | Calculus | 2 |
+| id |
+| 1 |
+| 2 |
+| name |
+| Data Structure |
+| Calculus |
+| Tables |
+| d |
+| grade |
+| t |
+| t1 |
+| t2 |
+| name | id | score |
+| Data Structure | 1 | 90.500000 |
+| name | id | score |
+failure
+| student_id | course | score |
+| 1 | Math | 95.500000 |
+| 2 | Physics | 88.000000 |
+| 3 | Chemistry | 72.500000 |
+| 4 | Math | 88.000000 |
+| 5 | English | 60.000000 |
+| 6 | History | 99.900002 |
+| 7 | Art | -10.000000 |
+| 8 | Physics | 95.500000 |
+| 9 | Music | 0.000000 |
+| 10 | Chemistry | 72.500000 |
+| 11 | Computer | 95.500000 |
+| 12 | Biology | 85.000000 |
+| 12 | Biology | 85.000000 |
+| student_id | course | score |
+| 5 | English | 60.000000 |
+| student_id | course | score |
+| 5 | English | 60.000000 |
+| student_id | course | score |
+| 1 | Math | 95.500000 |
+| 2 | Physics | 88.000000 |
+| student_id | course | score |
+| 10 | Chemistry | 72.500000 |
+| 11 | Computer | 95.500000 |
+| 12 | Biology | 85.000000 |
+| 12 | Biology | 85.000000 |
+| student_id | course | score |
+| 1 | Math | 95.500000 |
+| 2 | Physics | 88.000000 |
+| 3 | Chemistry | 72.500000 |
+| student_id | course | score |
+| 9 | Music | 0.000000 |
+| 10 | Chemistry | 72.500000 |
+| 11 | Computer | 95.500000 |
+| 12 | Biology | 85.000000 |
+| 12 | Biology | 85.000000 |
+| student_id | course | score |
+| 1 | Math | 95.500000 |
+| 8 | Physics | 95.500000 |
+| 11 | Computer | 95.500000 |
+| student_id | course | score |
+| 1 | Math | 95.500000 |
+| 6 | History | 99.900002 |
+| 8 | Physics | 95.500000 |
+| 11 | Computer | 95.500000 |
+| student_id | course | score |
+| 5 | English | 60.000000 |
+| 7 | Art | -10.000000 |
+| 9 | Music | 0.000000 |
+| student_id | course | score |
+| 1 | Math | 95.500000 |
+| 2 | Physics | 88.000000 |
+| 4 | Math | 88.000000 |
+| 6 | History | 99.900002 |
+| 8 | Physics | 95.500000 |
+| 11 | Computer | 95.500000 |
+| student_id | course | score |
+| 1 | Math | 95.500000 |
+| 4 | Math | 88.000000 |
+| student_id | course | score |
+| 7 | Art | -10.000000 |
+| 12 | Biology | 85.000000 |
+| 12 | Biology | 85.000000 |
+| student_id | course | score |
+| 2 | Physics | 88.000000 |
+| 8 | Physics | 95.500000 |
+| student_id | course | score |
+| 2 | Physics | 88.000000 |
+| student_id | course | score |
+| 7 | Art | -10.000000 |
+| 9 | Music | 0.000000 |
+| 10 | Chemistry | 72.500000 |
+| student_id | course | score |
+| student_id | course | score |
+| Tables |
+| d |
+| grade |
+| t |
+| t1 |
+| t2 |
+| student_id | course | score |
+| 1 | Math | 95.500000 |
+| student_id | course | score |
+| 1 | Math | 95.500000 |
+| 2 | Physics | 88.000000 |
+| 3 | Chemistry | 72.500000 |
+| 4 | Math | 88.000000 |
+| 5 | English | 60.000000 |
+| 6 | History | 99.900002 |
+| 7 | Art | -10.000000 |
+| 8 | Physics | 95.500000 |
+| 9 | Music | 0.000000 |
+| 10 | Chemistry | 72.500000 |
+| 11 | Computer | 95.500000 |
+| 12 | Biology | 85.000000 |
+| 12 | Biology | 85.000000 |
+| student_id | course | score |
+| 5 | English | 60.000000 |
+| student_id | course | score |
+| 5 | English | 60.000000 |
+| student_id | course | score |
+| 1 | Math | 95.500000 |
+| 2 | Physics | 88.000000 |
+| student_id | course | score |
+| 10 | Chemistry | 72.500000 |
+| 11 | Computer | 95.500000 |
+| 12 | Biology | 85.000000 |
+| 12 | Biology | 85.000000 |
+| student_id | course | score |
+| 1 | Math | 95.500000 |
+| 2 | Physics | 88.000000 |
+| 3 | Chemistry | 72.500000 |
+| student_id | course | score |
+| 9 | Music | 0.000000 |
+| 10 | Chemistry | 72.500000 |
+| 11 | Computer | 95.500000 |
+| 12 | Biology | 85.000000 |
+| 12 | Biology | 85.000000 |
+| student_id | course | score |
+| 1 | Math | 95.500000 |
+| 8 | Physics | 95.500000 |
+| 11 | Computer | 95.500000 |
+| student_id | course | score |
+| 1 | Math | 95.500000 |
+| 6 | History | 99.900002 |
+| 8 | Physics | 95.500000 |
+| 11 | Computer | 95.500000 |
+| student_id | course | score |
+| 5 | English | 60.000000 |
+| 7 | Art | -10.000000 |
+| 9 | Music | 0.000000 |
+| student_id | course | score |
+| 1 | Math | 95.500000 |
+| 2 | Physics | 88.000000 |
+| 4 | Math | 88.000000 |
+| 6 | History | 99.900002 |
+| 8 | Physics | 95.500000 |
+| 11 | Computer | 95.500000 |
+| student_id | course | score |
+| 1 | Math | 95.500000 |
+| 4 | Math | 88.000000 |
+| student_id | course | score |
+| 7 | Art | -10.000000 |
+| 12 | Biology | 85.000000 |
+| 12 | Biology | 85.000000 |
+| student_id | course | score |
+| 2 | Physics | 88.000000 |
+| 8 | Physics | 95.500000 |
+| student_id | course | score |
+| 2 | Physics | 88.000000 |
+| student_id | course | score |
+| 7 | Art | -10.000000 |
+| 9 | Music | 0.000000 |
+| 10 | Chemistry | 72.500000 |
+| student_id | course | score |
+| student_id | course | score |
+failure
+failure
+| student_id | course | score |
+| 1 | Math | 95.500000 |
+| 2 | Physics | 88.000000 |
+| 3 | Chemistry | 72.500000 |
+| 4 | Math | 88.000000 |
+| 5 | English | 60.000000 |
+| 6 | History | 99.900002 |
+| 7 | Art | -10.000000 |
+| 8 | Physics | 95.500000 |
+| 9 | Music | 0.000000 |
+| 10 | Chemistry | 72.500000 |
+| 11 | Computer | 95.500000 |
+| 12 | Biology | 85.000000 |
+| 13 | Art | 90.000000 |
+| 14 | Arts | 91.000000 |
+| student_id | course | score |
+| 5 | English | 60.000000 |
+| student_id | course | score |
+| 5 | English | 60.000000 |
+| student_id | course | score |
+| 1 | Math | 95.500000 |
+| 2 | Physics | 88.000000 |
+| student_id | course | score |
+| 10 | Chemistry | 72.500000 |
+| 11 | Computer | 95.500000 |
+| 12 | Biology | 85.000000 |
+| 13 | Art | 90.000000 |
+| 14 | Arts | 91.000000 |
+| student_id | course | score |
+| 1 | Math | 95.500000 |
+| 2 | Physics | 88.000000 |
+| 3 | Chemistry | 72.500000 |
+| student_id | course | score |
+| 9 | Music | 0.000000 |
+| 10 | Chemistry | 72.500000 |
+| 11 | Computer | 95.500000 |
+| 12 | Biology | 85.000000 |
+| 13 | Art | 90.000000 |
+| 14 | Arts | 91.000000 |
+| student_id | course | score |
+| 1 | Math | 95.500000 |
+| 8 | Physics | 95.500000 |
+| 11 | Computer | 95.500000 |
+| student_id | course | score |
+| 1 | Math | 95.500000 |
+| 6 | History | 99.900002 |
+| 8 | Physics | 95.500000 |
+| 11 | Computer | 95.500000 |
+| 14 | Arts | 91.000000 |
+| student_id | course | score |
+| 5 | English | 60.000000 |
+| 7 | Art | -10.000000 |
+| 9 | Music | 0.000000 |
+| student_id | course | score |
+| 1 | Math | 95.500000 |
+| 2 | Physics | 88.000000 |
+| 4 | Math | 88.000000 |
+| 6 | History | 99.900002 |
+| 8 | Physics | 95.500000 |
+| 11 | Computer | 95.500000 |
+| 13 | Art | 90.000000 |
+| 14 | Arts | 91.000000 |
+| student_id | course | score |
+| 1 | Math | 95.500000 |
+| 4 | Math | 88.000000 |
+| student_id | course | score |
+| 7 | Art | -10.000000 |
+| 13 | Art | 90.000000 |
+| student_id | course | score |
+| 2 | Physics | 88.000000 |
+| 8 | Physics | 95.500000 |
+| student_id | course | score |
+| 2 | Physics | 88.000000 |
+| student_id | course | score |
+| 7 | Art | -10.000000 |
+| 9 | Music | 0.000000 |
+| student_id | course | score |
+| student_id | course | score |
+| student_id | score |
+| 1 | 95.500000 |
+| 2 | 88.000000 |
+| 3 | 72.500000 |
+| 4 | 88.000000 |
+| 5 | 60.000000 |
+| 6 | 99.900002 |
+| 7 | -10.000000 |
+| 8 | 95.500000 |
+| 9 | 0.000000 |
+| 10 | 72.500000 |
+| 11 | 95.500000 |
+| 12 | 85.000000 |
+| 13 | 90.000000 |
+| 14 | 91.000000 |
+| course |
+| Physics |
+| Math |
+| course | score |
+| Chemistry | 72.500000 |
+| Computer | 95.500000 |
+| Biology | 85.000000 |
+| Art | 90.000000 |
+| Arts | 91.000000 |
+| id | val1 | val2 | name1 | name2 |
+| 1 | 10 | 10 | abc | abc |
+| 4 | 50 | 50 | test | test |
+| id | val1 | val2 | name1 | name2 |
+| 3 | 40 | 30 | hello | world |
+| id | val1 | val2 | name1 | name2 |
+| 1 | 10 | 10 | abc | abc |
+| 4 | 50 | 50 | test | test |
+| id | val1 | val2 | name1 | name2 |
+| 2 | 20 | 30 | def | xyz |
+| 3 | 40 | 30 | hello | world |
+failure
+failure
+failure
+failure
+| student_id | course | score |
+| 1 | Math | 95.500000 |
+| 2 | Physics | 88.000000 |
+| 3 | Chemistry | 72.500000 |
+| 4 | Math | 88.000000 |
+| 5 | English | 60.000000 |
+| 6 | History | 99.900002 |
+| 7 | Art | -10.000000 |
+| 8 | Physics | 95.500000 |
+| 9 | Music | 0.000000 |
+| 10 | Chemistry | 72.500000 |
+| 11 | Computer | 95.500000 |
+| 12 | Biology | 85.000000 |
+| 13 | Art | 90.000000 |
+| 14 | Arts | 91.000000 |
+| student_id | course | score |
+| 5 | English | 60.000000 |
+| student_id | course | score |
+| 5 | English | 60.000000 |
+| student_id | course | score |
+| 1 | Math | 95.500000 |
+| 2 | Physics | 88.000000 |
+| student_id | course | score |
+| 10 | Chemistry | 72.500000 |
+| 11 | Computer | 95.500000 |
+| 12 | Biology | 85.000000 |
+| 13 | Art | 90.000000 |
+| 14 | Arts | 91.000000 |
+| student_id | course | score |
+| 1 | Math | 95.500000 |
+| 2 | Physics | 88.000000 |
+| 3 | Chemistry | 72.500000 |
+| student_id | course | score |
+| 9 | Music | 0.000000 |
+| 10 | Chemistry | 72.500000 |
+| 11 | Computer | 95.500000 |
+| 12 | Biology | 85.000000 |
+| 13 | Art | 90.000000 |
+| 14 | Arts | 91.000000 |
+| student_id | course | score |
+| 1 | Math | 95.500000 |
+| 8 | Physics | 95.500000 |
+| 11 | Computer | 95.500000 |
+| student_id | course | score |
+| 1 | Math | 95.500000 |
+| 6 | History | 99.900002 |
+| 8 | Physics | 95.500000 |
+| 11 | Computer | 95.500000 |
+| 14 | Arts | 91.000000 |
+| student_id | course | score |
+| 5 | English | 60.000000 |
+| 7 | Art | -10.000000 |
+| 9 | Music | 0.000000 |
+| student_id | course | score |
+| 1 | Math | 95.500000 |
+| 2 | Physics | 88.000000 |
+| 4 | Math | 88.000000 |
+| 6 | History | 99.900002 |
+| 8 | Physics | 95.500000 |
+| 11 | Computer | 95.500000 |
+| 13 | Art | 90.000000 |
+| 14 | Arts | 91.000000 |
+| student_id | course | score |
+| 1 | Math | 95.500000 |
+| 4 | Math | 88.000000 |
+| student_id | course | score |
+| 7 | Art | -10.000000 |
+| 13 | Art | 90.000000 |
+| student_id | course | score |
+| 2 | Physics | 88.000000 |
+| 8 | Physics | 95.500000 |
+| student_id | course | score |
+| 2 | Physics | 88.000000 |
+| student_id | course | score |
+| 7 | Art | -10.000000 |
+| 9 | Music | 0.000000 |
+| student_id | course | score |
+| student_id | course | score |
+| student_id | score |
+| 1 | 95.500000 |
+| 2 | 88.000000 |
+| 3 | 72.500000 |
+| 4 | 88.000000 |
+| 5 | 60.000000 |
+| 6 | 99.900002 |
+| 7 | -10.000000 |
+| 8 | 95.500000 |
+| 9 | 0.000000 |
+| 10 | 72.500000 |
+| 11 | 95.500000 |
+| 12 | 85.000000 |
+| 13 | 90.000000 |
+| 14 | 91.000000 |
+| course |
+| Physics |
+| Math |
+| course | score |
+| Chemistry | 72.500000 |
+| Computer | 95.500000 |
+| Biology | 85.000000 |
+| Art | 90.000000 |
+| Arts | 91.000000 |
+| id | val1 | val2 | name1 | name2 |
+| 1 | 10 | 10 | abc | abc |
+| 4 | 50 | 50 | test | test |
+| id | val1 | val2 | name1 | name2 |
+| 3 | 40 | 30 | hello | world |
+| id | val1 | val2 | name1 | name2 |
+| 1 | 10 | 10 | abc | abc |
+| 4 | 50 | 50 | test | test |
+| id | val1 | val2 | name1 | name2 |
+| 2 | 20 | 30 | def | xyz |
+| 3 | 40 | 30 | hello | world |
+failure
+failure
+| student_id | course | score |
+| 1 | Math | 95.500000 |
+| 2 | Physics | 88.000000 |
+| 3 | Chemistry | 72.500000 |
+| 4 | Math | 88.000000 |
+| 5 | English | 60.000000 |
+| 6 | History | 99.900002 |
+| 7 | Art | -10.000000 |
+| 8 | Physics | 95.500000 |
+| 9 | Music | 0.000000 |
+| 10 | Chemistry | 72.500000 |
+| 11 | Computer | 95.500000 |
+| 12 | Biology | 85.000000 |
+| 13 | Art | 90.000000 |
+| 14 | Arts | 91.000000 |
+| student_id | course | score |
+| 5 | English | 60.000000 |
+| student_id | course | score |
+| 5 | English | 60.000000 |
+| student_id | course | score |
+| 1 | Math | 95.500000 |
+| 2 | Physics | 88.000000 |
+| student_id | course | score |
+| 10 | Chemistry | 72.500000 |
+| 11 | Computer | 95.500000 |
+| 12 | Biology | 85.000000 |
+| 13 | Art | 90.000000 |
+| 14 | Arts | 91.000000 |
+| student_id | course | score |
+| 1 | Math | 95.500000 |
+| 2 | Physics | 88.000000 |
+| 3 | Chemistry | 72.500000 |
+| student_id | course | score |
+| 9 | Music | 0.000000 |
+| 10 | Chemistry | 72.500000 |
+| 11 | Computer | 95.500000 |
+| 12 | Biology | 85.000000 |
+| 13 | Art | 90.000000 |
+| 14 | Arts | 91.000000 |
+| student_id | course | score |
+| 1 | Math | 95.500000 |
+| 8 | Physics | 95.500000 |
+| 11 | Computer | 95.500000 |
+| student_id | course | score |
+| 1 | Math | 95.500000 |
+| 6 | History | 99.900002 |
+| 8 | Physics | 95.500000 |
+| 11 | Computer | 95.500000 |
+| 14 | Arts | 91.000000 |
+| student_id | course | score |
+| 5 | English | 60.000000 |
+| 7 | Art | -10.000000 |
+| 9 | Music | 0.000000 |
+| student_id | course | score |
+| 1 | Math | 95.500000 |
+| 2 | Physics | 88.000000 |
+| 4 | Math | 88.000000 |
+| 6 | History | 99.900002 |
+| 8 | Physics | 95.500000 |
+| 11 | Computer | 95.500000 |
+| 13 | Art | 90.000000 |
+| 14 | Arts | 91.000000 |
+| student_id | course | score |
+| 1 | Math | 95.500000 |
+| 4 | Math | 88.000000 |
+| student_id | course | score |
+| 7 | Art | -10.000000 |
+| 13 | Art | 90.000000 |
+| student_id | course | score |
+| 2 | Physics | 88.000000 |
+| 8 | Physics | 95.500000 |
+| student_id | course | score |
+| 2 | Physics | 88.000000 |
+| student_id | course | score |
+| 7 | Art | -10.000000 |
+| 9 | Music | 0.000000 |
+| student_id | course | score |
+| student_id | course | score |
+| student_id | score |
+| 1 | 95.500000 |
+| 2 | 88.000000 |
+| 3 | 72.500000 |
+| 4 | 88.000000 |
+| 5 | 60.000000 |
+| 6 | 99.900002 |
+| 7 | -10.000000 |
+| 8 | 95.500000 |
+| 9 | 0.000000 |
+| 10 | 72.500000 |
+| 11 | 95.500000 |
+| 12 | 85.000000 |
+| 13 | 90.000000 |
+| 14 | 91.000000 |
+| course |
+| Physics |
+| Math |
+| course | score |
+| Chemistry | 72.500000 |
+| Computer | 95.500000 |
+| Biology | 85.000000 |
+| Art | 90.000000 |
+| Arts | 91.000000 |
+| id | val1 | val2 | name1 | name2 |
+| 1 | 10 | 10 | abc | abc |
+| 4 | 50 | 50 | test | test |
+| id | val1 | val2 | name1 | name2 |
+| 3 | 40 | 30 | hello | world |
+| id | val1 | val2 | name1 | name2 |
+| 1 | 10 | 10 | abc | abc |
+| 4 | 50 | 50 | test | test |
+| id | val1 | val2 | name1 | name2 |
+| 2 | 20 | 30 | def | xyz |
+| 3 | 40 | 30 | hello | world |
+failure
+failure
+| student_id | course | score |
+| 1 | Math | 95.500000 |
+| 2 | Physics | 88.000000 |
+| 3 | Chemistry | 72.500000 |
+| 4 | Math | 88.000000 |
+| 5 | English | 60.000000 |
+| 6 | History | 99.900002 |
+| 7 | Art | -10.000000 |
+| 8 | Physics | 95.500000 |
+| 9 | Music | 0.000000 |
+| 10 | Chemistry | 72.500000 |
+| 11 | Computer | 95.500000 |
+| 12 | Biology | 85.000000 |
+| 13 | Art | 90.000000 |
+| 14 | Arts | 91.000000 |
+| student_id | course | score |
+| 5 | English | 60.000000 |
+| student_id | course | score |
+| 5 | English | 60.000000 |
+| student_id | course | score |
+| 1 | Math | 95.500000 |
+| 2 | Physics | 88.000000 |
+| student_id | course | score |
+| 10 | Chemistry | 72.500000 |
+| 11 | Computer | 95.500000 |
+| 12 | Biology | 85.000000 |
+| 13 | Art | 90.000000 |
+| 14 | Arts | 91.000000 |
+| student_id | course | score |
+| 1 | Math | 95.500000 |
+| 2 | Physics | 88.000000 |
+| 3 | Chemistry | 72.500000 |
+| student_id | course | score |
+| 9 | Music | 0.000000 |
+| 10 | Chemistry | 72.500000 |
+| 11 | Computer | 95.500000 |
+| 12 | Biology | 85.000000 |
+| 13 | Art | 90.000000 |
+| 14 | Arts | 91.000000 |
+| student_id | course | score |
+| 1 | Math | 95.500000 |
+| 8 | Physics | 95.500000 |
+| 11 | Computer | 95.500000 |
+| student_id | course | score |
+| 1 | Math | 95.500000 |
+| 6 | History | 99.900002 |
+| 8 | Physics | 95.500000 |
+| 11 | Computer | 95.500000 |
+| 14 | Arts | 91.000000 |
+| student_id | course | score |
+| 5 | English | 60.000000 |
+| 7 | Art | -10.000000 |
+| 9 | Music | 0.000000 |
+| student_id | course | score |
+| 1 | Math | 95.500000 |
+| 2 | Physics | 88.000000 |
+| 4 | Math | 88.000000 |
+| 6 | History | 99.900002 |
+| 8 | Physics | 95.500000 |
+| 11 | Computer | 95.500000 |
+| 13 | Art | 90.000000 |
+| 14 | Arts | 91.000000 |
+| student_id | course | score |
+| 1 | Math | 95.500000 |
+| 4 | Math | 88.000000 |
+| student_id | course | score |
+| 7 | Art | -10.000000 |
+| 13 | Art | 90.000000 |
+| student_id | course | score |
+| 2 | Physics | 88.000000 |
+| 8 | Physics | 95.500000 |
+| student_id | course | score |
+| 2 | Physics | 88.000000 |
+| student_id | course | score |
+| 7 | Art | -10.000000 |
+| 9 | Music | 0.000000 |
+| student_id | course | score |
+| student_id | course | score |
+| student_id | score |
+| 1 | 95.500000 |
+| 2 | 88.000000 |
+| 3 | 72.500000 |
+| 4 | 88.000000 |
+| 5 | 60.000000 |
+| 6 | 99.900002 |
+| 7 | -10.000000 |
+| 8 | 95.500000 |
+| 9 | 0.000000 |
+| 10 | 72.500000 |
+| 11 | 95.500000 |
+| 12 | 85.000000 |
+| 13 | 90.000000 |
+| 14 | 91.000000 |
+| course |
+| Physics |
+| Math |
+| course | score |
+| Chemistry | 72.500000 |
+| Computer | 95.500000 |
+| Biology | 85.000000 |
+| Art | 90.000000 |
+| Arts | 91.000000 |
+| id | val1 | val2 | name1 | name2 |
+| 1 | 10 | 10 | abc | abc |
+| 4 | 50 | 50 | test | test |
+| id | val1 | val2 | name1 | name2 |
+| 3 | 40 | 30 | hello | world |
+| id | val1 | val2 | name1 | name2 |
+| 1 | 10 | 10 | abc | abc |
+| 4 | 50 | 50 | test | test |
+| id | val1 | val2 | name1 | name2 |
+| 2 | 20 | 30 | def | xyz |
+| 3 | 40 | 30 | hello | world |
+failure
+failure
+| student_id | course | score |
+| 1 | Math | 95.500000 |
+| 2 | Physics | 88.000000 |
+| 3 | Chemistry | 72.500000 |
+| 4 | Math | 88.000000 |
+| 5 | English | 60.000000 |
+| 6 | History | 99.900002 |
+| 7 | Art | -10.000000 |
+| 8 | Physics | 95.500000 |
+| 9 | Music | 0.000000 |
+| 10 | Chemistry | 72.500000 |
+| 11 | Computer | 95.500000 |
+| 12 | Biology | 85.000000 |
+| 13 | Art | 90.000000 |
+| 14 | Arts | 91.000000 |
+| student_id | course | score |
+| 5 | English | 60.000000 |
+| student_id | course | score |
+| 5 | English | 60.000000 |
+| student_id | course | score |
+| 1 | Math | 95.500000 |
+| 2 | Physics | 88.000000 |
+| student_id | course | score |
+| 10 | Chemistry | 72.500000 |
+| 11 | Computer | 95.500000 |
+| 12 | Biology | 85.000000 |
+| 13 | Art | 90.000000 |
+| 14 | Arts | 91.000000 |
+| student_id | course | score |
+| 1 | Math | 95.500000 |
+| 2 | Physics | 88.000000 |
+| 3 | Chemistry | 72.500000 |
+| student_id | course | score |
+| 9 | Music | 0.000000 |
+| 10 | Chemistry | 72.500000 |
+| 11 | Computer | 95.500000 |
+| 12 | Biology | 85.000000 |
+| 13 | Art | 90.000000 |
+| 14 | Arts | 91.000000 |
+| student_id | course | score |
+| 1 | Math | 95.500000 |
+| 8 | Physics | 95.500000 |
+| 11 | Computer | 95.500000 |
+| student_id | course | score |
+| 1 | Math | 95.500000 |
+| 6 | History | 99.900002 |
+| 8 | Physics | 95.500000 |
+| 11 | Computer | 95.500000 |
+| 14 | Arts | 91.000000 |
+| student_id | course | score |
+| 5 | English | 60.000000 |
+| 7 | Art | -10.000000 |
+| 9 | Music | 0.000000 |
+| student_id | course | score |
+| 1 | Math | 95.500000 |
+| 2 | Physics | 88.000000 |
+| 4 | Math | 88.000000 |
+| 6 | History | 99.900002 |
+| 8 | Physics | 95.500000 |
+| 11 | Computer | 95.500000 |
+| 13 | Art | 90.000000 |
+| 14 | Arts | 91.000000 |
+| student_id | course | score |
+| 1 | Math | 95.500000 |
+| 4 | Math | 88.000000 |
+| student_id | course | score |
+| 7 | Art | -10.000000 |
+| 13 | Art | 90.000000 |
+| student_id | course | score |
+| 2 | Physics | 88.000000 |
+| 8 | Physics | 95.500000 |
+| student_id | course | score |
+| 2 | Physics | 88.000000 |
+| student_id | course | score |
+| 7 | Art | -10.000000 |
+| 9 | Music | 0.000000 |
+| student_id | course | score |
+| student_id | course | score |
+| student_id | score |
+| 1 | 95.500000 |
+| 2 | 88.000000 |
+| 3 | 72.500000 |
+| 4 | 88.000000 |
+| 5 | 60.000000 |
+| 6 | 99.900002 |
+| 7 | -10.000000 |
+| 8 | 95.500000 |
+| 9 | 0.000000 |
+| 10 | 72.500000 |
+| 11 | 95.500000 |
+| 12 | 85.000000 |
+| 13 | 90.000000 |
+| 14 | 91.000000 |
+| course |
+| Physics |
+| Math |
+| course | score |
+| Chemistry | 72.500000 |
+| Computer | 95.500000 |
+| Biology | 85.000000 |
+| Art | 90.000000 |
+| Arts | 91.000000 |
+| id | val1 | val2 | name1 | name2 |
+| 1 | 10 | 10 | abc | abc |
+| 4 | 50 | 50 | test | test |
+| id | val1 | val2 | name1 | name2 |
+| 3 | 40 | 30 | hello | world |
+| id | val1 | val2 | name1 | name2 |
+| 1 | 10 | 10 | abc | abc |
+| 4 | 50 | 50 | test | test |
+| id | val1 | val2 | name1 | name2 |
+| 2 | 20 | 30 | def | xyz |
+| 3 | 40 | 30 | hello | world |
+failure
+failure
+| student_id | course | score |
+| 1 | Math | 95.500000 |
+| 2 | Physics | 88.000000 |
+| 3 | Chemistry | 72.500000 |
+| 4 | Math | 88.000000 |
+| 5 | English | 60.000000 |
+| 6 | History | 99.900002 |
+| 7 | Art | -10.000000 |
+| 8 | Physics | 95.500000 |
+| 9 | Music | 0.000000 |
+| 10 | Chemistry | 72.500000 |
+| 11 | Computer | 95.500000 |
+| 12 | Biology | 85.000000 |
+| 13 | Art | 90.000000 |
+| 14 | Arts | 91.000000 |
+| student_id | course | score |
+| 5 | English | 60.000000 |
+| student_id | course | score |
+| 5 | English | 60.000000 |
+| student_id | course | score |
+| 1 | Math | 95.500000 |
+| 2 | Physics | 88.000000 |
+| student_id | course | score |
+| 10 | Chemistry | 72.500000 |
+| 11 | Computer | 95.500000 |
+| 12 | Biology | 85.000000 |
+| 13 | Art | 90.000000 |
+| 14 | Arts | 91.000000 |
+| student_id | course | score |
+| 1 | Math | 95.500000 |
+| 2 | Physics | 88.000000 |
+| 3 | Chemistry | 72.500000 |
+| student_id | course | score |
+| 9 | Music | 0.000000 |
+| 10 | Chemistry | 72.500000 |
+| 11 | Computer | 95.500000 |
+| 12 | Biology | 85.000000 |
+| 13 | Art | 90.000000 |
+| 14 | Arts | 91.000000 |
+| student_id | course | score |
+| 2 | Physics | 88.000000 |
+| 3 | Chemistry | 72.500000 |
+| 4 | Math | 88.000000 |
+| 5 | English | 60.000000 |
+| 7 | Art | -10.000000 |
+| 9 | Music | 0.000000 |
+| 10 | Chemistry | 72.500000 |
+| 12 | Biology | 85.000000 |
+| 13 | Art | 90.000000 |
+| 14 | Arts | 91.000000 |
+| student_id | course | score |
+| 1 | Math | 95.500000 |
+| 6 | History | 99.900002 |
+| 8 | Physics | 95.500000 |
+| 11 | Computer | 95.500000 |
+| 14 | Arts | 91.000000 |
+| student_id | course | score |
+| 5 | English | 60.000000 |
+| 7 | Art | -10.000000 |
+| 9 | Music | 0.000000 |
+| student_id | course | score |
+| 1 | Math | 95.500000 |
+| 2 | Physics | 88.000000 |
+| 4 | Math | 88.000000 |
+| 6 | History | 99.900002 |
+| 8 | Physics | 95.500000 |
+| 11 | Computer | 95.500000 |
+| 13 | Art | 90.000000 |
+| 14 | Arts | 91.000000 |
+| student_id | course | score |
+| 1 | Math | 95.500000 |
+| 4 | Math | 88.000000 |
+| student_id | course | score |
+| 7 | Art | -10.000000 |
+| 13 | Art | 90.000000 |
+| student_id | course | score |
+| 2 | Physics | 88.000000 |
+| 8 | Physics | 95.500000 |
+| student_id | course | score |
+| student_id | course | score |
+| 7 | Art | -10.000000 |
+| 9 | Music | 0.000000 |
+| student_id | course | score |
+| student_id | course | score |
+| student_id | score |
+| 1 | 95.500000 |
+| 2 | 88.000000 |
+| 3 | 72.500000 |
+| 4 | 88.000000 |
+| 5 | 60.000000 |
+| 6 | 99.900002 |
+| 7 | -10.000000 |
+| 8 | 95.500000 |
+| 9 | 0.000000 |
+| 10 | 72.500000 |
+| 11 | 95.500000 |
+| 12 | 85.000000 |
+| 13 | 90.000000 |
+| 14 | 91.000000 |
+| course |
+| Chemistry |
+| English |
+| Art |
+| Music |
+| Chemistry |
+| Biology |
+| course | score |
+| Chemistry | 72.500000 |
+| Computer | 95.500000 |
+| Biology | 85.000000 |
+| Art | 90.000000 |
+| Arts | 91.000000 |
+| id | val1 | val2 | name1 | name2 |
+| 1 | 10 | 10 | abc | abc |
+| 4 | 50 | 50 | test | test |
+| id | val1 | val2 | name1 | name2 |
+| 3 | 40 | 30 | hello | world |
+| id | val1 | val2 | name1 | name2 |
+| 1 | 10 | 10 | abc | abc |
+| 4 | 50 | 50 | test | test |
+| id | val1 | val2 | name1 | name2 |
+| 2 | 20 | 30 | def | xyz |
+| 3 | 40 | 30 | hello | world |
+failure
+failure
+| student_id | course | score |
+| 1 | Math | 95.500000 |
+| 2 | Physics | 88.000000 |
+| 3 | Chemistry | 72.500000 |
+| 4 | Math | 88.000000 |
+| 5 | English | 60.000000 |
+| 6 | History | 99.900002 |
+| 7 | Art | -10.000000 |
+| 8 | Physics | 95.500000 |
+| 9 | Music | 0.000000 |
+| 10 | Chemistry | 72.500000 |
+| 11 | Computer | 95.500000 |
+| 12 | Biology | 85.000000 |
+| 13 | Art | 90.000000 |
+| 14 | Arts | 91.000000 |
+| student_id | course | score |
+| 5 | English | 60.000000 |
+| student_id | course | score |
+| 5 | English | 60.000000 |
+| student_id | course | score |
+| 1 | Math | 95.500000 |
+| 2 | Physics | 88.000000 |
+| student_id | course | score |
+| 10 | Chemistry | 72.500000 |
+| 11 | Computer | 95.500000 |
+| 12 | Biology | 85.000000 |
+| 13 | Art | 90.000000 |
+| 14 | Arts | 91.000000 |
+| student_id | course | score |
+| 1 | Math | 95.500000 |
+| 2 | Physics | 88.000000 |
+| 3 | Chemistry | 72.500000 |
+| student_id | course | score |
+| 9 | Music | 0.000000 |
+| 10 | Chemistry | 72.500000 |
+| 11 | Computer | 95.500000 |
+| 12 | Biology | 85.000000 |
+| 13 | Art | 90.000000 |
+| 14 | Arts | 91.000000 |
+| student_id | course | score |
+| 1 | Math | 95.500000 |
+| 8 | Physics | 95.500000 |
+| 11 | Computer | 95.500000 |
+| student_id | course | score |
+| 1 | Math | 95.500000 |
+| 6 | History | 99.900002 |
+| 8 | Physics | 95.500000 |
+| 11 | Computer | 95.500000 |
+| 14 | Arts | 91.000000 |
+| student_id | course | score |
+| 5 | English | 60.000000 |
+| 7 | Art | -10.000000 |
+| 9 | Music | 0.000000 |
+| student_id | course | score |
+| 1 | Math | 95.500000 |
+| 2 | Physics | 88.000000 |
+| 4 | Math | 88.000000 |
+| 6 | History | 99.900002 |
+| 8 | Physics | 95.500000 |
+| 11 | Computer | 95.500000 |
+| 13 | Art | 90.000000 |
+| 14 | Arts | 91.000000 |
+| student_id | course | score |
+| 1 | Math | 95.500000 |
+| 4 | Math | 88.000000 |
+| student_id | course | score |
+| 7 | Art | -10.000000 |
+| 13 | Art | 90.000000 |
+| student_id | course | score |
+| 2 | Physics | 88.000000 |
+| 8 | Physics | 95.500000 |
+| student_id | course | score |
+| 2 | Physics | 88.000000 |
+| student_id | course | score |
+| 7 | Art | -10.000000 |
+| 9 | Music | 0.000000 |
+| student_id | course | score |
+| student_id | course | score |
+| student_id | score |
+| 1 | 95.500000 |
+| 2 | 88.000000 |
+| 3 | 72.500000 |
+| 4 | 88.000000 |
+| 5 | 60.000000 |
+| 6 | 99.900002 |
+| 7 | -10.000000 |
+| 8 | 95.500000 |
+| 9 | 0.000000 |
+| 10 | 72.500000 |
+| 11 | 95.500000 |
+| 12 | 85.000000 |
+| 13 | 90.000000 |
+| 14 | 91.000000 |
+| course |
+| Physics |
+| Math |
+| course | score |
+| Chemistry | 72.500000 |
+| Computer | 95.500000 |
+| Biology | 85.000000 |
+| Art | 90.000000 |
+| Arts | 91.000000 |
+| id | val1 | val2 | name1 | name2 |
+| 1 | 10 | 10 | abc | abc |
+| 4 | 50 | 50 | test | test |
+| id | val1 | val2 | name1 | name2 |
+| 3 | 40 | 30 | hello | world |
+| id | val1 | val2 | name1 | name2 |
+| 1 | 10 | 10 | abc | abc |
+| 4 | 50 | 50 | test | test |
+| id | val1 | val2 | name1 | name2 |
+| 2 | 20 | 30 | def | xyz |
+| 3 | 40 | 30 | hello | world |
+failure
+| student_id | course | score |
+| student_id | course | score |
+| 6 | History | 99.900002 |
+| student_id | course | score |
+| 6 | History | 99.900002 |
+| 5 | History | 99.900002 |
+| student_id | course | score |
+| 6 | History | 99.900002 |
+| 5 | History | 99.900002 |
+| 4 | History | 100.000000 |
+| student_id | course | score |
+| 6 | History | 99.900002 |
+| 5 | History | 99.900002 |
+| student_id | course | score |
+| 6 | History | 99.900002 |
+| 5 | History | 99.900002 |
+| 4 | History | 100.000000 |
+| student_id | course | score |
+| 6 | History | 99.900002 |
+| 5 | History | 99.900002 |
+| 4 | History | 100.000000 |
+| student_id | course | score |
+| 6 | History | 99.900002 |
+| 5 | History | 99.900002 |
+| 4 | History | 100.000000 |
+| 4 | History | 100.000000 |
+| student_id | course | score |
+| 6 | History | 99.900002 |
+| 5 | History | 99.900002 |
+| 4 | History | 100.000000 |
+| 4 | History | 100.000000 |
+| 3 | History | 100.000000 |
+| student_id | course | score |
+| 6 | History | 99.900002 |
+| 5 | History | 99.900002 |
+| student_id | course | score |
+| 6 | History | 99.900002 |
+| 5 | History | 99.900002 |
+| student_id | course | score |
+| 6 | History | 99.900002 |
+| 5 | History | 99.900002 |
+| 4 | History | 100.000000 |
+| 4 | History | 100.000000 |
+| 3 | History | 100.000000 |
+failure
+| name | id | score |
+| name | id | score |
+| name | id | score |
+| Data Structure | 1 | 90.500000 |
+| Data Structure | 2 | 95.000000 |
+| Calculus | 2 | 92.000000 |
+| Calculus | 1 | 88.500000 |
+| name | id | score |
+| Data Structure | 1 | 90.500000 |
+| Data Structure | 2 | 95.000000 |
+| Calculus | 2 | 92.000000 |
+| Calculus | 1 | 88.500000 |
+| name | id | score |
+| name | id | score |
+| name | id | score |
+| Data Structure | 1 | 90.500000 |
+| Data Structure | 2 | 95.000000 |
+| name | id | score |
+| Data Structure | 1 | 90.500000 |
+| Data Structure | 2 | 95.000000 |
+| Calculus | 2 | 92.000000 |
+| Calculus | 1 | 88.500000 |
+| name | id | score |
+| Data Structure | 1 | 90.500000 |
+| Data Structure | 2 | 95.000000 |
+| name | id | score |
+| Data Structure | 1 | 90.500000 |
+| Data Structure | 2 | 95.000000 |
+| name | id | score |
+| Data Structure | 1 | 90.500000 |
+| Data Structure | 2 | 95.000000 |
+| Calculus | 2 | 92.000000 |
+| Calculus | 1 | 88.500000 |
+| name | id | score |
+| Data Structure | 1 | 90.500000 |
+| Data Structure | 2 | 95.000000 |
+| Calculus | 2 | 92.000000 |
+| Calculus | 1 | 88.500000 |
+| a | 3 | 100.000000 |
+| name | id | score |
+| a | 3 | 100.000000 |
+| name | id | score |
+| Data Structure | 1 | 90.500000 |
+| Data Structure | 2 | 95.000000 |
+| Calculus | 2 | 92.000000 |
+| Calculus | 1 | 88.500000 |
+| name | id | score |
+| Data Structure | 1 | 90.500000 |
+| Data Structure | 2 | 95.000000 |
+| Calculus | 2 | 92.000000 |
+| Calculus | 1 | 88.500000 |
+| a | 3 | 100.000000 |

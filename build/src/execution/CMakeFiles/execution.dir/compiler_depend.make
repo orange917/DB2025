@@ -345,6 +345,30 @@ src/execution/CMakeFiles/execution.dir/execution_manager.cpp.o: ../src/execution
   ../src/execution/executor_nestedloop_join.h \
   ../src/execution/executor_projection.h \
   ../src/execution/executor_seq_scan.h \
+  /usr/include/c++/11/cmath \
+  /usr/include/math.h \
+  /usr/include/x86_64-linux-gnu/bits/math-vector.h \
+  /usr/include/x86_64-linux-gnu/bits/libm-simd-decl-stubs.h \
+  /usr/include/x86_64-linux-gnu/bits/flt-eval-method.h \
+  /usr/include/x86_64-linux-gnu/bits/fp-logb.h \
+  /usr/include/x86_64-linux-gnu/bits/fp-fast.h \
+  /usr/include/x86_64-linux-gnu/bits/mathcalls-helper-functions.h \
+  /usr/include/x86_64-linux-gnu/bits/mathcalls.h \
+  /usr/include/x86_64-linux-gnu/bits/mathcalls-narrow.h \
+  /usr/include/x86_64-linux-gnu/bits/iscanonical.h \
+  /usr/include/c++/11/bits/specfun.h \
+  /usr/include/c++/11/tr1/gamma.tcc \
+  /usr/include/c++/11/tr1/special_function_util.h \
+  /usr/include/c++/11/tr1/bessel_function.tcc \
+  /usr/include/c++/11/tr1/beta_function.tcc \
+  /usr/include/c++/11/tr1/ell_integral.tcc \
+  /usr/include/c++/11/tr1/exp_integral.tcc \
+  /usr/include/c++/11/tr1/hypergeometric.tcc \
+  /usr/include/c++/11/tr1/legendre_function.tcc \
+  /usr/include/c++/11/tr1/modified_bessel_func.tcc \
+  /usr/include/c++/11/tr1/poly_hermite.tcc \
+  /usr/include/c++/11/tr1/poly_laguerre.tcc \
+  /usr/include/c++/11/tr1/riemann_zeta.tcc \
   ../src/execution/executor_update.h \
   ../src/record_printer.h \
   /usr/include/c++/11/iomanip \
@@ -379,6 +403,34 @@ src/execution/CMakeFiles/execution.dir/execution_manager.cpp.o: ../src/execution
 ../src/record_printer.h:
 
 ../src/execution/executor_update.h:
+
+/usr/include/c++/11/tr1/riemann_zeta.tcc:
+
+/usr/include/c++/11/tr1/poly_hermite.tcc:
+
+/usr/include/c++/11/tr1/modified_bessel_func.tcc:
+
+/usr/include/c++/11/tr1/hypergeometric.tcc:
+
+/usr/include/c++/11/tr1/exp_integral.tcc:
+
+/usr/include/c++/11/tr1/ell_integral.tcc:
+
+/usr/include/c++/11/tr1/bessel_function.tcc:
+
+/usr/include/c++/11/tr1/special_function_util.h:
+
+/usr/include/c++/11/bits/specfun.h:
+
+/usr/include/x86_64-linux-gnu/bits/mathcalls.h:
+
+/usr/include/x86_64-linux-gnu/bits/mathcalls-helper-functions.h:
+
+/usr/include/x86_64-linux-gnu/bits/fp-logb.h:
+
+/usr/include/x86_64-linux-gnu/bits/flt-eval-method.h:
+
+/usr/include/x86_64-linux-gnu/bits/math-vector.h:
 
 ../src/execution/executor_nestedloop_join.h:
 
@@ -429,6 +481,8 @@ src/execution/CMakeFiles/execution.dir/execution_manager.cpp.o: ../src/execution
 ../src/record/bitmap.h:
 
 ../src/replacer/replacer.h:
+
+/usr/include/c++/11/tr1/poly_laguerre.tcc:
 
 /usr/include/c++/11/bits/std_mutex.h:
 
@@ -556,6 +610,8 @@ src/execution/CMakeFiles/execution.dir/execution_manager.cpp.o: ../src/execution
 
 /usr/include/c++/11/bits/uses_allocator.h:
 
+/usr/include/x86_64-linux-gnu/bits/mathcalls-narrow.h:
+
 /usr/include/c++/11/bits/postypes.h:
 
 /usr/include/linux/falloc.h:
@@ -577,6 +633,8 @@ src/execution/CMakeFiles/execution.dir/execution_manager.cpp.o: ../src/execution
 /usr/include/c++/11/bits/functexcept.h:
 
 /usr/include/c++/11/streambuf:
+
+/usr/include/c++/11/tr1/beta_function.tcc:
 
 /usr/include/c++/11/array:
 
@@ -658,6 +716,8 @@ src/execution/CMakeFiles/execution.dir/execution_manager.cpp.o: ../src/execution
 
 /usr/include/c++/11/memory:
 
+/usr/include/c++/11/tr1/gamma.tcc:
+
 /usr/include/x86_64-linux-gnu/gnu/stubs-64.h:
 
 ../src/index/ix_manager.h:
@@ -724,6 +784,8 @@ src/execution/CMakeFiles/execution.dir/execution_manager.cpp.o: ../src/execution
 
 /usr/include/c++/11/bits/predefined_ops.h:
 
+/usr/include/c++/11/tr1/legendre_function.tcc:
+
 /usr/include/x86_64-linux-gnu/c++/11/bits/c++config.h:
 
 /usr/include/x86_64-linux-gnu/bits/pthread_stack_min-dynamic.h:
@@ -746,6 +808,8 @@ src/execution/CMakeFiles/execution.dir/execution_manager.cpp.o: ../src/execution
 
 /usr/include/x86_64-linux-gnu/sys/cdefs.h:
 
+/usr/include/x86_64-linux-gnu/bits/fp-fast.h:
+
 /usr/include/c++/11/bits/node_handle.h:
 
 /usr/include/c++/11/iostream:
@@ -753,6 +817,8 @@ src/execution/CMakeFiles/execution.dir/execution_manager.cpp.o: ../src/execution
 ../src/record/rm_defs.h:
 
 /usr/include/c++/11/pstl/pstl_config.h:
+
+/usr/include/c++/11/cmath:
 
 /usr/include/c++/11/bits/allocator.h:
 
@@ -874,6 +940,8 @@ src/execution/CMakeFiles/execution.dir/execution_manager.cpp.o: ../src/execution
 
 /usr/include/c++/11/bits/ostream_insert.h:
 
+/usr/include/x86_64-linux-gnu/bits/libm-simd-decl-stubs.h:
+
 /usr/lib/gcc/x86_64-linux-gnu/11/include/stddef.h:
 
 /usr/include/x86_64-linux-gnu/bits/types/struct_FILE.h:
@@ -915,6 +983,8 @@ src/execution/CMakeFiles/execution.dir/execution_manager.cpp.o: ../src/execution
 /usr/include/wctype.h:
 
 /usr/include/x86_64-linux-gnu/c++/11/bits/ctype_base.h:
+
+/usr/include/math.h:
 
 /usr/include/x86_64-linux-gnu/bits/types/__FILE.h:
 
@@ -1049,6 +1119,8 @@ src/execution/CMakeFiles/execution.dir/execution_manager.cpp.o: ../src/execution
 ../src/execution/executor_insert.h:
 
 /usr/include/x86_64-linux-gnu/bits/unistd_ext.h:
+
+/usr/include/x86_64-linux-gnu/bits/iscanonical.h:
 
 /usr/include/c++/11/bits/stl_list.h:
 
