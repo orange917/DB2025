@@ -189,13 +189,7 @@ void QlManager::select_from(std::unique_ptr<AbstractExecutor> executorTreeRoot, 
                 col_str = std::to_string(*(float *)rec_buf);
             } else if (col.type == TYPE_STRING) {
                 // 字符串类型，注意处理字符串长度
-                col_str = std::string((char *)rec_buf, col.len);
-                // 移除尾部的空字符，确保字符串长度正确
-                // 移除尾部空字符
-                size_t first_null = col_str.find('\0');
-                if (first_null != std::string::npos) {
-                    col_str.resize(first_null);
-                }
+                col_str = std::string((char *)rec_buf, strnlen((char *)rec_buf, col.len));
             }
             // 将转换后的字符串添加到结果集中
             columns.push_back(col_str);

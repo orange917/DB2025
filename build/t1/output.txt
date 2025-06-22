@@ -1,202 +1,127 @@
-| Tables |
-| Tables |
-| t1 |
-failure
-failure
-failure
-failure
-| Tables |
-| grade |
-| t1 |
-| Tables |
-| grade |
-failure
-| Tables |
-| grade |
-failure
-failure
-| Tables |
-| grade |
-failure
-failure
-failure
-failure
-failure
-failure
-| Tables |
-| grade |
-| Tables |
-| grade |
-| Tables |
-| grade |
-| name | id | score |
-| Data Structure | 1 | 90.500000 |
-| Data Structure | 2 | 95.000000 |
-| Calculus | 2 | 92.000000 |
-| Calculus | 1 | 88.500000 |
-failure
-| name | id | score |
-| Data Structure | 1 | 90.500000 |
-| Data Structure | 2 | 95.000000 |
-| Calculus | 2 | 92.000000 |
-| Calculus | 1 | 88.500000 |
-failure
-| score | name | id |
-| 90.500000 | Data Structure | 1 |
-| 95.000000 | Data Structure | 2 |
-| 92.000000 | Calculus | 2 |
-| 88.500000 | Calculus | 1 |
-| Tables |
-| grade |
-| Tables |
-| grade |
-| name | id | score |
-| Data Structure | 1 | 90.500000 |
-| Data Structure | 2 | 95.000000 |
-| Calculus | 2 | 92.000000 |
-| Calculus | 1 | 88.500000 |
-| Tables |
-| grade |
-| Tables |
-| grade |
-| name | id | score |
-| Data Structure | 1 | 90.500000 |
-| Data Structure | 2 | 95.000000 |
-| Calculus | 2 | 92.000000 |
-| Calculus | 1 | 88.500000 |
-| Tables |
-| grade |
-| name | id | score |
-| Data Structure | 1 | 90.500000 |
-| Calculus | 1 | 88.500000 |
-| score |
-| 90.500000 |
-| 95.000000 |
-| 92.000000 |
-| 88.500000 |
-| score |
-| 90.500000 |
-| 95.000000 |
-| 92.000000 |
-| 88.500000 |
-| score |
-| 90.500000 |
-| 95.000000 |
-| 92.000000 |
-| 88.500000 |
-| name | id | score |
-| Data Structure | 1 | 90.500000 |
-| Data Structure | 2 | 95.000000 |
-| Calculus | 2 | 92.000000 |
-| score |
-| 90.500000 |
-| 95.000000 |
-| 92.000000 |
-| 88.500000 |
-| name | id | score |
-| Data Structure | 1 | 90.500000 |
-| Data Structure | 2 | 95.000000 |
-| score | name | id |
-| 90.500000 | Data Structure | 1 |
-| 95.000000 | Data Structure | 2 |
-| 92.000000 | Calculus | 2 |
 | name |
 | Data Structure |
 | Calculus |
-| name | id | score |
-| Data Structure | 1 | 90.500000 |
-| Data Structure | 2 | 95.000000 |
-| Calculus | 2 | 92.000000 |
-| Calculus | 1 | 88.500000 |
-| name |
-| Data Structure |
-| Calculus |
-| score | name | id |
-| 90.500000 | Data Structure | 1 |
-| 95.000000 | Data Structure | 2 |
-| 92.000000 | Calculus | 2 |
-| Tables |
-failure
-| name | id | score |
-| Data Structure | 1 | 90.500000 |
-| Data Structure | 2 | 95.000000 |
-| Calculus | 2 | 92.000000 |
-| Calculus | 1 | 88.500000 |
-| score | name | id |
-| 90.500000 | Data Structure | 1 |
-| 95.000000 | Data Structure | 2 |
-| 92.000000 | Calculus | 2 |
 | id |
 | 1 |
 | 2 |
-| name |
-| Data Structure |
-| Calculus |
-| name | id | score |
-| Data Structure | 1 | 90.500000 |
-| name | id | score |
-| name | id | score |
-| Data Structure | 1 | 90.500000 |
-| Data Structure | 2 | 95.000000 |
-| Calculus | 2 | 92.000000 |
-| name | id | score |
-| Data Structure | 2 | 95.000000 |
-| Calculus | 2 | 92.000000 |
-| name | id | score |
-| Data Structure | 1 | 90.500000 |
-| Calculus | 1 | 88.500000 |
-failure
-| id |
-| 1 |
-| 2 |
-| 2 |
-| 1 |
-| name | id | score |
-| Data Structure | 1 | 90.500000 |
-| Calculus | 2 | 92.000000 |
-| Calculus | 1 | 88.500000 |
-| name | id | score |
-| Data Structure | 1 | 90.500000 |
-| Calculus | 1 | 88.500000 |
-| Tables |
-| grade |
+| score | name | id |
+| 90.500000 | Data Structure | 1 |
+| 95.000000 | Data Structure | 2 |
+| 92.000000 | Calculus | 2 |
 | name | id | score |
 | Data Structure | 1 | 90.500000 |
 | Data Structure | 2 | 95.000000 |
 | Calculus | 2 | 92.000000 |
 | Calculus | 1 | 88.500000 |
-| name | id | score |
-| Data Structure | 1 | 90.500000 |
-| Data Structure | 2 | 95.000000 |
-| Calculus | 2 | 92.000000 |
-| Calculus | 1 | 88.500000 |
-| Tables |
-| grade |
-| name | id | score |
-| Data Structure | 1 | 90.500000 |
-| Data Structure | 2 | 95.000000 |
-| Calculus | 2 | 92.000000 |
-| Calculus | 1 | 88.500000 |
-| name | id | score |
-| Data Structure | 2 | 95.000000 |
-| Calculus | 2 | 92.000000 |
-| Calculus | 1 | 88.500000 |
-| name | id | score |
-| Calculus | 2 | 92.000000 |
-| Calculus | 1 | 88.500000 |
-| name | id | score |
-| Calculus | 1 | 88.500000 |
-failure
-| name | id | score |
-| Data Structure | 1 | 90.500000 |
-| Data Structure | 2 | 95.000000 |
-| Calculus | 2 | 92.000000 |
-| Calculus | 1 | 88.500000 |
-| name | id | score |
-| Data Structure | 2 | 95.000000 |
-| Calculus | 2 | 92.000000 |
-| name | id | score |
-| Data Structure | 2 | 95.000000 |
-| Calculus | 2 | 92.000000 |
-| name | id | score |
-failure
+| id | t_name | d_name | id |
+| 0 |  |  | 0 |
+| 324575120 | ‚s | êüX‚ | 115 |
+| -1837450953 | ‡s | 7πzí‡ | 115 |
+| -1837450953 | ‡s | 7πzí‡ | 115 |
+| -1837450985 | ‡s | πzí‡ | 115 |
+| -1275477913 | Ú[ | g¿˘≥Ú | 91 |
+| id | t_name | d_name |
+| -1409285968 | Ás | ∞ |
+| 324571328 | ‚s | ¿êX‚ |
+| id | t_name | d_name |
+| -1409285984 | Ás | † |
+| -1837434985 | ‡s | ó˜zí‡ |
+| id | t_name | d_name | id |
+| 0 |  |  | 0 |
+| 2113859206 | Xy | ÜÓ˛}X | 121 |
+| 2113859174 | Xy | fÓ˛}X | 121 |
+| 2113859302 | Xy | ÊÓ˛}X | 121 |
+| 2113859238 | Xy | ¶Ó˛}X | 121 |
+| 2113859014 | Xy | ∆Ì˛}X | 121 |
+| id | t_name | d_name |
+| 2113859046 | Xy | ÊÌ˛}X |
+| 2113844966 | Xy | Ê∂˛}X |
+| id | t_name | d_name |
+| -402653024 | _y | † |
+| 2113859110 | Xy | &Ó˛}X |
+| id | t_name | d_name | id |
+| 0 |  |  | 0 |
+| -550457722 | 4} | ÜÆ0ﬂ4 | 125 |
+| -550457754 | 4} | fÆ0ﬂ4 | 125 |
+| -550457626 | 4} | ÊÆ0ﬂ4 | 125 |
+| -550457914 | 4} | ∆≠0ﬂ4 | 125 |
+| -550457786 | 4} | FÆ0ﬂ4 | 125 |
+| id | t_name | d_name |
+| -751779836 |  | ¿0” |
+| -550439194 | 4} | Êˆ0ﬂ4 |
+| id | t_name | d_name | id |
+| 0 |  |  | 0 |
+| 1340976774 | 9y | ÜÆÌO9 | 121 |
+| 1340976742 | 9y | fÆÌO9 | 121 |
+| 1340976870 | 9y | ÊÆÌO9 | 121 |
+| 1340976582 | 9y | ∆≠ÌO9 | 121 |
+| 1340976710 | 9y | FÆÌO9 | 121 |
+| id | t_name | d_name |
+| -1813135356 |  | ¿Ìì |
+| 1340995302 | 9y | ÊˆÌO9 |
+| id | t_name | d_name |
+| 1340976772 | 9y | ÑÆÌO9 |
+| 1340976870 | 9y | ÊÆÌO9 |
+| id | t_name | d_name | id |
+| 0 |  |  | 0 |
+| -1847726458 | öt | ÜÓ›ëö | 116 |
+| 2045960326 | -c | Ü‡Úy- | 99 |
+| id | t_name | d_name |
+| -1847726362 | öt | ÊÓ›ëö |
+| id | t_name | d_name | id |
+| 0 |  |  | 0 |
+| -1710854522 | ß | Ünöß | 127 |
+| 60162182 | ob | Ü | 98 |
+| id | t_name | d_name |
+| -1710854426 | ß | Ênöß |
+| id | t_name | d_name | id |
+| 0 |  |  | 0 |
+| -1359974778 | Ëz | ÜnÆË | 122 |
+| -2063900538 | œ] | Ü`˚Ñœ | 93 |
+| id | t_name | d_name | id |
+| 0 |  |  | 0 |
+| 536768134 | ¯ | Ün˛¯ | 127 |
+| -1432756090 | RU | Ü‡ô™R | 85 |
+| id | t_name | d_name |
+| 536768230 | ¯ | Ên˛¯ |
+| id | t_name | d_name | id |
+| 1 | aaa | 23456 | 2 |
+| 2 | baa | 23456 | 2 |
+| 3 | bba | 23456 | 2 |
+| id | t_name | d_name | id |
+| 1 | aaa | 23456 | 2 |
+| 2 | baa | 23456 | 2 |
+| 3 | bba | 23456 | 2 |
+| id | t_name |
+| 1 | aaa |
+| 2 | baa |
+| 3 | bba |
+| d_name | id |
+| 12345 | 1 |
+| 23456 | 2 |
+| id | t_name | d_name | id |
+| 1 | aaa | 23456 | 2 |
+| 2 | baa | 23456 | 2 |
+| 3 | bba | 23456 | 2 |
+| id | t_name | d_name |
+| 2 | baa | 23456 |
+| id | t_name | d_name |
+| 2 | baa | 23456 |
+| id | t_name | d_name | id |
+| 1 | aaa | 23456 | 2 |
+| 2 | baa | 12345 | 1 |
+| 2 | baa | 23456 | 2 |
+| 3 | bba | 12345 | 1 |
+| 3 | bba | 23456 | 2 |
+| id | t_name | d_name |
+| 2 | baa | 23456 |
+| id | t_name | d_name |
+| 2 | baa | 23456 |
+| id | t_name | d_name |
+| id | t_name | d_name |
+| id | t_name | d_name |
+| 1 | aaa | 12345 |
+| 2 | baa | 23456 |
+| id | t_name | d_name |
+| 1 | aaa | 12345 |
+| 2 | baa | 23456 |

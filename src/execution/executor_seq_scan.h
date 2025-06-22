@@ -125,10 +125,11 @@ class SeqScanExecutor : public AbstractExecutor {
         if (type == TYPE_FLOAT) {
             float lhs_val = *(float*)lhs;
             float rhs_val = rhs.float_val;
+            constexpr float EPSILON = 1e-6;
 
             switch (op) {
-                case OP_EQ: return lhs_val == rhs_val;
-                case OP_NE: return lhs_val != rhs_val;
+                case OP_EQ: return std::abs(lhs_val - rhs_val) < EPSILON;
+                case OP_NE: return std::abs(lhs_val - rhs_val) > EPSILON;
                 case OP_LT: return lhs_val < rhs_val;
                 case OP_GT: return lhs_val > rhs_val;
                 case OP_LE: return lhs_val <= rhs_val;
@@ -176,6 +177,10 @@ class SeqScanExecutor : public AbstractExecutor {
 
     const std::vector<ColMeta> &cols() const override {
         return cols_;
+    }
+
+    size_t tupleLen() const override {
+        return len_;
     }
 
     Rid &rid() override { return rid_; }
