@@ -20,7 +20,7 @@ class ProjectionExecutor : public AbstractExecutor {
     std::unique_ptr<AbstractExecutor> prev_;        // 投影节点的儿子节点
     std::vector<ColMeta> cols_;                     // 需要投影的字段
     size_t len_;                                    // 字段总长度
-    std::vector<size_t> sel_idxs_;                  
+    std::vector<size_t> sel_idxs_;
 
    public:
    ProjectionExecutor(std::unique_ptr<AbstractExecutor> prev, const std::vector<TabCol> &sel_cols) {
@@ -94,6 +94,10 @@ class ProjectionExecutor : public AbstractExecutor {
 
     const std::vector<ColMeta> &cols() const override {
         return cols_;
+    }
+
+    size_t tupleLen() const override {
+        return len_;
     }
 
     Rid &rid() override { return _abstract_rid; }
