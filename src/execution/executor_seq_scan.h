@@ -132,7 +132,6 @@ class SeqScanExecutor : public AbstractExecutor {
             // 右操作数也是列
             auto rhs_col = get_col(cols, cond.rhs_col);
             const char *rhs_value = rec->data + rhs_col->offset;
-            // 注意：这里假设两个列的长度相同
             return compare_values(lhs_col->type, lhs_value, rhs_value, cond.op, lhs_col->len);
         }
     }
