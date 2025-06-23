@@ -56,7 +56,18 @@ std::shared_ptr<Query> Analyze::do_analyze(std::shared_ptr<ast::TreeNode> parse)
         check_clause(query->tables, query->conds);
     } else if (auto x = std::dynamic_pointer_cast<ast::UpdateStmt>(parse)) {
         /** TODO: */
-
+        query->tables = {x->tab_name};
+        if (!sm_manager_->db_.is_table(x->tab_name)) {
+            throw TableNotFoundError(x->tab_name);
+        }
+        for (auto &set_clause : x->set_clauses) {
+            SetClause clause;
+            clause.lhs = {.tab_name = x->tab_name, .col_name = set_clause->col_name};
+            clause.rhs = convert_sv_value(set_clause->val);
+            query->set_clauses.push_back(clause);
+        }
+        get_clause(x->conds, query->conds);
+        check_clause(query->tables, query->conds);
     } else if (auto x = std::dynamic_pointer_cast<ast::DeleteStmt>(parse)) {
         //处理where条件
         get_clause(x->conds, query->conds);

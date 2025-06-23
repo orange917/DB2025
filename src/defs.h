@@ -51,7 +51,7 @@ struct Rid {
 };
 
 enum ColType {
-    TYPE_INT, TYPE_FLOAT, TYPE_STRING
+    TYPE_INT, TYPE_FLOAT, TYPE_STRING, TYPE_DOUBLE
 };
 
 inline std::string coltype2str(ColType type) {
