@@ -1,5 +1,5 @@
 t1
-5
+6
 d
 2
 d d_name 2 5 0 0
@@ -11,6 +11,13 @@ grade
 grade name 2 20 0 0
 grade id 0 4 20 0
 grade score 1 4 24 0
+0
+
+student
+3
+student id 0 4 0 0
+student name 2 8 4 0
+student score 1 4 12 0
 0
 
 t
