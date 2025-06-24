@@ -11,6 +11,7 @@ See the Mulan PSL v2 for more details. */
 #include "transaction_manager.h"
 #include "record/rm_file_handle.h"
 #include "system/sm_manager.h"
+#include "transaction/txn_defs.h"
 
 std::unordered_map<txn_id_t, Transaction *> TransactionManager::txn_map = {};
 
@@ -27,17 +28,26 @@ Transaction * TransactionManager::begin(Transaction* txn, LogManager* log_manage
     // 3. 把开始事务加入到全局事务表中
     // 4. 返回当前事务指针
     // 如果需要支持MVCC请在上述过程中添加代码
-    
+
     if (txn == nullptr) {
         // 生成新的事务ID
         txn_id_t new_id = next_txn_id_.fetch_add(1);
         txn = new Transaction(new_id);
+        // 设置为显式事务模式
+        txn->set_txn_mode(true);
+    }
+
+    // 确保事务状态为DEFAULT
+    if(txn->get_state() != TransactionState::DEFAULT) {
+        txn->set_state(TransactionState::DEFAULT);
     }
 
     // 把开始事务加入到全局事务表中
-    std::unique_lock<std::mutex> lock(latch_); // Protect txn_map
-    txn_map[txn->get_transaction_id()] = txn;
-    
+    {
+        std::unique_lock<std::mutex> lock(latch_); // Protect txn_map
+        txn_map[txn->get_transaction_id()] = txn;
+    }
+
     return txn;
 }
 
@@ -55,6 +65,31 @@ void TransactionManager::commit(Transaction* txn, LogManager* log_manager) {
     // 5. 更新事务状态
     // 如果需要支持MVCC请在上述过程中添加代码
 
+    // 检查事务是否存在
+    if(!txn)
+    {
+        throw std::runtime_error("Transaction does not exist.");
+    }
+
+    // 检查事务的状态，更新为已提交状态
+    txn->set_state(TransactionState::COMMITTED);
+
+    log_manager->flush_log_to_disk(); // 刷新日志到磁盘
+
+    // 清空索引相关资源
+    auto index_latch_page_set = txn->get_index_latch_page_set();
+    index_latch_page_set->clear();
+
+    // 释放所有锁资源
+    auto lock_set = txn->get_lock_set();
+    lock_set->clear();
+
+    // 从全局事务表中移除此事务
+    {
+        std::unique_lock<std::mutex> lock(latch_);
+        txn_map.erase(txn->get_transaction_id());
+    }
+
 }
 
 /**
@@ -70,5 +105,54 @@ void TransactionManager::abort(Transaction * txn, LogManager *log_manager) {
     // 4. 把事务日志刷入磁盘中
     // 5. 更新事务状态
     // 如果需要支持MVCC请在上述过程中添加代码
-    
+
+    Context context(lock_manager_, log_manager, txn);
+
+    // 回滚所有写操作
+    auto write_set = txn->get_write_set();
+    while (!write_set->empty()) {
+        WriteRecord* record = write_set->back();
+        write_set->pop_back();
+
+        auto& rm_file = sm_manager_->fhs_.at(record->GetTableName());
+        if(record->GetWriteType() == WType::INSERT_TUPLE) {
+            // 如果是插入操作，删除记录
+            rm_file->delete_record(record->GetRid(), &context);
+        } else if(record->GetWriteType() == WType::UPDATE_TUPLE) {
+            // 如果是更新操作，恢复旧记录
+            rm_file->update_record(record->GetRid(), record->GetRecord().data, &context);
+        } else if(record->GetWriteType() == WType::DELETE_TUPLE) {
+            // 如果是删除操作，插入旧记录
+            rm_file->insert_record(record->GetRecord().data, &context);
+        }
+        // 释放写记录资源
+        delete record;
+    }
+
+    // 更新事务状态为已终止
+    txn->set_state(TransactionState::ABORTED);
+
+    // 如果有日志管理器，将日志刷入磁盘
+    if (log_manager != nullptr) {
+        log_manager->flush_log_to_disk();
+    }
+
+    // 清空索引相关资源
+    auto index_latch_page_set = txn->get_index_latch_page_set();
+    while (!index_latch_page_set->empty()) {
+        // Page* page = index_latch_page_set->front();
+        index_latch_page_set->pop_front();
+        // page->WUnlatch(); // 释放写锁
+    }
+
+    // 释放所有锁资源
+    auto lock_set = txn->get_lock_set();
+    lock_set->clear();
+
+    // 从全局事务表中移除此事务
+    {
+        std::unique_lock<std::mutex> lock(latch_);
+        txn_map.erase(txn->get_transaction_id());
+    }
+
 }
