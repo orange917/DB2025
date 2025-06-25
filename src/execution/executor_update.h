@@ -58,6 +58,24 @@ public:
             // 判断是否满足 where 条件
             if (!eval_conds(&old_record, tab_.cols)) continue;
 
+            // 添加到事务的写集合中 - 在修改前记录原始数据
+            if (context_ != nullptr && context_->txn_ != nullptr) {
+                // 创建记录副本用于事务回滚
+                RmRecord record_copy(old_record.size);
+                memcpy(record_copy.data, old_record.data, old_record.size);
+
+                // 创建写记录并添加到事务的写集合中
+                WriteRecord* write_record = new WriteRecord(
+                    WType::UPDATE_TUPLE,
+                    tab_name_,
+                    rid,
+                    record_copy
+                );
+
+                // 添加到事务的写集合中
+                context_->txn_->append_write_record(write_record);
+            }
+
              // 生成新记录（先拷贝原数据，再根据 set_clauses 修改）
             RmRecord new_record = old_record;
             for (const auto &set_clause : set_clauses_) {
@@ -76,7 +94,6 @@ public:
                         val.int_val = static_cast<int>(val.float_val);
                         val.type = TYPE_INT;
                     }
-                    // 注意：此处不再有 else 分支。我们假设分析器已阻止了其他不兼容的类型转换。
                 }
 
                 // 确认类型匹配，以防万一

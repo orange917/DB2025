@@ -44,7 +44,27 @@ class DeleteExecutor : public AbstractExecutor {
 
             // 读取需要删除的记录，以便后续删除索引
             std::unique_ptr<RmRecord> record_ptr = fh_->get_record(rid, context_);
+            if (!record_ptr) continue;
+
             RmRecord &record = *record_ptr;
+
+            // 添加到事务的写集合中 - 在删除前记录原始数据
+            if (context_ != nullptr && context_->txn_ != nullptr) {
+                // 创建记录副本用于事务回滚
+                RmRecord record_copy(record.size);
+                memcpy(record_copy.data, record.data, record.size);
+
+                // 创建写记录并添加到事务的写集合中
+                WriteRecord* write_record = new WriteRecord(
+                    WType::DELETE_TUPLE,
+                    tab_name_,
+                    rid,
+                    record_copy
+                );
+
+                // 添加到事务的写集合中
+                context_->txn_->append_write_record(write_record);
+            }
 
             // 先删除记录的索引
             for (size_t i = 0; i < tab_.indexes.size(); ++i) {

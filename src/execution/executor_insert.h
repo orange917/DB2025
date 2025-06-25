@@ -52,6 +52,14 @@ class InsertExecutor : public AbstractExecutor {
         // Insert into record file
         rid_ = fh_->insert_record(rec.data, context_);
 
+        // 添加到事务的写集合中
+        if (context_ != nullptr && context_->txn_ != nullptr) {
+            // 创建新的写记录，记录插入操作
+            WriteRecord* write_record = new WriteRecord(WType::INSERT_TUPLE, tab_name_, rid_);
+            // 添加到事务的写集合中
+            context_->txn_->append_write_record(write_record);
+        }
+
         // Insert into index
         for(size_t i = 0; i < tab_.indexes.size(); ++i) {
             auto& index = tab_.indexes[i];
