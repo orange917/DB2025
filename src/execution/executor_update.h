@@ -45,6 +45,7 @@ public:
         fh_ = sm_manager_->fhs_.at(tab_name).get();
         conds_ = std::move(conds);
         rids_ = std::move(rids);
+        context_ = context;
         // 判断是否满足 where 条件
         // (Removed invalid use of 'old_record' here; condition evaluation is handled in Next())
     }
