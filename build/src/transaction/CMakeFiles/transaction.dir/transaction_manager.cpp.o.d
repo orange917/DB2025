@@ -246,10 +246,10 @@ src/transaction/CMakeFiles/transaction.dir/transaction_manager.cpp.o: \
  /home/code/db2025/src/index/ix.h /home/code/db2025/src/index/ix_scan.h \
  /home/code/db2025/src/index/ix_defs.h \
  /home/code/db2025/src/index/ix_index_handle.h \
- /home/code/db2025/src/index/ix_manager.h \
  /home/code/db2025/src/system/sm_meta.h /usr/include/c++/11/algorithm \
  /usr/include/c++/11/pstl/glue_algorithm_defs.h \
  /home/code/db2025/src/system/sm_defs.h \
+ /home/code/db2025/src/index/ix_manager.h \
  /home/code/db2025/src/record/rm_file_handle.h \
  /home/code/db2025/src/record/bitmap.h /usr/include/c++/11/cinttypes \
  /usr/include/inttypes.h /home/code/db2025/src/common/context.h \

@@ -611,11 +611,11 @@ src/transaction/CMakeFiles/transaction.dir/transaction_manager.cpp.o: ../src/tra
   ../src/index/ix_scan.h \
   ../src/index/ix_defs.h \
   ../src/index/ix_index_handle.h \
-  ../src/index/ix_manager.h \
   ../src/system/sm_meta.h \
   /usr/include/c++/11/algorithm \
   /usr/include/c++/11/pstl/glue_algorithm_defs.h \
   ../src/system/sm_defs.h \
+  ../src/index/ix_manager.h \
   ../src/record/rm_file_handle.h \
   ../src/record/bitmap.h \
   /usr/include/c++/11/cinttypes \

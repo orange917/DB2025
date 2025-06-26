@@ -144,10 +144,14 @@ class IxManager {
     }
 
     // 注意这里打开文件，创建并返回了index file handle的指针
-    std::unique_ptr<IxIndexHandle> open_index(const std::string &filename, const std::vector<ColMeta>& index_cols) {
+    std::unique_ptr<IxIndexHandle> open_index(const std::string &filename, const std::vector<ColMeta>& index_cols, const IndexMeta* meta = nullptr) {
         std::string ix_name = get_index_name(filename, index_cols);
         int fd = disk_manager_->open_file(ix_name);
-        return std::make_unique<IxIndexHandle>(disk_manager_, buffer_pool_manager_, fd);
+        if (meta) {
+            return std::make_unique<IxIndexHandle>(disk_manager_, buffer_pool_manager_, fd, *meta);
+        } else {
+            return std::make_unique<IxIndexHandle>(disk_manager_, buffer_pool_manager_, fd);
+        }
     }
 
     std::unique_ptr<IxIndexHandle> open_index(const std::string &filename, const std::vector<std::string>& index_cols) {

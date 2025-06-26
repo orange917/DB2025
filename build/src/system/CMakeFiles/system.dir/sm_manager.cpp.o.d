@@ -234,7 +234,6 @@ src/system/CMakeFiles/system.dir/sm_manager.cpp.o: \
  /home/code/db2025/src/common/common.h \
  /home/code/db2025/src/record/rm_defs.h \
  /home/code/db2025/src/transaction/txn_defs.h \
- /home/code/db2025/src/index/ix_manager.h \
  /home/code/db2025/src/system/sm_meta.h /usr/include/c++/11/algorithm \
  /usr/include/c++/11/bits/stl_algo.h \
  /usr/include/c++/11/bits/algorithmfwd.h \
@@ -243,6 +242,7 @@ src/system/CMakeFiles/system.dir/sm_manager.cpp.o: \
  /usr/include/c++/11/pstl/glue_algorithm_defs.h \
  /usr/include/c++/11/functional /usr/include/c++/11/bits/std_function.h \
  /home/code/db2025/src/system/sm_defs.h \
+ /home/code/db2025/src/index/ix_manager.h \
  /home/code/db2025/src/record/rm_file_handle.h \
  /home/code/db2025/src/record/bitmap.h /usr/include/c++/11/cinttypes \
  /usr/include/inttypes.h /home/code/db2025/src/common/context.h \

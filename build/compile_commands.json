@@ -1,157 +1,157 @@
 [
 {
   "directory": "/home/code/db2025/build",
-  "command": "/usr/bin/clang++ -I/home/code/db2025/src -Wall -O0 -g -ggdb3 -O3 -DNDEBUG -std=gnu++17 -o src/CMakeFiles/rmdb.dir/rmdb.cpp.o -c /home/code/db2025/src/rmdb.cpp",
+  "command": "/usr/bin/clang++ -I/home/code/db2025/src -Wall -O0 -g -ggdb3 -g -O0 -g -std=gnu++17 -o src/CMakeFiles/rmdb.dir/rmdb.cpp.o -c /home/code/db2025/src/rmdb.cpp",
   "file": "/home/code/db2025/src/rmdb.cpp"
 },
 {
   "directory": "/home/code/db2025/build",
-  "command": "/usr/bin/clang++ -I/home/code/db2025/src -isystem /home/code/db2025/deps/googletest/googletest/include -isystem /home/code/db2025/deps/googletest/googletest -Wall -O0 -g -ggdb3 -O3 -DNDEBUG -std=gnu++17 -o src/CMakeFiles/unit_test.dir/unit_test.cpp.o -c /home/code/db2025/src/unit_test.cpp",
+  "command": "/usr/bin/clang++ -I/home/code/db2025/src -isystem /home/code/db2025/deps/googletest/googletest/include -isystem /home/code/db2025/deps/googletest/googletest -Wall -O0 -g -ggdb3 -g -O0 -g -std=gnu++17 -o src/CMakeFiles/unit_test.dir/unit_test.cpp.o -c /home/code/db2025/src/unit_test.cpp",
   "file": "/home/code/db2025/src/unit_test.cpp"
 },
 {
   "directory": "/home/code/db2025/build",
-  "command": "/usr/bin/clang++ -I/home/code/db2025/src -Wall -O0 -g -ggdb3 -O3 -DNDEBUG -std=gnu++17 -o src/analyze/CMakeFiles/analyze.dir/analyze.cpp.o -c /home/code/db2025/src/analyze/analyze.cpp",
+  "command": "/usr/bin/clang++ -I/home/code/db2025/src -Wall -O0 -g -ggdb3 -g -O0 -g -std=gnu++17 -o src/analyze/CMakeFiles/analyze.dir/analyze.cpp.o -c /home/code/db2025/src/analyze/analyze.cpp",
   "file": "/home/code/db2025/src/analyze/analyze.cpp"
 },
 {
   "directory": "/home/code/db2025/build",
-  "command": "/usr/bin/clang++ -I/home/code/db2025/src -Wall -O0 -g -ggdb3 -O3 -DNDEBUG -std=gnu++17 -o src/record/CMakeFiles/record.dir/rm_file_handle.cpp.o -c /home/code/db2025/src/record/rm_file_handle.cpp",
+  "command": "/usr/bin/clang++ -I/home/code/db2025/src -Wall -O0 -g -ggdb3 -g -O0 -g -std=gnu++17 -o src/record/CMakeFiles/record.dir/rm_file_handle.cpp.o -c /home/code/db2025/src/record/rm_file_handle.cpp",
   "file": "/home/code/db2025/src/record/rm_file_handle.cpp"
 },
 {
   "directory": "/home/code/db2025/build",
-  "command": "/usr/bin/clang++ -I/home/code/db2025/src -Wall -O0 -g -ggdb3 -O3 -DNDEBUG -std=gnu++17 -o src/record/CMakeFiles/record.dir/rm_scan.cpp.o -c /home/code/db2025/src/record/rm_scan.cpp",
+  "command": "/usr/bin/clang++ -I/home/code/db2025/src -Wall -O0 -g -ggdb3 -g -O0 -g -std=gnu++17 -o src/record/CMakeFiles/record.dir/rm_scan.cpp.o -c /home/code/db2025/src/record/rm_scan.cpp",
   "file": "/home/code/db2025/src/record/rm_scan.cpp"
 },
 {
   "directory": "/home/code/db2025/build",
-  "command": "/usr/bin/clang++ -Drecords_EXPORTS -I/home/code/db2025/src -Wall -O0 -g -ggdb3 -O3 -DNDEBUG -fPIC -std=gnu++17 -o src/record/CMakeFiles/records.dir/rm_file_handle.cpp.o -c /home/code/db2025/src/record/rm_file_handle.cpp",
+  "command": "/usr/bin/clang++ -Drecords_EXPORTS -I/home/code/db2025/src -Wall -O0 -g -ggdb3 -g -O0 -g -fPIC -std=gnu++17 -o src/record/CMakeFiles/records.dir/rm_file_handle.cpp.o -c /home/code/db2025/src/record/rm_file_handle.cpp",
   "file": "/home/code/db2025/src/record/rm_file_handle.cpp"
 },
 {
   "directory": "/home/code/db2025/build",
-  "command": "/usr/bin/clang++ -Drecords_EXPORTS -I/home/code/db2025/src -Wall -O0 -g -ggdb3 -O3 -DNDEBUG -fPIC -std=gnu++17 -o src/record/CMakeFiles/records.dir/rm_scan.cpp.o -c /home/code/db2025/src/record/rm_scan.cpp",
+  "command": "/usr/bin/clang++ -Drecords_EXPORTS -I/home/code/db2025/src -Wall -O0 -g -ggdb3 -g -O0 -g -fPIC -std=gnu++17 -o src/record/CMakeFiles/records.dir/rm_scan.cpp.o -c /home/code/db2025/src/record/rm_scan.cpp",
   "file": "/home/code/db2025/src/record/rm_scan.cpp"
 },
 {
   "directory": "/home/code/db2025/build",
-  "command": "/usr/bin/clang++ -I/home/code/db2025/src -Wall -O0 -g -ggdb3 -O3 -DNDEBUG -std=gnu++17 -o src/index/CMakeFiles/index.dir/ix_index_handle.cpp.o -c /home/code/db2025/src/index/ix_index_handle.cpp",
+  "command": "/usr/bin/clang++ -I/home/code/db2025/src -Wall -O0 -g -ggdb3 -g -O0 -g -std=gnu++17 -o src/index/CMakeFiles/index.dir/ix_index_handle.cpp.o -c /home/code/db2025/src/index/ix_index_handle.cpp",
   "file": "/home/code/db2025/src/index/ix_index_handle.cpp"
 },
 {
   "directory": "/home/code/db2025/build",
-  "command": "/usr/bin/clang++ -I/home/code/db2025/src -Wall -O0 -g -ggdb3 -O3 -DNDEBUG -std=gnu++17 -o src/index/CMakeFiles/index.dir/ix_scan.cpp.o -c /home/code/db2025/src/index/ix_scan.cpp",
+  "command": "/usr/bin/clang++ -I/home/code/db2025/src -Wall -O0 -g -ggdb3 -g -O0 -g -std=gnu++17 -o src/index/CMakeFiles/index.dir/ix_scan.cpp.o -c /home/code/db2025/src/index/ix_scan.cpp",
   "file": "/home/code/db2025/src/index/ix_scan.cpp"
 },
 {
   "directory": "/home/code/db2025/build",
-  "command": "/usr/bin/clang++ -I/home/code/db2025/src -Wall -O0 -g -ggdb3 -O3 -DNDEBUG -std=gnu++17 -o src/system/CMakeFiles/system.dir/sm_manager.cpp.o -c /home/code/db2025/src/system/sm_manager.cpp",
+  "command": "/usr/bin/clang++ -I/home/code/db2025/src -Wall -O0 -g -ggdb3 -g -O0 -g -std=gnu++17 -o src/system/CMakeFiles/system.dir/sm_manager.cpp.o -c /home/code/db2025/src/system/sm_manager.cpp",
   "file": "/home/code/db2025/src/system/sm_manager.cpp"
 },
 {
   "directory": "/home/code/db2025/build",
-  "command": "/usr/bin/clang++ -I/home/code/db2025/src -Wall -O0 -g -ggdb3 -O3 -DNDEBUG -std=gnu++17 -o src/execution/CMakeFiles/execution.dir/execution_manager.cpp.o -c /home/code/db2025/src/execution/execution_manager.cpp",
+  "command": "/usr/bin/clang++ -I/home/code/db2025/src -Wall -O0 -g -ggdb3 -g -O0 -g -std=gnu++17 -o src/execution/CMakeFiles/execution.dir/execution_manager.cpp.o -c /home/code/db2025/src/execution/execution_manager.cpp",
   "file": "/home/code/db2025/src/execution/execution_manager.cpp"
 },
 {
   "directory": "/home/code/db2025/build",
-  "command": "/usr/bin/clang++ -I/home/code/db2025/src -Wall -O0 -g -ggdb3 -O3 -DNDEBUG -std=gnu++17 -o src/parser/CMakeFiles/parser.dir/yacc.tab.cpp.o -c /home/code/db2025/src/parser/yacc.tab.cpp",
+  "command": "/usr/bin/clang++ -I/home/code/db2025/src -Wall -O0 -g -ggdb3 -g -O0 -g -std=gnu++17 -o src/parser/CMakeFiles/parser.dir/yacc.tab.cpp.o -c /home/code/db2025/src/parser/yacc.tab.cpp",
   "file": "/home/code/db2025/src/parser/yacc.tab.cpp"
 },
 {
   "directory": "/home/code/db2025/build",
-  "command": "/usr/bin/clang++ -I/home/code/db2025/src -Wall -O0 -g -ggdb3 -O3 -DNDEBUG -std=gnu++17 -o src/parser/CMakeFiles/parser.dir/lex.yy.cpp.o -c /home/code/db2025/src/parser/lex.yy.cpp",
+  "command": "/usr/bin/clang++ -I/home/code/db2025/src -Wall -O0 -g -ggdb3 -g -O0 -g -std=gnu++17 -o src/parser/CMakeFiles/parser.dir/lex.yy.cpp.o -c /home/code/db2025/src/parser/lex.yy.cpp",
   "file": "/home/code/db2025/src/parser/lex.yy.cpp"
 },
 {
   "directory": "/home/code/db2025/build",
-  "command": "/usr/bin/clang++ -I/home/code/db2025/src -Wall -O0 -g -ggdb3 -O3 -DNDEBUG -std=gnu++17 -o src/parser/CMakeFiles/parser.dir/ast.cpp.o -c /home/code/db2025/src/parser/ast.cpp",
+  "command": "/usr/bin/clang++ -I/home/code/db2025/src -Wall -O0 -g -ggdb3 -g -O0 -g -std=gnu++17 -o src/parser/CMakeFiles/parser.dir/ast.cpp.o -c /home/code/db2025/src/parser/ast.cpp",
   "file": "/home/code/db2025/src/parser/ast.cpp"
 },
 {
   "directory": "/home/code/db2025/build",
-  "command": "/usr/bin/clang++ -I/home/code/db2025/src -Wall -O0 -g -ggdb3 -O3 -DNDEBUG -std=gnu++17 -o src/parser/CMakeFiles/test_parser.dir/test_parser.cpp.o -c /home/code/db2025/src/parser/test_parser.cpp",
+  "command": "/usr/bin/clang++ -I/home/code/db2025/src -Wall -O0 -g -ggdb3 -g -O0 -g -std=gnu++17 -o src/parser/CMakeFiles/test_parser.dir/test_parser.cpp.o -c /home/code/db2025/src/parser/test_parser.cpp",
   "file": "/home/code/db2025/src/parser/test_parser.cpp"
 },
 {
   "directory": "/home/code/db2025/build",
-  "command": "/usr/bin/clang++ -I/home/code/db2025/src -Wall -O0 -g -ggdb3 -O3 -DNDEBUG -std=gnu++17 -o src/optimizer/CMakeFiles/planner.dir/planner.cpp.o -c /home/code/db2025/src/optimizer/planner.cpp",
+  "command": "/usr/bin/clang++ -I/home/code/db2025/src -Wall -O0 -g -ggdb3 -g -O0 -g -std=gnu++17 -o src/optimizer/CMakeFiles/planner.dir/planner.cpp.o -c /home/code/db2025/src/optimizer/planner.cpp",
   "file": "/home/code/db2025/src/optimizer/planner.cpp"
 },
 {
   "directory": "/home/code/db2025/build",
-  "command": "/usr/bin/clang++ -I/home/code/db2025/src -Wall -O0 -g -ggdb3 -O3 -DNDEBUG -std=gnu++17 -o src/storage/CMakeFiles/storage.dir/disk_manager.cpp.o -c /home/code/db2025/src/storage/disk_manager.cpp",
+  "command": "/usr/bin/clang++ -I/home/code/db2025/src -Wall -O0 -g -ggdb3 -g -O0 -g -std=gnu++17 -o src/storage/CMakeFiles/storage.dir/disk_manager.cpp.o -c /home/code/db2025/src/storage/disk_manager.cpp",
   "file": "/home/code/db2025/src/storage/disk_manager.cpp"
 },
 {
   "directory": "/home/code/db2025/build",
-  "command": "/usr/bin/clang++ -I/home/code/db2025/src -Wall -O0 -g -ggdb3 -O3 -DNDEBUG -std=gnu++17 -o src/storage/CMakeFiles/storage.dir/buffer_pool_manager.cpp.o -c /home/code/db2025/src/storage/buffer_pool_manager.cpp",
+  "command": "/usr/bin/clang++ -I/home/code/db2025/src -Wall -O0 -g -ggdb3 -g -O0 -g -std=gnu++17 -o src/storage/CMakeFiles/storage.dir/buffer_pool_manager.cpp.o -c /home/code/db2025/src/storage/buffer_pool_manager.cpp",
   "file": "/home/code/db2025/src/storage/buffer_pool_manager.cpp"
 },
 {
   "directory": "/home/code/db2025/build",
-  "command": "/usr/bin/clang++ -I/home/code/db2025/src -Wall -O0 -g -ggdb3 -O3 -DNDEBUG -std=gnu++17 -o src/storage/CMakeFiles/storage.dir/__/replacer/lru_replacer.cpp.o -c /home/code/db2025/src/replacer/lru_replacer.cpp",
+  "command": "/usr/bin/clang++ -I/home/code/db2025/src -Wall -O0 -g -ggdb3 -g -O0 -g -std=gnu++17 -o src/storage/CMakeFiles/storage.dir/__/replacer/lru_replacer.cpp.o -c /home/code/db2025/src/replacer/lru_replacer.cpp",
   "file": "/home/code/db2025/src/replacer/lru_replacer.cpp"
 },
 {
   "directory": "/home/code/db2025/build",
-  "command": "/usr/bin/clang++ -I/home/code/db2025/src -Wall -O0 -g -ggdb3 -O3 -DNDEBUG -std=gnu++17 -o src/replacer/CMakeFiles/lru_replacer.dir/lru_replacer.cpp.o -c /home/code/db2025/src/replacer/lru_replacer.cpp",
+  "command": "/usr/bin/clang++ -I/home/code/db2025/src -Wall -O0 -g -ggdb3 -g -O0 -g -std=gnu++17 -o src/replacer/CMakeFiles/lru_replacer.dir/lru_replacer.cpp.o -c /home/code/db2025/src/replacer/lru_replacer.cpp",
   "file": "/home/code/db2025/src/replacer/lru_replacer.cpp"
 },
 {
   "directory": "/home/code/db2025/build",
-  "command": "/usr/bin/clang++ -I/home/code/db2025/src -Wall -O0 -g -ggdb3 -O3 -DNDEBUG -std=gnu++17 -o src/transaction/CMakeFiles/transaction.dir/concurrency/lock_manager.cpp.o -c /home/code/db2025/src/transaction/concurrency/lock_manager.cpp",
+  "command": "/usr/bin/clang++ -I/home/code/db2025/src -Wall -O0 -g -ggdb3 -g -O0 -g -std=gnu++17 -o src/transaction/CMakeFiles/transaction.dir/concurrency/lock_manager.cpp.o -c /home/code/db2025/src/transaction/concurrency/lock_manager.cpp",
   "file": "/home/code/db2025/src/transaction/concurrency/lock_manager.cpp"
 },
 {
   "directory": "/home/code/db2025/build",
-  "command": "/usr/bin/clang++ -I/home/code/db2025/src -Wall -O0 -g -ggdb3 -O3 -DNDEBUG -std=gnu++17 -o src/transaction/CMakeFiles/transaction.dir/transaction_manager.cpp.o -c /home/code/db2025/src/transaction/transaction_manager.cpp",
+  "command": "/usr/bin/clang++ -I/home/code/db2025/src -Wall -O0 -g -ggdb3 -g -O0 -g -std=gnu++17 -o src/transaction/CMakeFiles/transaction.dir/transaction_manager.cpp.o -c /home/code/db2025/src/transaction/transaction_manager.cpp",
   "file": "/home/code/db2025/src/transaction/transaction_manager.cpp"
 },
 {
   "directory": "/home/code/db2025/build",
-  "command": "/usr/bin/clang++ -I/home/code/db2025/src -Wall -O0 -g -ggdb3 -O3 -DNDEBUG -std=gnu++17 -o src/transaction/CMakeFiles/transaction.dir/watermark.cpp.o -c /home/code/db2025/src/transaction/watermark.cpp",
+  "command": "/usr/bin/clang++ -I/home/code/db2025/src -Wall -O0 -g -ggdb3 -g -O0 -g -std=gnu++17 -o src/transaction/CMakeFiles/transaction.dir/watermark.cpp.o -c /home/code/db2025/src/transaction/watermark.cpp",
   "file": "/home/code/db2025/src/transaction/watermark.cpp"
 },
 {
   "directory": "/home/code/db2025/build",
-  "command": "/usr/bin/clang++ -I/home/code/db2025/src -Wall -O0 -g -ggdb3 -O3 -DNDEBUG -std=gnu++17 -o src/recovery/CMakeFiles/recovery.dir/log_manager.cpp.o -c /home/code/db2025/src/recovery/log_manager.cpp",
+  "command": "/usr/bin/clang++ -I/home/code/db2025/src -Wall -O0 -g -ggdb3 -g -O0 -g -std=gnu++17 -o src/recovery/CMakeFiles/recovery.dir/log_manager.cpp.o -c /home/code/db2025/src/recovery/log_manager.cpp",
   "file": "/home/code/db2025/src/recovery/log_manager.cpp"
 },
 {
   "directory": "/home/code/db2025/build",
-  "command": "/usr/bin/clang++ -I/home/code/db2025/src -Wall -O0 -g -ggdb3 -O3 -DNDEBUG -std=gnu++17 -o src/recovery/CMakeFiles/recovery.dir/log_recovery.cpp.o -c /home/code/db2025/src/recovery/log_recovery.cpp",
+  "command": "/usr/bin/clang++ -I/home/code/db2025/src -Wall -O0 -g -ggdb3 -g -O0 -g -std=gnu++17 -o src/recovery/CMakeFiles/recovery.dir/log_recovery.cpp.o -c /home/code/db2025/src/recovery/log_recovery.cpp",
   "file": "/home/code/db2025/src/recovery/log_recovery.cpp"
 },
 {
   "directory": "/home/code/db2025/build",
-  "command": "/usr/bin/clang++ -Drecoverys_EXPORTS -I/home/code/db2025/src -Wall -O0 -g -ggdb3 -O3 -DNDEBUG -fPIC -std=gnu++17 -o src/recovery/CMakeFiles/recoverys.dir/log_manager.cpp.o -c /home/code/db2025/src/recovery/log_manager.cpp",
+  "command": "/usr/bin/clang++ -Drecoverys_EXPORTS -I/home/code/db2025/src -Wall -O0 -g -ggdb3 -g -O0 -g -fPIC -std=gnu++17 -o src/recovery/CMakeFiles/recoverys.dir/log_manager.cpp.o -c /home/code/db2025/src/recovery/log_manager.cpp",
   "file": "/home/code/db2025/src/recovery/log_manager.cpp"
 },
 {
   "directory": "/home/code/db2025/build",
-  "command": "/usr/bin/clang++ -Drecoverys_EXPORTS -I/home/code/db2025/src -Wall -O0 -g -ggdb3 -O3 -DNDEBUG -fPIC -std=gnu++17 -o src/recovery/CMakeFiles/recoverys.dir/log_recovery.cpp.o -c /home/code/db2025/src/recovery/log_recovery.cpp",
+  "command": "/usr/bin/clang++ -Drecoverys_EXPORTS -I/home/code/db2025/src -Wall -O0 -g -ggdb3 -g -O0 -g -fPIC -std=gnu++17 -o src/recovery/CMakeFiles/recoverys.dir/log_recovery.cpp.o -c /home/code/db2025/src/recovery/log_recovery.cpp",
   "file": "/home/code/db2025/src/recovery/log_recovery.cpp"
 },
 {
   "directory": "/home/code/db2025/build",
-  "command": "/usr/bin/clang++ -I/home/code/db2025/deps/googletest/googlemock/include -I/home/code/db2025/deps/googletest/googlemock -isystem /home/code/db2025/deps/googletest/googletest/include -isystem /home/code/db2025/deps/googletest/googletest -Wall -O0 -g -ggdb3 -O3 -DNDEBUG -Wall -Wshadow -Wconversion -DGTEST_HAS_PTHREAD=1 -fexceptions -W -Wpointer-arith -Wreturn-type -Wcast-qual -Wwrite-strings -Wswitch -Wunused-parameter -Wcast-align -Wchar-subscripts -Winline -Wredundant-decls -std=c++17 -o deps/googletest/googlemock/CMakeFiles/gmock.dir/src/gmock-all.cc.o -c /home/code/db2025/deps/googletest/googlemock/src/gmock-all.cc",
+  "command": "/usr/bin/clang++ -I/home/code/db2025/deps/googletest/googlemock/include -I/home/code/db2025/deps/googletest/googlemock -isystem /home/code/db2025/deps/googletest/googletest/include -isystem /home/code/db2025/deps/googletest/googletest -Wall -O0 -g -ggdb3 -g -O0 -g -Wall -Wshadow -Wconversion -DGTEST_HAS_PTHREAD=1 -fexceptions -W -Wpointer-arith -Wreturn-type -Wcast-qual -Wwrite-strings -Wswitch -Wunused-parameter -Wcast-align -Wchar-subscripts -Winline -Wredundant-decls -std=c++17 -o deps/googletest/googlemock/CMakeFiles/gmock.dir/src/gmock-all.cc.o -c /home/code/db2025/deps/googletest/googlemock/src/gmock-all.cc",
   "file": "/home/code/db2025/deps/googletest/googlemock/src/gmock-all.cc"
 },
 {
   "directory": "/home/code/db2025/build",
-  "command": "/usr/bin/clang++ -isystem /home/code/db2025/deps/googletest/googlemock/include -isystem /home/code/db2025/deps/googletest/googlemock -isystem /home/code/db2025/deps/googletest/googletest/include -isystem /home/code/db2025/deps/googletest/googletest -Wall -O0 -g -ggdb3 -O3 -DNDEBUG -Wall -Wshadow -Wconversion -DGTEST_HAS_PTHREAD=1 -fexceptions -W -Wpointer-arith -Wreturn-type -Wcast-qual -Wwrite-strings -Wswitch -Wunused-parameter -Wcast-align -Wchar-subscripts -Winline -Wredundant-decls -std=c++17 -o deps/googletest/googlemock/CMakeFiles/gmock_main.dir/src/gmock_main.cc.o -c /home/code/db2025/deps/googletest/googlemock/src/gmock_main.cc",
+  "command": "/usr/bin/clang++ -isystem /home/code/db2025/deps/googletest/googlemock/include -isystem /home/code/db2025/deps/googletest/googlemock -isystem /home/code/db2025/deps/googletest/googletest/include -isystem /home/code/db2025/deps/googletest/googletest -Wall -O0 -g -ggdb3 -g -O0 -g -Wall -Wshadow -Wconversion -DGTEST_HAS_PTHREAD=1 -fexceptions -W -Wpointer-arith -Wreturn-type -Wcast-qual -Wwrite-strings -Wswitch -Wunused-parameter -Wcast-align -Wchar-subscripts -Winline -Wredundant-decls -std=c++17 -o deps/googletest/googlemock/CMakeFiles/gmock_main.dir/src/gmock_main.cc.o -c /home/code/db2025/deps/googletest/googlemock/src/gmock_main.cc",
   "file": "/home/code/db2025/deps/googletest/googlemock/src/gmock_main.cc"
 },
 {
   "directory": "/home/code/db2025/build",
-  "command": "/usr/bin/clang++ -I/home/code/db2025/deps/googletest/googletest/include -I/home/code/db2025/deps/googletest/googletest -Wall -O0 -g -ggdb3 -O3 -DNDEBUG -Wall -Wshadow -Wconversion -DGTEST_HAS_PTHREAD=1 -fexceptions -W -Wpointer-arith -Wreturn-type -Wcast-qual -Wwrite-strings -Wswitch -Wunused-parameter -Wcast-align -Wchar-subscripts -Winline -Wredundant-decls -std=c++17 -o deps/googletest/googletest/CMakeFiles/gtest.dir/src/gtest-all.cc.o -c /home/code/db2025/deps/googletest/googletest/src/gtest-all.cc",
+  "command": "/usr/bin/clang++ -I/home/code/db2025/deps/googletest/googletest/include -I/home/code/db2025/deps/googletest/googletest -Wall -O0 -g -ggdb3 -g -O0 -g -Wall -Wshadow -Wconversion -DGTEST_HAS_PTHREAD=1 -fexceptions -W -Wpointer-arith -Wreturn-type -Wcast-qual -Wwrite-strings -Wswitch -Wunused-parameter -Wcast-align -Wchar-subscripts -Winline -Wredundant-decls -std=c++17 -o deps/googletest/googletest/CMakeFiles/gtest.dir/src/gtest-all.cc.o -c /home/code/db2025/deps/googletest/googletest/src/gtest-all.cc",
   "file": "/home/code/db2025/deps/googletest/googletest/src/gtest-all.cc"
 },
 {
   "directory": "/home/code/db2025/build",
-  "command": "/usr/bin/clang++ -isystem /home/code/db2025/deps/googletest/googletest/include -isystem /home/code/db2025/deps/googletest/googletest -Wall -O0 -g -ggdb3 -O3 -DNDEBUG -Wall -Wshadow -Wconversion -DGTEST_HAS_PTHREAD=1 -fexceptions -W -Wpointer-arith -Wreturn-type -Wcast-qual -Wwrite-strings -Wswitch -Wunused-parameter -Wcast-align -Wchar-subscripts -Winline -Wredundant-decls -std=c++17 -o deps/googletest/googletest/CMakeFiles/gtest_main.dir/src/gtest_main.cc.o -c /home/code/db2025/deps/googletest/googletest/src/gtest_main.cc",
+  "command": "/usr/bin/clang++ -isystem /home/code/db2025/deps/googletest/googletest/include -isystem /home/code/db2025/deps/googletest/googletest -Wall -O0 -g -ggdb3 -g -O0 -g -Wall -Wshadow -Wconversion -DGTEST_HAS_PTHREAD=1 -fexceptions -W -Wpointer-arith -Wreturn-type -Wcast-qual -Wwrite-strings -Wswitch -Wunused-parameter -Wcast-align -Wchar-subscripts -Winline -Wredundant-decls -std=c++17 -o deps/googletest/googletest/CMakeFiles/gtest_main.dir/src/gtest_main.cc.o -c /home/code/db2025/deps/googletest/googletest/src/gtest_main.cc",
   "file": "/home/code/db2025/deps/googletest/googletest/src/gtest_main.cc"
 }
 ]

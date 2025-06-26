@@ -300,7 +300,6 @@ src/system/CMakeFiles/system.dir/sm_manager.cpp.o: ../src/system/sm_manager.cpp 
   ../src/common/common.h \
   ../src/record/rm_defs.h \
   ../src/transaction/txn_defs.h \
-  ../src/index/ix_manager.h \
   ../src/system/sm_meta.h \
   /usr/include/c++/11/algorithm \
   /usr/include/c++/11/bits/stl_algo.h \
@@ -311,6 +310,7 @@ src/system/CMakeFiles/system.dir/sm_manager.cpp.o: ../src/system/sm_manager.cpp 
   /usr/include/c++/11/functional \
   /usr/include/c++/11/bits/std_function.h \
   ../src/system/sm_defs.h \
+  ../src/index/ix_manager.h \
   ../src/record/rm_file_handle.h \
   ../src/record/bitmap.h \
   /usr/include/c++/11/cinttypes \

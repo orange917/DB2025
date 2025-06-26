@@ -575,7 +575,6 @@ src/recovery/CMakeFiles/recovery.dir/log_recovery.cpp.o: ../src/recovery/log_rec
   /usr/include/c++/11/bits/unordered_set.h \
   ../src/common/common.h \
   ../src/transaction/txn_defs.h \
-  ../src/index/ix_manager.h \
   ../src/system/sm_meta.h \
   /usr/include/c++/11/algorithm \
   /usr/include/c++/11/bits/stl_algo.h \
@@ -586,6 +585,7 @@ src/recovery/CMakeFiles/recovery.dir/log_recovery.cpp.o: ../src/recovery/log_rec
   /usr/include/c++/11/functional \
   /usr/include/c++/11/bits/std_function.h \
   ../src/system/sm_defs.h \
+  ../src/index/ix_manager.h \
   ../src/record/rm_file_handle.h \
   ../src/record/bitmap.h \
   /usr/include/c++/11/cinttypes \

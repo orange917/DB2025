@@ -15,6 +15,7 @@ See the Mulan PSL v2 for more details. */
 #include "sm_defs.h"
 #include "sm_meta.h"
 #include "common/context.h"
+#include <mutex>
 
 class Context;
 
@@ -35,6 +36,7 @@ class SmManager {
     BufferPoolManager* buffer_pool_manager_;
     RmManager* rm_manager_;
     IxManager* ix_manager_;
+    std::mutex meta_mutex_;
 
    public:
     SmManager(DiskManager* disk_manager, BufferPoolManager* buffer_pool_manager, RmManager* rm_manager,
@@ -79,4 +81,6 @@ class SmManager {
     void drop_index(const std::string& tab_name, const std::vector<ColMeta>& col_names, Context* context);
 
     bool is_table(const std::string &tab_name) const { return db_.is_table(tab_name); }
+
+    void show_index(const std::string& tab_name, Context* context);
 };

@@ -315,7 +315,6 @@ src/execution/CMakeFiles/execution.dir/execution_manager.cpp.o: ../src/execution
   ../src/index/ix_scan.h \
   ../src/index/ix_defs.h \
   ../src/index/ix_index_handle.h \
-  ../src/index/ix_manager.h \
   ../src/system/sm_meta.h \
   /usr/include/c++/11/algorithm \
   /usr/include/c++/11/bits/stl_algo.h \
@@ -326,6 +325,7 @@ src/execution/CMakeFiles/execution.dir/execution_manager.cpp.o: ../src/execution
   /usr/include/c++/11/functional \
   /usr/include/c++/11/bits/std_function.h \
   ../src/system/sm_defs.h \
+  ../src/index/ix_manager.h \
   ../src/optimizer/plan.h \
   ../src/parser/ast.h \
   ../src/parser/parser.h \

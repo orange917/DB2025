@@ -15,6 +15,7 @@ See the Mulan PSL v2 for more details. */
 #include <string>
 #include <vector>
 
+
 class RMDBError : public std::exception {
    public:
     RMDBError() : _msg("Error: ") {}
@@ -126,6 +127,19 @@ class IndexExistsError : public RMDBError {
         _msg += "Index already exists: " + tab_name + ".(";
         for(size_t i = 0; i < col_names.size(); ++i) {
             if(i > 0) _msg += ", ";
+            _msg += col_names[i];
+        }
+        _msg += ")";
+    }
+};
+
+// 新增唯一索引冲突异常
+class UniqueIndexViolationError : public RMDBError {
+public:
+    UniqueIndexViolationError(const std::string &tab_name, const std::vector<std::string> &col_names) {
+        _msg += "Unique index violation: " + tab_name + ".(";
+        for (size_t i = 0; i < col_names.size(); ++i) {
+            if (i > 0) _msg += ", ";
             _msg += col_names[i];
         }
         _msg += ")";

@@ -232,4 +232,12 @@ src/index/CMakeFiles/index.dir/ix_scan.cpp.o: \
  /usr/include/c++/11/bits/unordered_set.h \
  /home/code/db2025/src/common/common.h \
  /home/code/db2025/src/record/rm_defs.h \
- /home/code/db2025/src/transaction/txn_defs.h
+ /home/code/db2025/src/transaction/txn_defs.h \
+ /home/code/db2025/src/system/sm_meta.h /usr/include/c++/11/algorithm \
+ /usr/include/c++/11/bits/stl_algo.h \
+ /usr/include/c++/11/bits/algorithmfwd.h \
+ /usr/include/c++/11/bits/stl_heap.h \
+ /usr/include/c++/11/bits/uniform_int_dist.h \
+ /usr/include/c++/11/pstl/glue_algorithm_defs.h \
+ /usr/include/c++/11/functional /usr/include/c++/11/bits/std_function.h \
+ /home/code/db2025/src/system/sm_defs.h

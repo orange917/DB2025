@@ -9,14 +9,14 @@ MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
 See the Mulan PSL v2 for more details. */
 
 #pragma once
-
+#include "errors.h"
 #include <algorithm>
 #include <iostream>
 #include <map>
 #include <string>
 #include <vector>
 
-#include "errors.h"
+
 #include "sm_defs.h"
 
 /* 字段元数据 */
@@ -45,9 +45,10 @@ struct IndexMeta {
     int col_tot_len;                // 索引字段长度总和
     int col_num;                    // 索引字段数量
     std::vector<ColMeta> cols;      // 索引包含的字段
+    bool unique = true;             // 是否唯一索引，默认唯一
 
     friend std::ostream &operator<<(std::ostream &os, const IndexMeta &index) {
-        os << index.tab_name << " " << index.col_tot_len << " " << index.col_num;
+        os << index.tab_name << " " << index.col_tot_len << " " << index.col_num << " " << index.unique;
         for(auto& col: index.cols) {
             os << "\n" << col;
         }
@@ -55,7 +56,7 @@ struct IndexMeta {
     }
 
     friend std::istream &operator>>(std::istream &is, IndexMeta &index) {
-        is >> index.tab_name >> index.col_tot_len >> index.col_num;
+        is >> index.tab_name >> index.col_tot_len >> index.col_num >> index.unique;
         for(int i = 0; i < index.col_num; ++i) {
             ColMeta col;
             is >> col;
@@ -112,14 +113,14 @@ struct TabMeta {
             }
             if(i == col_names.size()) return index;
         }
-        throw IndexNotFoundError(name, col_names);
+        throw ::IndexNotFoundError(name, col_names);
     }
 
     /* 根据字段名称获取字段元数据 */
     std::vector<ColMeta>::iterator get_col(const std::string &col_name) {
         auto pos = std::find_if(cols.begin(), cols.end(), [&](const ColMeta &col) { return col.name == col_name; });
         if (pos == cols.end()) {
-            throw ColumnNotFoundError(col_name);
+            throw ::ColumnNotFoundError(col_name);
         }
         return pos;
     }
@@ -177,7 +178,7 @@ class DbMeta {
     TabMeta &get_table(const std::string &tab_name) {
         auto pos = tabs_.find(tab_name);
         if (pos == tabs_.end()) {
-            throw TableNotFoundError(tab_name);
+            throw ::TableNotFoundError(tab_name);
         }
 
         return pos->second;

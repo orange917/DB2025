@@ -1201,3 +1201,29 @@ failure
 | 1 | xiaohong | 90.000000 |
 | id | name | score |
 | 1 | xiaohong | 92.000000 |
+| Tables |
+| d |
+| grade |
+| student |
+| t |
+| t1 |
+| t2 |
+| warehouse |
+| warehouse | unique | (id) |
+failure
+| warehouse | unique | (id) |
+| warehouse | unique | (id) |
+| warehouse | unique | (id) |
+| warehouse | unique | (id,name) |
+| warehouse | unique | (id) |
+| warehouse | unique | (id,name) |
+| warehouse | unique | (id) |
+| warehouse | unique | (id,name) |
+| warehouse | unique | (id) |
+| warehouse | unique | (id,name) |
+| warehouse | unique | (id) |
+| warehouse | unique | (id,name) |
+| warehouse | unique | (id) |
+| warehouse | unique | (id,name) |
+| warehouse | unique | (id) |
+| warehouse | unique | (id,name) |
