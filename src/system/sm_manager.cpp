@@ -86,6 +86,7 @@ void SmManager::drop_db(const std::string& db_name) {
  * @param {string&} db_name 数据库名称，与文件夹同名
  */
 void SmManager::open_db(const std::string& db_name) {
+    std::lock_guard<std::mutex> lock(meta_mutex_);
     // 先检查一下是否存在目录
     if(!is_dir(db_name)) {
         throw DatabaseNotFoundError(db_name);
@@ -108,14 +109,11 @@ void SmManager::open_db(const std::string& db_name) {
         auto &tab = entry.second;
         fhs_[tab.name] = rm_manager_->open_file(tab.name);
 
-        // 打开索引文件
-        for (auto &col : tab.cols) {
-            if (col.index) {
-                std::vector<ColMeta> idx_cols = {col};
-                auto ih = ix_manager_->open_index(tab.name, idx_cols);
-                std::string index_name = ix_manager_->get_index_name(tab.name, idx_cols);
-                ihs_[index_name] = std::move(ih);
-            }
+        // 打开索引文件 - 遍历表中的所有索引
+        for (auto &index : tab.indexes) {
+            auto ih = ix_manager_->open_index(tab.name, index.cols);
+            std::string index_name = ix_manager_->get_index_name(tab.name, index.cols);
+            ihs_[index_name] = std::move(ih);
         }
     }
 }
@@ -124,6 +122,7 @@ void SmManager::open_db(const std::string& db_name) {
  * @description: 把数据库相关的元数据刷入磁盘中
  */
 void SmManager::flush_meta() {
+    std::lock_guard<std::mutex> lock(meta_mutex_);
     // 默认清空文件
     std::ofstream ofs(DB_META_NAME);
     ofs << db_;
@@ -133,6 +132,7 @@ void SmManager::flush_meta() {
  * @description: 关闭数据库并把数据落盘
  */
 void SmManager::close_db() {
+    std::lock_guard<std::mutex> lock(meta_mutex_);
     // 刷新一下所有的page
     for(auto &rm_file : fhs_) {
         buffer_pool_manager_->flush_all_pages(rm_file.second->GetFd());
@@ -165,6 +165,7 @@ void SmManager::close_db() {
  * @param {Context*} context 
  */
 void SmManager::show_tables(Context* context) {
+    std::lock_guard<std::mutex> lock(meta_mutex_);
     std::fstream outfile;
     outfile.open("output.txt", std::ios::out | std::ios::app);
     outfile << "| Tables |\n";
@@ -187,6 +188,7 @@ void SmManager::show_tables(Context* context) {
  * @param {Context*} context 
  */
 void SmManager::desc_table(const std::string& tab_name, Context* context) {
+    std::lock_guard<std::mutex> lock(meta_mutex_);
     TabMeta &tab = db_.get_table(tab_name);
 
     std::vector<std::string> captions = {"Field", "Type", "Index"};
@@ -211,6 +213,7 @@ void SmManager::desc_table(const std::string& tab_name, Context* context) {
  * @param {Context*} context
  */
 void SmManager::create_table(const std::string& tab_name, const std::vector<ColDef>& col_defs, Context* context) {
+    std::lock_guard<std::mutex> lock(meta_mutex_);
     // 检查表名是否为空
     if (tab_name.empty()) {
         throw TableNotFoundError("Table name cannot be empty");
@@ -276,6 +279,7 @@ void SmManager::create_table(const std::string& tab_name, const std::vector<ColD
  * @param {Context*} context
  */
 void SmManager::drop_table(const std::string& tab_name, Context* context) {
+    std::lock_guard<std::mutex> lock(meta_mutex_);
     if(!db_.is_table(tab_name)) {
         throw TableNotFoundError(tab_name);
     }
@@ -351,6 +355,7 @@ void SmManager::drop_table(const std::string& tab_name, Context* context) {
  * @param {Context*} context
  */
 void SmManager::create_index(const std::string& tab_name, const std::vector<std::string>& col_names, Context* context) {
+    std::lock_guard<std::mutex> lock(meta_mutex_);
     // 检查表是否存在
     if(!db_.is_table(tab_name)) {
         throw TableNotFoundError(tab_name);
@@ -385,7 +390,16 @@ void SmManager::create_index(const std::string& tab_name, const std::vector<std:
 
     // 创建索引
     ix_manager_->create_index(tab_name, cols);
-    auto ih = ix_manager_->open_index(tab_name, cols);
+    IndexMeta index_meta;
+    index_meta.tab_name = tab_name;
+    index_meta.cols = cols;
+    index_meta.col_num = cols.size();
+    index_meta.col_tot_len = 0;
+    index_meta.unique = true; // 唯一索引
+    for(const auto& col : cols) {
+        index_meta.col_tot_len += col.len;
+    }
+    auto ih = ix_manager_->open_index(tab_name, cols, &index_meta);
     ihs_[index_name] = std::move(ih);
 
     // 将索引信息添加到表的元数据中
@@ -395,35 +409,44 @@ void SmManager::create_index(const std::string& tab_name, const std::vector<std:
     }
 
     // 添加索引到表的索引列表
-    IndexMeta index_meta;
-    index_meta.tab_name = tab_name;
-    index_meta.cols = cols;
-    index_meta.col_num = cols.size();
-    index_meta.col_tot_len = 0;
+    IndexMeta index_meta_new;
+    index_meta_new.tab_name = tab_name;
+    index_meta_new.cols = cols;
+    index_meta_new.col_num = cols.size();
+    index_meta_new.col_tot_len = 0;
+    index_meta_new.unique = true; // 唯一索引
     for(const auto& col : cols) {
-        index_meta.col_tot_len += col.len;
+        index_meta_new.col_tot_len += col.len;
     }
-    tab.indexes.push_back(index_meta);
+    tab.indexes.push_back(index_meta_new);
 
     // 将已有的数据插入到索引中
     auto file_handle = fhs_[tab_name].get();
     auto scan = file_handle->create_scan();
-    RmRecord rec;
-    while (!scan->is_end()) {
-        auto rid = scan->rid();
-        auto record = file_handle->get_record(rid, context);
-        if (record) {
-            // 从记录中提取键值并插入到索引中
-            char* key = new char[index_meta.col_tot_len];
-            int offset = 0;
-            for (const auto& col : cols) {
-                memcpy(key + offset, record->data + col.offset, col.len);
-                offset += col.len;
+    try {
+        while (!scan->is_end()) {
+            auto rid = scan->rid();
+            auto record = file_handle->get_record(rid, context);
+            if (record) {
+                // 从记录中提取键值并插入到索引中
+                char* key = new char[index_meta_new.col_tot_len];
+                int offset = 0;
+                for (const auto& col : cols) {
+                    memcpy(key + offset, record->data + col.offset, col.len);
+                    offset += col.len;
+                }
+                ihs_[index_name]->insert_entry(key, rid, nullptr); // 若唯一性冲突会抛异常
+                delete[] key;
             }
-            ihs_[index_name]->insert_entry(key, rid, nullptr);
-            delete[] key;
+            scan->next();
         }
-        scan->next();
+    } catch (const std::exception& e) {
+        // 回滚：删除索引文件和元数据
+        ihs_.erase(index_name);
+        ix_manager_->destroy_index(tab_name, cols);
+        tab.indexes.pop_back();
+        flush_meta();
+        throw; // 继续抛出异常
     }
 
     // 将修改后的元数据写入磁盘
@@ -437,6 +460,7 @@ void SmManager::create_index(const std::string& tab_name, const std::vector<std:
  * @param {Context*} context
  */
 void SmManager::drop_index(const std::string& tab_name, const std::vector<std::string>& col_names, Context* context) {
+    std::lock_guard<std::mutex> lock(meta_mutex_);
     // 检查表是否存在
     if (!db_.is_table(tab_name)) {
         throw TableNotFoundError(tab_name);
@@ -451,6 +475,8 @@ void SmManager::drop_index(const std::string& tab_name, const std::vector<std::s
     
     // 获取索引元数据
     auto index_iter = tab.get_index_meta(col_names);
+    // 先拷贝一份索引的 cols
+    std::vector<ColMeta> index_cols = index_iter->cols;
     
     // 获取索引名
     std::string index_name = ix_manager_->get_index_name(tab_name, col_names);
@@ -463,7 +489,10 @@ void SmManager::drop_index(const std::string& tab_name, const std::vector<std::s
     }
     
     // 删除索引文件
-    ix_manager_->destroy_index(tab_name, index_iter->cols);
+    ix_manager_->destroy_index(tab_name, index_cols);
+    
+    // 从表的索引列表中移除该索引
+    tab.indexes.erase(index_iter);
     
     // 更新表元数据中列的索引标记
     for (const auto& col_name : col_names) {
@@ -471,11 +500,6 @@ void SmManager::drop_index(const std::string& tab_name, const std::vector<std::s
         bool still_indexed = false;
         
         for (const auto& index : tab.indexes) {
-            // 跳过当前要删除的索引
-            if (&index == &(*index_iter)) {
-                continue;
-            }
-            
             // 检查该列是否在其他索引中
             for (const auto& idx_col : index.cols) {
                 if (idx_col.name == col_name) {
@@ -493,9 +517,6 @@ void SmManager::drop_index(const std::string& tab_name, const std::vector<std::s
         }
     }
     
-    // 从表的索引列表中移除该索引
-    tab.indexes.erase(index_iter);
-    
     // 将修改后的元数据写入磁盘
     flush_meta();
 }
@@ -507,6 +528,7 @@ void SmManager::drop_index(const std::string& tab_name, const std::vector<std::s
  * @param {Context*} context
  */
 void SmManager::drop_index(const std::string& tab_name, const std::vector<ColMeta>& cols, Context* context) {
+    std::lock_guard<std::mutex> lock(meta_mutex_);
     // 从字段元数据中获取字段名列表
     std::vector<std::string> col_names;
     for (const auto& col : cols) {
@@ -515,4 +537,48 @@ void SmManager::drop_index(const std::string& tab_name, const std::vector<ColMet
     
     // 调用第一个重载的drop_index函数完成删除操作
     drop_index(tab_name, col_names, context);
+}
+
+/**
+ * @description: 显示表的索引
+ * @param {string&} tab_name 表名称
+ * @param {Context*} context 
+ */
+void SmManager::show_index(const std::string& tab_name, Context* context) {
+    std::lock_guard<std::mutex> lock(meta_mutex_);
+    std::fstream outfile;
+    outfile.open("output.txt", std::ios::out | std::ios::app);
+    if (!db_.is_table(tab_name)) {
+        outfile << "No such table: " << tab_name << "\n";
+        outfile.close();
+        return;
+    }
+    TabMeta& tab = db_.get_table(tab_name);
+    
+    // Use RecordPrinter to write to context output buffer
+    std::vector<std::string> captions = {"Table", "Type", "Columns"};
+    RecordPrinter printer(captions.size());
+    printer.print_separator(context);
+    printer.print_record(captions, context);
+    printer.print_separator(context);
+    
+    for (const auto& index : tab.indexes) {
+        // Build column list string
+        std::string col_list = "(";
+        for (size_t i = 0; i < index.cols.size(); ++i) {
+            col_list += index.cols[i].name;
+            if (i + 1 < index.cols.size()) col_list += ",";
+        }
+        col_list += ")";
+        
+        // Print to context buffer
+        std::vector<std::string> index_info = {tab.name, "unique", col_list};
+        printer.print_record(index_info, context);
+        
+        // Print to file for testing
+        outfile << "| " << tab.name << " | unique | " << col_list << " |\n";
+    }
+    
+    printer.print_separator(context);
+    outfile.close();
 }

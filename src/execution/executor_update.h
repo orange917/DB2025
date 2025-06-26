@@ -122,17 +122,42 @@ public:
             // 写回新数据
             fh_->update_record(rid, new_record.data, context_);
 
-            // 再插入新索引项
-            for (auto &index : tab_.indexes) {
-                auto ih = sm_manager_->ihs_.at(sm_manager_->get_ix_manager()->get_index_name(tab_name_, index.cols)).get();
-                char* key = new char[index.col_tot_len];
-                int offset = 0;
-                for (size_t j = 0; j < index.col_num; ++j) {
-                    memcpy(key + offset, new_record.data + index.cols[j].offset, index.cols[j].len);
-                    offset += index.cols[j].len;
+            // 再插入新索引项（异常安全）
+            try {
+                for (auto &index : tab_.indexes) {
+                    auto ih = sm_manager_->ihs_.at(sm_manager_->get_ix_manager()->get_index_name(tab_name_, index.cols)).get();
+                    char* key = new char[index.col_tot_len];
+                    int offset = 0;
+                    for (size_t j = 0; j < index.col_num; ++j) {
+                        memcpy(key + offset, new_record.data + index.cols[j].offset, index.cols[j].len);
+                        offset += index.cols[j].len;
+                    }
+                    ih->insert_entry(key, rid, context_->txn_);
+                    delete[] key;
                 }
-                ih->insert_entry(key, rid, context_->txn_);
-                delete[] key;
+            } catch (const std::exception& e) {
+                // 回滚主表和索引
+                fh_->update_record(rid, old_record.data, context_);
+                for (auto &index : tab_.indexes) {
+                    auto ih = sm_manager_->ihs_.at(sm_manager_->get_ix_manager()->get_index_name(tab_name_, index.cols)).get();
+                    char* key = new char[index.col_tot_len];
+                    int offset = 0;
+                    for (size_t j = 0; j < index.col_num; ++j) {
+                        memcpy(key + offset, new_record.data + index.cols[j].offset, index.cols[j].len);
+                        offset += index.cols[j].len;
+                    }
+                    ih->delete_entry(key, context_->txn_);
+                    // 恢复旧索引
+                    key = new char[index.col_tot_len];
+                    offset = 0;
+                    for (size_t j = 0; j < index.col_num; ++j) {
+                        memcpy(key + offset, old_record.data + index.cols[j].offset, index.cols[j].len);
+                        offset += index.cols[j].len;
+                    }
+                    ih->insert_entry(key, rid, context_->txn_);
+                    delete[] key;
+                }
+                throw;
             }
         }
         return nullptr;

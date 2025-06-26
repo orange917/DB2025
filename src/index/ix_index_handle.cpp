@@ -8,6 +8,7 @@ EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT,
 MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
 See the Mulan PSL v2 for more details. */
 
+#include "errors.h"
 #include "ix_index_handle.h"
 
 #include "ix_scan.h"
@@ -142,6 +143,11 @@ int IxNodeHandle::remove(const char *key) {
 
 IxIndexHandle::IxIndexHandle(DiskManager *disk_manager, BufferPoolManager *buffer_pool_manager, int fd)
     : disk_manager_(disk_manager), buffer_pool_manager_(buffer_pool_manager), fd_(fd) {
+    // index_meta_ 可设为默认值
+}
+
+IxIndexHandle::IxIndexHandle(DiskManager *disk_manager, BufferPoolManager *buffer_pool_manager, int fd, const IndexMeta& index_meta)
+    : disk_manager_(disk_manager), buffer_pool_manager_(buffer_pool_manager), fd_(fd), index_meta_(index_meta) {
     // init file_hdr_
     disk_manager_->read_page(fd, IX_FILE_HDR_PAGE, (char *)&file_hdr_, sizeof(file_hdr_));
     char* buf = new char[PAGE_SIZE];
@@ -240,6 +246,15 @@ void IxIndexHandle::insert_into_parent(IxNodeHandle *old_node, const char *key, 
  * @return page_id_t 插入到的叶结点的page_no
  */
 page_id_t IxIndexHandle::insert_entry(const char *key, const Rid &value, Transaction *transaction) {
+    // 唯一性检查
+    if (index_meta_.unique) {
+        std::vector<Rid> result;
+        if (get_value(key, &result, transaction) && !result.empty()) {
+            std::vector<std::string> col_names;
+            for (const auto& col : index_meta_.cols) col_names.push_back(col.name);
+            throw UniqueIndexViolationError(index_meta_.tab_name, col_names);
+        }
+    }
     // Todo:
     // 1. 查找key值应该插入到哪个叶子节点
     // 2. 在该叶子节点中插入键值对

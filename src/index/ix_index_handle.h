@@ -12,6 +12,8 @@ See the Mulan PSL v2 for more details. */
 
 #include "ix_defs.h"
 #include "transaction/transaction.h"
+#include "system/sm_meta.h"
+#include "errors.h"
 
 enum class Operation { FIND = 0, INSERT, DELETE };  // 三种操作：查找、插入、删除
 
@@ -168,9 +170,11 @@ class IxIndexHandle {
     int fd_;                                    // 存储B+树的文件
     IxFileHdr* file_hdr_;                       // 存了root_page，但其初始化为2（第0页存FILE_HDR_PAGE，第1页存LEAF_HEADER_PAGE）
     std::mutex root_latch_;
+    IndexMeta index_meta_;                      // 索引元数据，包含唯一性等信息
 
    public:
     IxIndexHandle(DiskManager *disk_manager, BufferPoolManager *buffer_pool_manager, int fd);
+    IxIndexHandle(DiskManager *disk_manager, BufferPoolManager *buffer_pool_manager, int fd, const IndexMeta& index_meta);
 
     // 添加公共方法
     int get_fd() const { return fd_; }

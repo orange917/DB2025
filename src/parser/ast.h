@@ -283,6 +283,11 @@ struct SemValue {
 
 extern std::shared_ptr<ast::TreeNode> parse_tree;
 
+struct ShowIndex : public TreeNode {
+    std::string tab_name;
+    ShowIndex(std::string tab_name_) : tab_name(std::move(tab_name_)) {}
+};
+
 }
 
 #define YYSTYPE ast::SemValue

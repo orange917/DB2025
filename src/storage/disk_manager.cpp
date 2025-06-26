@@ -9,7 +9,7 @@ MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
 See the Mulan PSL v2 for more details. */
 
 #include "storage/disk_manager.h"
-
+#include "errors.h"
 #include <assert.h>    // for assert
 #include <string.h>    // for memset
 #include <sys/stat.h>  // for stat
@@ -126,13 +126,9 @@ void DiskManager::destroy_file(const std::string &path) {
         throw FileNotFoundError(path);
     if(path2fd_.find(path)==path2fd_.end()){
         unlink(path.c_str());
-        fd2path_.erase(path2fd_[path]);
-        path2fd_.erase(path);
     }
     else 
         throw UnixError();
-
-    
 }
 
 
