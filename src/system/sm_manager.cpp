@@ -122,7 +122,7 @@ void SmManager::open_db(const std::string& db_name) {
  * @description: 把数据库相关的元数据刷入磁盘中
  */
 void SmManager::flush_meta() {
-    std::lock_guard<std::mutex> lock(meta_mutex_);
+    // std::lock_guard<std::mutex> lock(meta_mutex_);
     // 默认清空文件
     std::ofstream ofs(DB_META_NAME);
     ofs << db_;
@@ -284,70 +284,62 @@ void SmManager::drop_table(const std::string& tab_name, Context* context) {
         throw TableNotFoundError(tab_name);
     }
 
-    // 获取文件的位置
-    auto it = fhs_.find(tab_name);
-    if (it != fhs_.end()) {
-        // 先刷新所有脏页到磁盘
-        buffer_pool_manager_->flush_all_pages(it->second->GetFd());
-        
-        // 删除buffer pool中的所有相关页面
-        auto file_handle = it->second.get();
-        auto scan = file_handle->create_scan();
-        while (!scan->is_end()) {
-            auto rid = scan->rid();
-            PageId page_id = {it->second->GetFd(), rid.page_no};
-            buffer_pool_manager_->delete_page(page_id);
-            scan->next();
-        }
-        
-        // 关闭并删除文件句柄
-        rm_manager_->close_file(it->second.get());
-        fhs_.erase(it);
-    }
-
-    // 删除表的索引
-    for(auto it = db_.tabs_[tab_name].indexes.begin(); it != db_.tabs_[tab_name].indexes.end(); it++) {
+    // Step 1: Clean up and delete all associated indexes.
+    // We must copy the index metadata because the loop will modify the table's index list by calling drop_index.
+    auto indexes_to_drop = db_.tabs_[tab_name].indexes;
+    for (const auto& index_meta : indexes_to_drop) {
         std::vector<std::string> col_names;
-        for(const auto& col : it->cols) {
+        for (const auto& col : index_meta.cols) {
             col_names.push_back(col.name);
         }
-        auto ix_name = ix_manager_->get_index_name(tab_name, col_names);
-        auto ix_it = ihs_.find(ix_name);
-        if(ix_it != ihs_.end()) {
-            // 获取索引文件的文件描述符
-            int fd = ix_it->second->get_fd();
-            // 刷新索引文件的脏页
-            buffer_pool_manager_->flush_all_pages(fd);
-            
-            // 删除索引文件的页面
-            auto index_handle = ix_it->second.get();
-            // 从第一个叶子节点开始遍历
-            Iid iid = index_handle->leaf_begin();
-            Iid end = index_handle->leaf_end();
-            while (iid != end) {
-                PageId page_id = {fd, iid.page_no};
-                buffer_pool_manager_->delete_page(page_id);
-                iid.slot_no++;
-                if (iid.slot_no >= index_handle->get_node(iid.page_no)->get_size()) {
-                    iid.page_no = index_handle->get_node(iid.page_no)->get_next_leaf();
-                    iid.slot_no = 0;
-                }
-            }
-            
-            ix_manager_->close_index(ix_it->second.get());
-            ihs_.erase(ix_it);
+
+        std::string index_name = ix_manager_->get_index_name(tab_name, col_names);
+
+        // Find and close the index handle
+        auto ih_iter = ihs_.find(index_name);
+        if (ih_iter != ihs_.end()) {
+            // The index manager should be responsible for cleaning up pages from the buffer pool.
+            // The manual page deletion logic here is complex and error-prone.
+            // We will rely on the manager's close and destroy functions to handle cleanup.
+            ix_manager_->close_index(ih_iter->second.get());
+            ihs_.erase(ih_iter);
         }
+        
+        // This is the crucial step to delete the physical index file.
+        ix_manager_->destroy_index(tab_name, index_meta.cols);
     }
 
-    // 删除表文件
+    // Step 2: Clean up and delete the table data file.
+    auto fh_iter = fhs_.find(tab_name);
+    if (fh_iter != fhs_.end()) {
+        auto file_handle = fh_iter->second.get();
+        int fd = file_handle->GetFd();
+        buffer_pool_manager_->flush_all_pages(fd);
+
+        // Clean up table data pages from buffer pool
+        auto scan = file_handle->create_scan();
+        std::set<page_id_t> pages_to_delete;
+        while (!scan->is_end()) {
+            pages_to_delete.insert(scan->rid().page_no);
+            scan->next();
+        }
+        for (const auto& page_no : pages_to_delete) {
+            buffer_pool_manager_->delete_page({fd, page_no});
+        }
+
+        rm_manager_->close_file(file_handle);
+        fhs_.erase(fh_iter);
+    }
+
+    // This deletes the physical table file.
     rm_manager_->destroy_file(tab_name);
-    // 删除tabs
+
+    // Step 3: Remove the table's metadata.
     db_.tabs_.erase(tab_name);
-    
-    // 刷新元数据到磁盘
+
+    // Step 4: Persist the metadata changes.
     flush_meta();
 }
-
 /**
  * @description: 创建索引
  * @param {string&} tab_name 表的名称
@@ -362,7 +354,7 @@ void SmManager::create_index(const std::string& tab_name, const std::vector<std:
     }
 
     TabMeta& tab = db_.get_table(tab_name);
-    
+
     // 检查索引是否已经存在
     if(tab.is_index(col_names)) {
         throw IndexExistsError(tab_name, col_names);
@@ -409,16 +401,7 @@ void SmManager::create_index(const std::string& tab_name, const std::vector<std:
     }
 
     // 添加索引到表的索引列表
-    IndexMeta index_meta_new;
-    index_meta_new.tab_name = tab_name;
-    index_meta_new.cols = cols;
-    index_meta_new.col_num = cols.size();
-    index_meta_new.col_tot_len = 0;
-    index_meta_new.unique = true; // 唯一索引
-    for(const auto& col : cols) {
-        index_meta_new.col_tot_len += col.len;
-    }
-    tab.indexes.push_back(index_meta_new);
+    tab.indexes.push_back(index_meta);
 
     // 将已有的数据插入到索引中
     auto file_handle = fhs_[tab_name].get();
@@ -429,7 +412,7 @@ void SmManager::create_index(const std::string& tab_name, const std::vector<std:
             auto record = file_handle->get_record(rid, context);
             if (record) {
                 // 从记录中提取键值并插入到索引中
-                char* key = new char[index_meta_new.col_tot_len];
+                char* key = new char[index_meta.col_tot_len];
                 int offset = 0;
                 for (const auto& col : cols) {
                     memcpy(key + offset, record->data + col.offset, col.len);

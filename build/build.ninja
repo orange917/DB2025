@@ -12,7 +12,7 @@
 
 # =============================================================================
 # Project: RMDB
-# Configurations: Debug
+# Configurations: Release
 # =============================================================================
 
 #############################################
@@ -24,7 +24,7 @@ ninja_required_version = 1.5
 #############################################
 # Set configuration variable for custom commands.
 
-CONFIGURATION = Debug
+CONFIGURATION = Release
 # =============================================================================
 # Include auxiliary files.
 
@@ -132,9 +132,9 @@ build install/strip: phony CMakeFiles/install/strip.util
 
 build cmake_object_order_depends_target_rmdb: phony || cmake_object_order_depends_target_analyze cmake_object_order_depends_target_execution cmake_object_order_depends_target_index cmake_object_order_depends_target_parser cmake_object_order_depends_target_planner cmake_object_order_depends_target_record cmake_object_order_depends_target_storage
 
-build src/CMakeFiles/rmdb.dir/rmdb.cpp.o: CXX_COMPILER__rmdb_Debug /home/code/db2025/src/rmdb.cpp || cmake_object_order_depends_target_rmdb
+build src/CMakeFiles/rmdb.dir/rmdb.cpp.o: CXX_COMPILER__rmdb_Release /home/code/db2025/src/rmdb.cpp || cmake_object_order_depends_target_rmdb
   DEP_FILE = src/CMakeFiles/rmdb.dir/rmdb.cpp.o.d
-  FLAGS = -Wall -O0 -g -ggdb3 -g -O0 -g -std=gnu++17
+  FLAGS = -Wall -O0 -g -ggdb3 -O3 -DNDEBUG -std=gnu++17
   INCLUDES = -I/home/code/db2025/src
   OBJECT_DIR = src/CMakeFiles/rmdb.dir
   OBJECT_FILE_DIR = src/CMakeFiles/rmdb.dir
@@ -147,8 +147,8 @@ build src/CMakeFiles/rmdb.dir/rmdb.cpp.o: CXX_COMPILER__rmdb_Debug /home/code/db
 #############################################
 # Link the executable bin/rmdb
 
-build bin/rmdb: CXX_EXECUTABLE_LINKER__rmdb_Debug src/CMakeFiles/rmdb.dir/rmdb.cpp.o | lib/libparser.a lib/libexecution.a lib/libplanner.a lib/libanalyze.a lib/libsystem.a lib/librecord.a lib/libtransaction.a lib/librecovery.a lib/libsystem.a lib/librecord.a lib/libtransaction.a lib/librecovery.a lib/libindex.a lib/libstorage.a || lib/libanalyze.a lib/libexecution.a lib/libindex.a lib/libparser.a lib/libplanner.a lib/librecord.a lib/libstorage.a
-  FLAGS = -Wall -O0 -g -ggdb3 -g -O0 -g
+build bin/rmdb: CXX_EXECUTABLE_LINKER__rmdb_Release src/CMakeFiles/rmdb.dir/rmdb.cpp.o | lib/libparser.a lib/libexecution.a lib/libplanner.a lib/libanalyze.a lib/libsystem.a lib/librecord.a lib/libtransaction.a lib/librecovery.a lib/libsystem.a lib/librecord.a lib/libtransaction.a lib/librecovery.a lib/libindex.a lib/libstorage.a || lib/libanalyze.a lib/libexecution.a lib/libindex.a lib/libparser.a lib/libplanner.a lib/librecord.a lib/libstorage.a
+  FLAGS = -Wall -O0 -g -ggdb3 -O3 -DNDEBUG
   LINK_LIBRARIES = lib/libparser.a  lib/libexecution.a  -lreadline  -lpthread  lib/libplanner.a  lib/libanalyze.a  lib/libsystem.a  lib/librecord.a  lib/libtransaction.a  lib/librecovery.a  lib/libsystem.a  lib/librecord.a  lib/libtransaction.a  lib/librecovery.a  lib/libindex.a  lib/libstorage.a  -lpthread
   OBJECT_DIR = src/CMakeFiles/rmdb.dir
   POST_BUILD = :
@@ -165,9 +165,9 @@ build bin/rmdb: CXX_EXECUTABLE_LINKER__rmdb_Debug src/CMakeFiles/rmdb.dir/rmdb.c
 
 build cmake_object_order_depends_target_unit_test: phony || cmake_object_order_depends_target_gtest cmake_object_order_depends_target_gtest_main cmake_object_order_depends_target_index cmake_object_order_depends_target_lru_replacer cmake_object_order_depends_target_record cmake_object_order_depends_target_storage
 
-build src/CMakeFiles/unit_test.dir/unit_test.cpp.o: CXX_COMPILER__unit_test_Debug /home/code/db2025/src/unit_test.cpp || cmake_object_order_depends_target_unit_test
+build src/CMakeFiles/unit_test.dir/unit_test.cpp.o: CXX_COMPILER__unit_test_Release /home/code/db2025/src/unit_test.cpp || cmake_object_order_depends_target_unit_test
   DEP_FILE = src/CMakeFiles/unit_test.dir/unit_test.cpp.o.d
-  FLAGS = -Wall -O0 -g -ggdb3 -g -O0 -g -std=gnu++17
+  FLAGS = -Wall -O0 -g -ggdb3 -O3 -DNDEBUG -std=gnu++17
   INCLUDES = -I/home/code/db2025/src -isystem /home/code/db2025/deps/googletest/googletest/include -isystem /home/code/db2025/deps/googletest/googletest
   OBJECT_DIR = src/CMakeFiles/unit_test.dir
   OBJECT_FILE_DIR = src/CMakeFiles/unit_test.dir
@@ -180,8 +180,8 @@ build src/CMakeFiles/unit_test.dir/unit_test.cpp.o: CXX_COMPILER__unit_test_Debu
 #############################################
 # Link the executable bin/unit_test
 
-build bin/unit_test: CXX_EXECUTABLE_LINKER__unit_test_Debug src/CMakeFiles/unit_test.dir/unit_test.cpp.o | lib/libstorage.a lib/liblru_replacer.a lib/librecord.a lib/libgtest_main.a lib/libsystem.a lib/libtransaction.a lib/librecovery.a lib/librecord.a lib/libsystem.a lib/libtransaction.a lib/librecovery.a lib/libindex.a lib/libstorage.a lib/libgtest.a || lib/libgtest.a lib/libgtest_main.a lib/libindex.a lib/liblru_replacer.a lib/librecord.a lib/libstorage.a
-  FLAGS = -Wall -O0 -g -ggdb3 -g -O0 -g
+build bin/unit_test: CXX_EXECUTABLE_LINKER__unit_test_Release src/CMakeFiles/unit_test.dir/unit_test.cpp.o | lib/libstorage.a lib/liblru_replacer.a lib/librecord.a lib/libgtest_main.a lib/libsystem.a lib/libtransaction.a lib/librecovery.a lib/librecord.a lib/libsystem.a lib/libtransaction.a lib/librecovery.a lib/libindex.a lib/libstorage.a lib/libgtest.a || lib/libgtest.a lib/libgtest_main.a lib/libindex.a lib/liblru_replacer.a lib/librecord.a lib/libstorage.a
+  FLAGS = -Wall -O0 -g -ggdb3 -O3 -DNDEBUG
   LINK_LIBRARIES = lib/libstorage.a  lib/liblru_replacer.a  lib/librecord.a  lib/libgtest_main.a  lib/libsystem.a  lib/libtransaction.a  lib/librecovery.a  lib/librecord.a  lib/libsystem.a  lib/libtransaction.a  lib/librecovery.a  lib/libindex.a  lib/libstorage.a  -lpthread  lib/libgtest.a
   OBJECT_DIR = src/CMakeFiles/unit_test.dir
   POST_BUILD = :
@@ -281,9 +281,9 @@ build src/install/strip: phony src/CMakeFiles/install/strip.util
 
 build cmake_object_order_depends_target_analyze: phony || src/analyze/CMakeFiles/analyze.dir
 
-build src/analyze/CMakeFiles/analyze.dir/analyze.cpp.o: CXX_COMPILER__analyze_Debug /home/code/db2025/src/analyze/analyze.cpp || cmake_object_order_depends_target_analyze
+build src/analyze/CMakeFiles/analyze.dir/analyze.cpp.o: CXX_COMPILER__analyze_Release /home/code/db2025/src/analyze/analyze.cpp || cmake_object_order_depends_target_analyze
   DEP_FILE = src/analyze/CMakeFiles/analyze.dir/analyze.cpp.o.d
-  FLAGS = -Wall -O0 -g -ggdb3 -g -O0 -g -std=gnu++17
+  FLAGS = -Wall -O0 -g -ggdb3 -O3 -DNDEBUG -std=gnu++17
   INCLUDES = -I/home/code/db2025/src
   OBJECT_DIR = src/analyze/CMakeFiles/analyze.dir
   OBJECT_FILE_DIR = src/analyze/CMakeFiles/analyze.dir
@@ -296,8 +296,8 @@ build src/analyze/CMakeFiles/analyze.dir/analyze.cpp.o: CXX_COMPILER__analyze_De
 #############################################
 # Link the static library lib/libanalyze.a
 
-build lib/libanalyze.a: CXX_STATIC_LIBRARY_LINKER__analyze_Debug src/analyze/CMakeFiles/analyze.dir/analyze.cpp.o
-  LANGUAGE_COMPILE_FLAGS = -Wall -O0 -g -ggdb3 -g -O0 -g
+build lib/libanalyze.a: CXX_STATIC_LIBRARY_LINKER__analyze_Release src/analyze/CMakeFiles/analyze.dir/analyze.cpp.o
+  LANGUAGE_COMPILE_FLAGS = -Wall -O0 -g -ggdb3 -O3 -DNDEBUG
   OBJECT_DIR = src/analyze/CMakeFiles/analyze.dir
   POST_BUILD = :
   PRE_LINK = :
@@ -396,16 +396,16 @@ build src/analyze/install/strip: phony src/analyze/CMakeFiles/install/strip.util
 
 build cmake_object_order_depends_target_record: phony || cmake_object_order_depends_target_system
 
-build src/record/CMakeFiles/record.dir/rm_file_handle.cpp.o: CXX_COMPILER__record_Debug /home/code/db2025/src/record/rm_file_handle.cpp || cmake_object_order_depends_target_record
+build src/record/CMakeFiles/record.dir/rm_file_handle.cpp.o: CXX_COMPILER__record_Release /home/code/db2025/src/record/rm_file_handle.cpp || cmake_object_order_depends_target_record
   DEP_FILE = src/record/CMakeFiles/record.dir/rm_file_handle.cpp.o.d
-  FLAGS = -Wall -O0 -g -ggdb3 -g -O0 -g -std=gnu++17
+  FLAGS = -Wall -O0 -g -ggdb3 -O3 -DNDEBUG -std=gnu++17
   INCLUDES = -I/home/code/db2025/src
   OBJECT_DIR = src/record/CMakeFiles/record.dir
   OBJECT_FILE_DIR = src/record/CMakeFiles/record.dir
 
-build src/record/CMakeFiles/record.dir/rm_scan.cpp.o: CXX_COMPILER__record_Debug /home/code/db2025/src/record/rm_scan.cpp || cmake_object_order_depends_target_record
+build src/record/CMakeFiles/record.dir/rm_scan.cpp.o: CXX_COMPILER__record_Release /home/code/db2025/src/record/rm_scan.cpp || cmake_object_order_depends_target_record
   DEP_FILE = src/record/CMakeFiles/record.dir/rm_scan.cpp.o.d
-  FLAGS = -Wall -O0 -g -ggdb3 -g -O0 -g -std=gnu++17
+  FLAGS = -Wall -O0 -g -ggdb3 -O3 -DNDEBUG -std=gnu++17
   INCLUDES = -I/home/code/db2025/src
   OBJECT_DIR = src/record/CMakeFiles/record.dir
   OBJECT_FILE_DIR = src/record/CMakeFiles/record.dir
@@ -418,8 +418,8 @@ build src/record/CMakeFiles/record.dir/rm_scan.cpp.o: CXX_COMPILER__record_Debug
 #############################################
 # Link the static library lib/librecord.a
 
-build lib/librecord.a: CXX_STATIC_LIBRARY_LINKER__record_Debug src/record/CMakeFiles/record.dir/rm_file_handle.cpp.o src/record/CMakeFiles/record.dir/rm_scan.cpp.o || lib/libsystem.a
-  LANGUAGE_COMPILE_FLAGS = -Wall -O0 -g -ggdb3 -g -O0 -g
+build lib/librecord.a: CXX_STATIC_LIBRARY_LINKER__record_Release src/record/CMakeFiles/record.dir/rm_file_handle.cpp.o src/record/CMakeFiles/record.dir/rm_scan.cpp.o || lib/libsystem.a
+  LANGUAGE_COMPILE_FLAGS = -Wall -O0 -g -ggdb3 -O3 -DNDEBUG
   OBJECT_DIR = src/record/CMakeFiles/record.dir
   POST_BUILD = :
   PRE_LINK = :
@@ -435,18 +435,18 @@ build lib/librecord.a: CXX_STATIC_LIBRARY_LINKER__record_Debug src/record/CMakeF
 
 build cmake_object_order_depends_target_records: phony || src/record/CMakeFiles/records.dir
 
-build src/record/CMakeFiles/records.dir/rm_file_handle.cpp.o: CXX_COMPILER__records_Debug /home/code/db2025/src/record/rm_file_handle.cpp || cmake_object_order_depends_target_records
+build src/record/CMakeFiles/records.dir/rm_file_handle.cpp.o: CXX_COMPILER__records_Release /home/code/db2025/src/record/rm_file_handle.cpp || cmake_object_order_depends_target_records
   DEFINES = -Drecords_EXPORTS
   DEP_FILE = src/record/CMakeFiles/records.dir/rm_file_handle.cpp.o.d
-  FLAGS = -Wall -O0 -g -ggdb3 -g -O0 -g -fPIC -std=gnu++17
+  FLAGS = -Wall -O0 -g -ggdb3 -O3 -DNDEBUG -fPIC -std=gnu++17
   INCLUDES = -I/home/code/db2025/src
   OBJECT_DIR = src/record/CMakeFiles/records.dir
   OBJECT_FILE_DIR = src/record/CMakeFiles/records.dir
 
-build src/record/CMakeFiles/records.dir/rm_scan.cpp.o: CXX_COMPILER__records_Debug /home/code/db2025/src/record/rm_scan.cpp || cmake_object_order_depends_target_records
+build src/record/CMakeFiles/records.dir/rm_scan.cpp.o: CXX_COMPILER__records_Release /home/code/db2025/src/record/rm_scan.cpp || cmake_object_order_depends_target_records
   DEFINES = -Drecords_EXPORTS
   DEP_FILE = src/record/CMakeFiles/records.dir/rm_scan.cpp.o.d
-  FLAGS = -Wall -O0 -g -ggdb3 -g -O0 -g -fPIC -std=gnu++17
+  FLAGS = -Wall -O0 -g -ggdb3 -O3 -DNDEBUG -fPIC -std=gnu++17
   INCLUDES = -I/home/code/db2025/src
   OBJECT_DIR = src/record/CMakeFiles/records.dir
   OBJECT_FILE_DIR = src/record/CMakeFiles/records.dir
@@ -459,8 +459,8 @@ build src/record/CMakeFiles/records.dir/rm_scan.cpp.o: CXX_COMPILER__records_Deb
 #############################################
 # Link the shared library lib/librecords.so
 
-build lib/librecords.so: CXX_SHARED_LIBRARY_LINKER__records_Debug src/record/CMakeFiles/records.dir/rm_file_handle.cpp.o src/record/CMakeFiles/records.dir/rm_scan.cpp.o
-  LANGUAGE_COMPILE_FLAGS = -Wall -O0 -g -ggdb3 -g -O0 -g
+build lib/librecords.so: CXX_SHARED_LIBRARY_LINKER__records_Release src/record/CMakeFiles/records.dir/rm_file_handle.cpp.o src/record/CMakeFiles/records.dir/rm_scan.cpp.o
+  LANGUAGE_COMPILE_FLAGS = -Wall -O0 -g -ggdb3 -O3 -DNDEBUG
   OBJECT_DIR = src/record/CMakeFiles/records.dir
   POST_BUILD = :
   PRE_LINK = :
@@ -561,16 +561,16 @@ build src/record/install/strip: phony src/record/CMakeFiles/install/strip.util
 
 build cmake_object_order_depends_target_index: phony || cmake_object_order_depends_target_storage
 
-build src/index/CMakeFiles/index.dir/ix_index_handle.cpp.o: CXX_COMPILER__index_Debug /home/code/db2025/src/index/ix_index_handle.cpp || cmake_object_order_depends_target_index
+build src/index/CMakeFiles/index.dir/ix_index_handle.cpp.o: CXX_COMPILER__index_Release /home/code/db2025/src/index/ix_index_handle.cpp || cmake_object_order_depends_target_index
   DEP_FILE = src/index/CMakeFiles/index.dir/ix_index_handle.cpp.o.d
-  FLAGS = -Wall -O0 -g -ggdb3 -g -O0 -g -std=gnu++17
+  FLAGS = -Wall -O0 -g -ggdb3 -O3 -DNDEBUG -std=gnu++17
   INCLUDES = -I/home/code/db2025/src
   OBJECT_DIR = src/index/CMakeFiles/index.dir
   OBJECT_FILE_DIR = src/index/CMakeFiles/index.dir
 
-build src/index/CMakeFiles/index.dir/ix_scan.cpp.o: CXX_COMPILER__index_Debug /home/code/db2025/src/index/ix_scan.cpp || cmake_object_order_depends_target_index
+build src/index/CMakeFiles/index.dir/ix_scan.cpp.o: CXX_COMPILER__index_Release /home/code/db2025/src/index/ix_scan.cpp || cmake_object_order_depends_target_index
   DEP_FILE = src/index/CMakeFiles/index.dir/ix_scan.cpp.o.d
-  FLAGS = -Wall -O0 -g -ggdb3 -g -O0 -g -std=gnu++17
+  FLAGS = -Wall -O0 -g -ggdb3 -O3 -DNDEBUG -std=gnu++17
   INCLUDES = -I/home/code/db2025/src
   OBJECT_DIR = src/index/CMakeFiles/index.dir
   OBJECT_FILE_DIR = src/index/CMakeFiles/index.dir
@@ -583,8 +583,8 @@ build src/index/CMakeFiles/index.dir/ix_scan.cpp.o: CXX_COMPILER__index_Debug /h
 #############################################
 # Link the static library lib/libindex.a
 
-build lib/libindex.a: CXX_STATIC_LIBRARY_LINKER__index_Debug src/index/CMakeFiles/index.dir/ix_index_handle.cpp.o src/index/CMakeFiles/index.dir/ix_scan.cpp.o || lib/libstorage.a
-  LANGUAGE_COMPILE_FLAGS = -Wall -O0 -g -ggdb3 -g -O0 -g
+build lib/libindex.a: CXX_STATIC_LIBRARY_LINKER__index_Release src/index/CMakeFiles/index.dir/ix_index_handle.cpp.o src/index/CMakeFiles/index.dir/ix_scan.cpp.o || lib/libstorage.a
+  LANGUAGE_COMPILE_FLAGS = -Wall -O0 -g -ggdb3 -O3 -DNDEBUG
   OBJECT_DIR = src/index/CMakeFiles/index.dir
   POST_BUILD = :
   PRE_LINK = :
@@ -683,9 +683,9 @@ build src/index/install/strip: phony src/index/CMakeFiles/install/strip.util
 
 build cmake_object_order_depends_target_system: phony || cmake_object_order_depends_target_transaction
 
-build src/system/CMakeFiles/system.dir/sm_manager.cpp.o: CXX_COMPILER__system_Debug /home/code/db2025/src/system/sm_manager.cpp || cmake_object_order_depends_target_system
+build src/system/CMakeFiles/system.dir/sm_manager.cpp.o: CXX_COMPILER__system_Release /home/code/db2025/src/system/sm_manager.cpp || cmake_object_order_depends_target_system
   DEP_FILE = src/system/CMakeFiles/system.dir/sm_manager.cpp.o.d
-  FLAGS = -Wall -O0 -g -ggdb3 -g -O0 -g -std=gnu++17
+  FLAGS = -Wall -O0 -g -ggdb3 -O3 -DNDEBUG -std=gnu++17
   INCLUDES = -I/home/code/db2025/src
   OBJECT_DIR = src/system/CMakeFiles/system.dir
   OBJECT_FILE_DIR = src/system/CMakeFiles/system.dir
@@ -698,8 +698,8 @@ build src/system/CMakeFiles/system.dir/sm_manager.cpp.o: CXX_COMPILER__system_De
 #############################################
 # Link the static library lib/libsystem.a
 
-build lib/libsystem.a: CXX_STATIC_LIBRARY_LINKER__system_Debug src/system/CMakeFiles/system.dir/sm_manager.cpp.o || lib/libtransaction.a
-  LANGUAGE_COMPILE_FLAGS = -Wall -O0 -g -ggdb3 -g -O0 -g
+build lib/libsystem.a: CXX_STATIC_LIBRARY_LINKER__system_Release src/system/CMakeFiles/system.dir/sm_manager.cpp.o || lib/libtransaction.a
+  LANGUAGE_COMPILE_FLAGS = -Wall -O0 -g -ggdb3 -O3 -DNDEBUG
   OBJECT_DIR = src/system/CMakeFiles/system.dir
   POST_BUILD = :
   PRE_LINK = :
@@ -798,9 +798,9 @@ build src/system/install/strip: phony src/system/CMakeFiles/install/strip.util
 
 build cmake_object_order_depends_target_execution: phony || cmake_object_order_depends_target_index cmake_object_order_depends_target_planner cmake_object_order_depends_target_record cmake_object_order_depends_target_storage
 
-build src/execution/CMakeFiles/execution.dir/execution_manager.cpp.o: CXX_COMPILER__execution_Debug /home/code/db2025/src/execution/execution_manager.cpp || cmake_object_order_depends_target_execution
+build src/execution/CMakeFiles/execution.dir/execution_manager.cpp.o: CXX_COMPILER__execution_Release /home/code/db2025/src/execution/execution_manager.cpp || cmake_object_order_depends_target_execution
   DEP_FILE = src/execution/CMakeFiles/execution.dir/execution_manager.cpp.o.d
-  FLAGS = -Wall -O0 -g -ggdb3 -g -O0 -g -std=gnu++17
+  FLAGS = -Wall -O0 -g -ggdb3 -O3 -DNDEBUG -std=gnu++17
   INCLUDES = -I/home/code/db2025/src
   OBJECT_DIR = src/execution/CMakeFiles/execution.dir
   OBJECT_FILE_DIR = src/execution/CMakeFiles/execution.dir
@@ -813,8 +813,8 @@ build src/execution/CMakeFiles/execution.dir/execution_manager.cpp.o: CXX_COMPIL
 #############################################
 # Link the static library lib/libexecution.a
 
-build lib/libexecution.a: CXX_STATIC_LIBRARY_LINKER__execution_Debug src/execution/CMakeFiles/execution.dir/execution_manager.cpp.o || lib/libindex.a lib/libplanner.a lib/librecord.a lib/libstorage.a
-  LANGUAGE_COMPILE_FLAGS = -Wall -O0 -g -ggdb3 -g -O0 -g
+build lib/libexecution.a: CXX_STATIC_LIBRARY_LINKER__execution_Release src/execution/CMakeFiles/execution.dir/execution_manager.cpp.o || lib/libindex.a lib/libplanner.a lib/librecord.a lib/libstorage.a
+  LANGUAGE_COMPILE_FLAGS = -Wall -O0 -g -ggdb3 -O3 -DNDEBUG
   OBJECT_DIR = src/execution/CMakeFiles/execution.dir
   POST_BUILD = :
   PRE_LINK = :
@@ -913,23 +913,23 @@ build src/execution/install/strip: phony src/execution/CMakeFiles/install/strip.
 
 build cmake_object_order_depends_target_parser: phony || ../src/parser/lex.yy.cpp ../src/parser/yacc.tab.cpp ../src/parser/yacc.tab.h cmake_object_order_depends_target_execution cmake_object_order_depends_target_index cmake_object_order_depends_target_planner cmake_object_order_depends_target_record cmake_object_order_depends_target_storage
 
-build src/parser/CMakeFiles/parser.dir/yacc.tab.cpp.o: CXX_COMPILER__parser_Debug /home/code/db2025/src/parser/yacc.tab.cpp || cmake_object_order_depends_target_parser
+build src/parser/CMakeFiles/parser.dir/yacc.tab.cpp.o: CXX_COMPILER__parser_Release /home/code/db2025/src/parser/yacc.tab.cpp || cmake_object_order_depends_target_parser
   DEP_FILE = src/parser/CMakeFiles/parser.dir/yacc.tab.cpp.o.d
-  FLAGS = -Wall -O0 -g -ggdb3 -g -O0 -g -std=gnu++17
+  FLAGS = -Wall -O0 -g -ggdb3 -O3 -DNDEBUG -std=gnu++17
   INCLUDES = -I/home/code/db2025/src
   OBJECT_DIR = src/parser/CMakeFiles/parser.dir
   OBJECT_FILE_DIR = src/parser/CMakeFiles/parser.dir
 
-build src/parser/CMakeFiles/parser.dir/lex.yy.cpp.o: CXX_COMPILER__parser_Debug /home/code/db2025/src/parser/lex.yy.cpp | ../src/parser/yacc.tab.h || cmake_object_order_depends_target_parser
+build src/parser/CMakeFiles/parser.dir/lex.yy.cpp.o: CXX_COMPILER__parser_Release /home/code/db2025/src/parser/lex.yy.cpp | ../src/parser/yacc.tab.h || cmake_object_order_depends_target_parser
   DEP_FILE = src/parser/CMakeFiles/parser.dir/lex.yy.cpp.o.d
-  FLAGS = -Wall -O0 -g -ggdb3 -g -O0 -g -std=gnu++17
+  FLAGS = -Wall -O0 -g -ggdb3 -O3 -DNDEBUG -std=gnu++17
   INCLUDES = -I/home/code/db2025/src
   OBJECT_DIR = src/parser/CMakeFiles/parser.dir
   OBJECT_FILE_DIR = src/parser/CMakeFiles/parser.dir
 
-build src/parser/CMakeFiles/parser.dir/ast.cpp.o: CXX_COMPILER__parser_Debug /home/code/db2025/src/parser/ast.cpp || cmake_object_order_depends_target_parser
+build src/parser/CMakeFiles/parser.dir/ast.cpp.o: CXX_COMPILER__parser_Release /home/code/db2025/src/parser/ast.cpp || cmake_object_order_depends_target_parser
   DEP_FILE = src/parser/CMakeFiles/parser.dir/ast.cpp.o.d
-  FLAGS = -Wall -O0 -g -ggdb3 -g -O0 -g -std=gnu++17
+  FLAGS = -Wall -O0 -g -ggdb3 -O3 -DNDEBUG -std=gnu++17
   INCLUDES = -I/home/code/db2025/src
   OBJECT_DIR = src/parser/CMakeFiles/parser.dir
   OBJECT_FILE_DIR = src/parser/CMakeFiles/parser.dir
@@ -942,8 +942,8 @@ build src/parser/CMakeFiles/parser.dir/ast.cpp.o: CXX_COMPILER__parser_Debug /ho
 #############################################
 # Link the static library lib/libparser.a
 
-build lib/libparser.a: CXX_STATIC_LIBRARY_LINKER__parser_Debug src/parser/CMakeFiles/parser.dir/yacc.tab.cpp.o src/parser/CMakeFiles/parser.dir/lex.yy.cpp.o src/parser/CMakeFiles/parser.dir/ast.cpp.o || lib/libexecution.a lib/libindex.a lib/libplanner.a lib/librecord.a lib/libstorage.a
-  LANGUAGE_COMPILE_FLAGS = -Wall -O0 -g -ggdb3 -g -O0 -g
+build lib/libparser.a: CXX_STATIC_LIBRARY_LINKER__parser_Release src/parser/CMakeFiles/parser.dir/yacc.tab.cpp.o src/parser/CMakeFiles/parser.dir/lex.yy.cpp.o src/parser/CMakeFiles/parser.dir/ast.cpp.o || lib/libexecution.a lib/libindex.a lib/libplanner.a lib/librecord.a lib/libstorage.a
+  LANGUAGE_COMPILE_FLAGS = -Wall -O0 -g -ggdb3 -O3 -DNDEBUG
   OBJECT_DIR = src/parser/CMakeFiles/parser.dir
   POST_BUILD = :
   PRE_LINK = :
@@ -959,9 +959,9 @@ build lib/libparser.a: CXX_STATIC_LIBRARY_LINKER__parser_Debug src/parser/CMakeF
 
 build cmake_object_order_depends_target_test_parser: phony || cmake_object_order_depends_target_execution cmake_object_order_depends_target_index cmake_object_order_depends_target_parser cmake_object_order_depends_target_planner cmake_object_order_depends_target_record cmake_object_order_depends_target_storage
 
-build src/parser/CMakeFiles/test_parser.dir/test_parser.cpp.o: CXX_COMPILER__test_parser_Debug /home/code/db2025/src/parser/test_parser.cpp || cmake_object_order_depends_target_test_parser
+build src/parser/CMakeFiles/test_parser.dir/test_parser.cpp.o: CXX_COMPILER__test_parser_Release /home/code/db2025/src/parser/test_parser.cpp || cmake_object_order_depends_target_test_parser
   DEP_FILE = src/parser/CMakeFiles/test_parser.dir/test_parser.cpp.o.d
-  FLAGS = -Wall -O0 -g -ggdb3 -g -O0 -g -std=gnu++17
+  FLAGS = -Wall -O0 -g -ggdb3 -O3 -DNDEBUG -std=gnu++17
   INCLUDES = -I/home/code/db2025/src
   OBJECT_DIR = src/parser/CMakeFiles/test_parser.dir
   OBJECT_FILE_DIR = src/parser/CMakeFiles/test_parser.dir
@@ -974,8 +974,8 @@ build src/parser/CMakeFiles/test_parser.dir/test_parser.cpp.o: CXX_COMPILER__tes
 #############################################
 # Link the executable bin/test_parser
 
-build bin/test_parser: CXX_EXECUTABLE_LINKER__test_parser_Debug src/parser/CMakeFiles/test_parser.dir/test_parser.cpp.o | lib/libparser.a lib/libexecution.a lib/libsystem.a lib/librecord.a lib/libtransaction.a lib/librecovery.a lib/libsystem.a lib/librecord.a lib/libtransaction.a lib/librecovery.a lib/libindex.a lib/libstorage.a lib/libplanner.a || lib/libexecution.a lib/libindex.a lib/libparser.a lib/libplanner.a lib/librecord.a lib/libstorage.a
-  FLAGS = -Wall -O0 -g -ggdb3 -g -O0 -g
+build bin/test_parser: CXX_EXECUTABLE_LINKER__test_parser_Release src/parser/CMakeFiles/test_parser.dir/test_parser.cpp.o | lib/libparser.a lib/libexecution.a lib/libsystem.a lib/librecord.a lib/libtransaction.a lib/librecovery.a lib/libsystem.a lib/librecord.a lib/libtransaction.a lib/librecovery.a lib/libindex.a lib/libstorage.a lib/libplanner.a || lib/libexecution.a lib/libindex.a lib/libparser.a lib/libplanner.a lib/librecord.a lib/libstorage.a
+  FLAGS = -Wall -O0 -g -ggdb3 -O3 -DNDEBUG
   LINK_LIBRARIES = lib/libparser.a  lib/libexecution.a  lib/libsystem.a  lib/librecord.a  lib/libtransaction.a  lib/librecovery.a  lib/libsystem.a  lib/librecord.a  lib/libtransaction.a  lib/librecovery.a  lib/libindex.a  lib/libstorage.a  lib/libplanner.a  -lpthread
   OBJECT_DIR = src/parser/CMakeFiles/test_parser.dir
   POST_BUILD = :
@@ -1093,9 +1093,9 @@ build ../src/parser/lex.yy.cpp | ${cmake_ninja_workdir}../src/parser/lex.yy.cpp:
 
 build cmake_object_order_depends_target_planner: phony || src/optimizer/CMakeFiles/planner.dir
 
-build src/optimizer/CMakeFiles/planner.dir/planner.cpp.o: CXX_COMPILER__planner_Debug /home/code/db2025/src/optimizer/planner.cpp || cmake_object_order_depends_target_planner
+build src/optimizer/CMakeFiles/planner.dir/planner.cpp.o: CXX_COMPILER__planner_Release /home/code/db2025/src/optimizer/planner.cpp || cmake_object_order_depends_target_planner
   DEP_FILE = src/optimizer/CMakeFiles/planner.dir/planner.cpp.o.d
-  FLAGS = -Wall -O0 -g -ggdb3 -g -O0 -g -std=gnu++17
+  FLAGS = -Wall -O0 -g -ggdb3 -O3 -DNDEBUG -std=gnu++17
   INCLUDES = -I/home/code/db2025/src
   OBJECT_DIR = src/optimizer/CMakeFiles/planner.dir
   OBJECT_FILE_DIR = src/optimizer/CMakeFiles/planner.dir
@@ -1108,8 +1108,8 @@ build src/optimizer/CMakeFiles/planner.dir/planner.cpp.o: CXX_COMPILER__planner_
 #############################################
 # Link the static library lib/libplanner.a
 
-build lib/libplanner.a: CXX_STATIC_LIBRARY_LINKER__planner_Debug src/optimizer/CMakeFiles/planner.dir/planner.cpp.o
-  LANGUAGE_COMPILE_FLAGS = -Wall -O0 -g -ggdb3 -g -O0 -g
+build lib/libplanner.a: CXX_STATIC_LIBRARY_LINKER__planner_Release src/optimizer/CMakeFiles/planner.dir/planner.cpp.o
+  LANGUAGE_COMPILE_FLAGS = -Wall -O0 -g -ggdb3 -O3 -DNDEBUG
   OBJECT_DIR = src/optimizer/CMakeFiles/planner.dir
   POST_BUILD = :
   PRE_LINK = :
@@ -1208,23 +1208,23 @@ build src/optimizer/install/strip: phony src/optimizer/CMakeFiles/install/strip.
 
 build cmake_object_order_depends_target_storage: phony || src/storage/CMakeFiles/storage.dir
 
-build src/storage/CMakeFiles/storage.dir/disk_manager.cpp.o: CXX_COMPILER__storage_Debug /home/code/db2025/src/storage/disk_manager.cpp || cmake_object_order_depends_target_storage
+build src/storage/CMakeFiles/storage.dir/disk_manager.cpp.o: CXX_COMPILER__storage_Release /home/code/db2025/src/storage/disk_manager.cpp || cmake_object_order_depends_target_storage
   DEP_FILE = src/storage/CMakeFiles/storage.dir/disk_manager.cpp.o.d
-  FLAGS = -Wall -O0 -g -ggdb3 -g -O0 -g -std=gnu++17
+  FLAGS = -Wall -O0 -g -ggdb3 -O3 -DNDEBUG -std=gnu++17
   INCLUDES = -I/home/code/db2025/src
   OBJECT_DIR = src/storage/CMakeFiles/storage.dir
   OBJECT_FILE_DIR = src/storage/CMakeFiles/storage.dir
 
-build src/storage/CMakeFiles/storage.dir/buffer_pool_manager.cpp.o: CXX_COMPILER__storage_Debug /home/code/db2025/src/storage/buffer_pool_manager.cpp || cmake_object_order_depends_target_storage
+build src/storage/CMakeFiles/storage.dir/buffer_pool_manager.cpp.o: CXX_COMPILER__storage_Release /home/code/db2025/src/storage/buffer_pool_manager.cpp || cmake_object_order_depends_target_storage
   DEP_FILE = src/storage/CMakeFiles/storage.dir/buffer_pool_manager.cpp.o.d
-  FLAGS = -Wall -O0 -g -ggdb3 -g -O0 -g -std=gnu++17
+  FLAGS = -Wall -O0 -g -ggdb3 -O3 -DNDEBUG -std=gnu++17
   INCLUDES = -I/home/code/db2025/src
   OBJECT_DIR = src/storage/CMakeFiles/storage.dir
   OBJECT_FILE_DIR = src/storage/CMakeFiles/storage.dir
 
-build src/storage/CMakeFiles/storage.dir/__/replacer/lru_replacer.cpp.o: CXX_COMPILER__storage_Debug /home/code/db2025/src/replacer/lru_replacer.cpp || cmake_object_order_depends_target_storage
+build src/storage/CMakeFiles/storage.dir/__/replacer/lru_replacer.cpp.o: CXX_COMPILER__storage_Release /home/code/db2025/src/replacer/lru_replacer.cpp || cmake_object_order_depends_target_storage
   DEP_FILE = src/storage/CMakeFiles/storage.dir/__/replacer/lru_replacer.cpp.o.d
-  FLAGS = -Wall -O0 -g -ggdb3 -g -O0 -g -std=gnu++17
+  FLAGS = -Wall -O0 -g -ggdb3 -O3 -DNDEBUG -std=gnu++17
   INCLUDES = -I/home/code/db2025/src
   OBJECT_DIR = src/storage/CMakeFiles/storage.dir
   OBJECT_FILE_DIR = src/storage/CMakeFiles/storage.dir/__/replacer
@@ -1237,8 +1237,8 @@ build src/storage/CMakeFiles/storage.dir/__/replacer/lru_replacer.cpp.o: CXX_COM
 #############################################
 # Link the static library lib/libstorage.a
 
-build lib/libstorage.a: CXX_STATIC_LIBRARY_LINKER__storage_Debug src/storage/CMakeFiles/storage.dir/disk_manager.cpp.o src/storage/CMakeFiles/storage.dir/buffer_pool_manager.cpp.o src/storage/CMakeFiles/storage.dir/__/replacer/lru_replacer.cpp.o
-  LANGUAGE_COMPILE_FLAGS = -Wall -O0 -g -ggdb3 -g -O0 -g
+build lib/libstorage.a: CXX_STATIC_LIBRARY_LINKER__storage_Release src/storage/CMakeFiles/storage.dir/disk_manager.cpp.o src/storage/CMakeFiles/storage.dir/buffer_pool_manager.cpp.o src/storage/CMakeFiles/storage.dir/__/replacer/lru_replacer.cpp.o
+  LANGUAGE_COMPILE_FLAGS = -Wall -O0 -g -ggdb3 -O3 -DNDEBUG
   OBJECT_DIR = src/storage/CMakeFiles/storage.dir
   POST_BUILD = :
   PRE_LINK = :
@@ -1420,9 +1420,9 @@ build src/common/install/strip: phony src/common/CMakeFiles/install/strip.util
 
 build cmake_object_order_depends_target_lru_replacer: phony || src/replacer/CMakeFiles/lru_replacer.dir
 
-build src/replacer/CMakeFiles/lru_replacer.dir/lru_replacer.cpp.o: CXX_COMPILER__lru_replacer_Debug /home/code/db2025/src/replacer/lru_replacer.cpp || cmake_object_order_depends_target_lru_replacer
+build src/replacer/CMakeFiles/lru_replacer.dir/lru_replacer.cpp.o: CXX_COMPILER__lru_replacer_Release /home/code/db2025/src/replacer/lru_replacer.cpp || cmake_object_order_depends_target_lru_replacer
   DEP_FILE = src/replacer/CMakeFiles/lru_replacer.dir/lru_replacer.cpp.o.d
-  FLAGS = -Wall -O0 -g -ggdb3 -g -O0 -g -std=gnu++17
+  FLAGS = -Wall -O0 -g -ggdb3 -O3 -DNDEBUG -std=gnu++17
   INCLUDES = -I/home/code/db2025/src
   OBJECT_DIR = src/replacer/CMakeFiles/lru_replacer.dir
   OBJECT_FILE_DIR = src/replacer/CMakeFiles/lru_replacer.dir
@@ -1435,8 +1435,8 @@ build src/replacer/CMakeFiles/lru_replacer.dir/lru_replacer.cpp.o: CXX_COMPILER_
 #############################################
 # Link the static library lib/liblru_replacer.a
 
-build lib/liblru_replacer.a: CXX_STATIC_LIBRARY_LINKER__lru_replacer_Debug src/replacer/CMakeFiles/lru_replacer.dir/lru_replacer.cpp.o
-  LANGUAGE_COMPILE_FLAGS = -Wall -O0 -g -ggdb3 -g -O0 -g
+build lib/liblru_replacer.a: CXX_STATIC_LIBRARY_LINKER__lru_replacer_Release src/replacer/CMakeFiles/lru_replacer.dir/lru_replacer.cpp.o
+  LANGUAGE_COMPILE_FLAGS = -Wall -O0 -g -ggdb3 -O3 -DNDEBUG
   OBJECT_DIR = src/replacer/CMakeFiles/lru_replacer.dir
   POST_BUILD = :
   PRE_LINK = :
@@ -1535,23 +1535,23 @@ build src/replacer/install/strip: phony src/replacer/CMakeFiles/install/strip.ut
 
 build cmake_object_order_depends_target_transaction: phony || cmake_object_order_depends_target_recovery
 
-build src/transaction/CMakeFiles/transaction.dir/concurrency/lock_manager.cpp.o: CXX_COMPILER__transaction_Debug /home/code/db2025/src/transaction/concurrency/lock_manager.cpp || cmake_object_order_depends_target_transaction
+build src/transaction/CMakeFiles/transaction.dir/concurrency/lock_manager.cpp.o: CXX_COMPILER__transaction_Release /home/code/db2025/src/transaction/concurrency/lock_manager.cpp || cmake_object_order_depends_target_transaction
   DEP_FILE = src/transaction/CMakeFiles/transaction.dir/concurrency/lock_manager.cpp.o.d
-  FLAGS = -Wall -O0 -g -ggdb3 -g -O0 -g -std=gnu++17
+  FLAGS = -Wall -O0 -g -ggdb3 -O3 -DNDEBUG -std=gnu++17
   INCLUDES = -I/home/code/db2025/src
   OBJECT_DIR = src/transaction/CMakeFiles/transaction.dir
   OBJECT_FILE_DIR = src/transaction/CMakeFiles/transaction.dir/concurrency
 
-build src/transaction/CMakeFiles/transaction.dir/transaction_manager.cpp.o: CXX_COMPILER__transaction_Debug /home/code/db2025/src/transaction/transaction_manager.cpp || cmake_object_order_depends_target_transaction
+build src/transaction/CMakeFiles/transaction.dir/transaction_manager.cpp.o: CXX_COMPILER__transaction_Release /home/code/db2025/src/transaction/transaction_manager.cpp || cmake_object_order_depends_target_transaction
   DEP_FILE = src/transaction/CMakeFiles/transaction.dir/transaction_manager.cpp.o.d
-  FLAGS = -Wall -O0 -g -ggdb3 -g -O0 -g -std=gnu++17
+  FLAGS = -Wall -O0 -g -ggdb3 -O3 -DNDEBUG -std=gnu++17
   INCLUDES = -I/home/code/db2025/src
   OBJECT_DIR = src/transaction/CMakeFiles/transaction.dir
   OBJECT_FILE_DIR = src/transaction/CMakeFiles/transaction.dir
 
-build src/transaction/CMakeFiles/transaction.dir/watermark.cpp.o: CXX_COMPILER__transaction_Debug /home/code/db2025/src/transaction/watermark.cpp || cmake_object_order_depends_target_transaction
+build src/transaction/CMakeFiles/transaction.dir/watermark.cpp.o: CXX_COMPILER__transaction_Release /home/code/db2025/src/transaction/watermark.cpp || cmake_object_order_depends_target_transaction
   DEP_FILE = src/transaction/CMakeFiles/transaction.dir/watermark.cpp.o.d
-  FLAGS = -Wall -O0 -g -ggdb3 -g -O0 -g -std=gnu++17
+  FLAGS = -Wall -O0 -g -ggdb3 -O3 -DNDEBUG -std=gnu++17
   INCLUDES = -I/home/code/db2025/src
   OBJECT_DIR = src/transaction/CMakeFiles/transaction.dir
   OBJECT_FILE_DIR = src/transaction/CMakeFiles/transaction.dir
@@ -1564,8 +1564,8 @@ build src/transaction/CMakeFiles/transaction.dir/watermark.cpp.o: CXX_COMPILER__
 #############################################
 # Link the static library lib/libtransaction.a
 
-build lib/libtransaction.a: CXX_STATIC_LIBRARY_LINKER__transaction_Debug src/transaction/CMakeFiles/transaction.dir/concurrency/lock_manager.cpp.o src/transaction/CMakeFiles/transaction.dir/transaction_manager.cpp.o src/transaction/CMakeFiles/transaction.dir/watermark.cpp.o || lib/librecovery.a
-  LANGUAGE_COMPILE_FLAGS = -Wall -O0 -g -ggdb3 -g -O0 -g
+build lib/libtransaction.a: CXX_STATIC_LIBRARY_LINKER__transaction_Release src/transaction/CMakeFiles/transaction.dir/concurrency/lock_manager.cpp.o src/transaction/CMakeFiles/transaction.dir/transaction_manager.cpp.o src/transaction/CMakeFiles/transaction.dir/watermark.cpp.o || lib/librecovery.a
+  LANGUAGE_COMPILE_FLAGS = -Wall -O0 -g -ggdb3 -O3 -DNDEBUG
   OBJECT_DIR = src/transaction/CMakeFiles/transaction.dir
   POST_BUILD = :
   PRE_LINK = :
@@ -1664,16 +1664,16 @@ build src/transaction/install/strip: phony src/transaction/CMakeFiles/install/st
 
 build cmake_object_order_depends_target_recovery: phony || cmake_object_order_depends_target_index cmake_object_order_depends_target_storage
 
-build src/recovery/CMakeFiles/recovery.dir/log_manager.cpp.o: CXX_COMPILER__recovery_Debug /home/code/db2025/src/recovery/log_manager.cpp || cmake_object_order_depends_target_recovery
+build src/recovery/CMakeFiles/recovery.dir/log_manager.cpp.o: CXX_COMPILER__recovery_Release /home/code/db2025/src/recovery/log_manager.cpp || cmake_object_order_depends_target_recovery
   DEP_FILE = src/recovery/CMakeFiles/recovery.dir/log_manager.cpp.o.d
-  FLAGS = -Wall -O0 -g -ggdb3 -g -O0 -g -std=gnu++17
+  FLAGS = -Wall -O0 -g -ggdb3 -O3 -DNDEBUG -std=gnu++17
   INCLUDES = -I/home/code/db2025/src
   OBJECT_DIR = src/recovery/CMakeFiles/recovery.dir
   OBJECT_FILE_DIR = src/recovery/CMakeFiles/recovery.dir
 
-build src/recovery/CMakeFiles/recovery.dir/log_recovery.cpp.o: CXX_COMPILER__recovery_Debug /home/code/db2025/src/recovery/log_recovery.cpp || cmake_object_order_depends_target_recovery
+build src/recovery/CMakeFiles/recovery.dir/log_recovery.cpp.o: CXX_COMPILER__recovery_Release /home/code/db2025/src/recovery/log_recovery.cpp || cmake_object_order_depends_target_recovery
   DEP_FILE = src/recovery/CMakeFiles/recovery.dir/log_recovery.cpp.o.d
-  FLAGS = -Wall -O0 -g -ggdb3 -g -O0 -g -std=gnu++17
+  FLAGS = -Wall -O0 -g -ggdb3 -O3 -DNDEBUG -std=gnu++17
   INCLUDES = -I/home/code/db2025/src
   OBJECT_DIR = src/recovery/CMakeFiles/recovery.dir
   OBJECT_FILE_DIR = src/recovery/CMakeFiles/recovery.dir
@@ -1686,8 +1686,8 @@ build src/recovery/CMakeFiles/recovery.dir/log_recovery.cpp.o: CXX_COMPILER__rec
 #############################################
 # Link the static library lib/librecovery.a
 
-build lib/librecovery.a: CXX_STATIC_LIBRARY_LINKER__recovery_Debug src/recovery/CMakeFiles/recovery.dir/log_manager.cpp.o src/recovery/CMakeFiles/recovery.dir/log_recovery.cpp.o || lib/libindex.a lib/libstorage.a
-  LANGUAGE_COMPILE_FLAGS = -Wall -O0 -g -ggdb3 -g -O0 -g
+build lib/librecovery.a: CXX_STATIC_LIBRARY_LINKER__recovery_Release src/recovery/CMakeFiles/recovery.dir/log_manager.cpp.o src/recovery/CMakeFiles/recovery.dir/log_recovery.cpp.o || lib/libindex.a lib/libstorage.a
+  LANGUAGE_COMPILE_FLAGS = -Wall -O0 -g -ggdb3 -O3 -DNDEBUG
   OBJECT_DIR = src/recovery/CMakeFiles/recovery.dir
   POST_BUILD = :
   PRE_LINK = :
@@ -1703,18 +1703,18 @@ build lib/librecovery.a: CXX_STATIC_LIBRARY_LINKER__recovery_Debug src/recovery/
 
 build cmake_object_order_depends_target_recoverys: phony || src/recovery/CMakeFiles/recoverys.dir
 
-build src/recovery/CMakeFiles/recoverys.dir/log_manager.cpp.o: CXX_COMPILER__recoverys_Debug /home/code/db2025/src/recovery/log_manager.cpp || cmake_object_order_depends_target_recoverys
+build src/recovery/CMakeFiles/recoverys.dir/log_manager.cpp.o: CXX_COMPILER__recoverys_Release /home/code/db2025/src/recovery/log_manager.cpp || cmake_object_order_depends_target_recoverys
   DEFINES = -Drecoverys_EXPORTS
   DEP_FILE = src/recovery/CMakeFiles/recoverys.dir/log_manager.cpp.o.d
-  FLAGS = -Wall -O0 -g -ggdb3 -g -O0 -g -fPIC -std=gnu++17
+  FLAGS = -Wall -O0 -g -ggdb3 -O3 -DNDEBUG -fPIC -std=gnu++17
   INCLUDES = -I/home/code/db2025/src
   OBJECT_DIR = src/recovery/CMakeFiles/recoverys.dir
   OBJECT_FILE_DIR = src/recovery/CMakeFiles/recoverys.dir
 
-build src/recovery/CMakeFiles/recoverys.dir/log_recovery.cpp.o: CXX_COMPILER__recoverys_Debug /home/code/db2025/src/recovery/log_recovery.cpp || cmake_object_order_depends_target_recoverys
+build src/recovery/CMakeFiles/recoverys.dir/log_recovery.cpp.o: CXX_COMPILER__recoverys_Release /home/code/db2025/src/recovery/log_recovery.cpp || cmake_object_order_depends_target_recoverys
   DEFINES = -Drecoverys_EXPORTS
   DEP_FILE = src/recovery/CMakeFiles/recoverys.dir/log_recovery.cpp.o.d
-  FLAGS = -Wall -O0 -g -ggdb3 -g -O0 -g -fPIC -std=gnu++17
+  FLAGS = -Wall -O0 -g -ggdb3 -O3 -DNDEBUG -fPIC -std=gnu++17
   INCLUDES = -I/home/code/db2025/src
   OBJECT_DIR = src/recovery/CMakeFiles/recoverys.dir
   OBJECT_FILE_DIR = src/recovery/CMakeFiles/recoverys.dir
@@ -1727,8 +1727,8 @@ build src/recovery/CMakeFiles/recoverys.dir/log_recovery.cpp.o: CXX_COMPILER__re
 #############################################
 # Link the shared library lib/librecoverys.so
 
-build lib/librecoverys.so: CXX_SHARED_LIBRARY_LINKER__recoverys_Debug src/recovery/CMakeFiles/recoverys.dir/log_manager.cpp.o src/recovery/CMakeFiles/recoverys.dir/log_recovery.cpp.o
-  LANGUAGE_COMPILE_FLAGS = -Wall -O0 -g -ggdb3 -g -O0 -g
+build lib/librecoverys.so: CXX_SHARED_LIBRARY_LINKER__recoverys_Release src/recovery/CMakeFiles/recoverys.dir/log_manager.cpp.o src/recovery/CMakeFiles/recoverys.dir/log_recovery.cpp.o
+  LANGUAGE_COMPILE_FLAGS = -Wall -O0 -g -ggdb3 -O3 -DNDEBUG
   OBJECT_DIR = src/recovery/CMakeFiles/recoverys.dir
   POST_BUILD = :
   PRE_LINK = :
@@ -2078,9 +2078,9 @@ build deps/googletest/install/strip: phony deps/googletest/CMakeFiles/install/st
 
 build cmake_object_order_depends_target_gmock: phony || cmake_object_order_depends_target_gtest
 
-build deps/googletest/googlemock/CMakeFiles/gmock.dir/src/gmock-all.cc.o: CXX_COMPILER__gmock_Debug /home/code/db2025/deps/googletest/googlemock/src/gmock-all.cc || cmake_object_order_depends_target_gmock
+build deps/googletest/googlemock/CMakeFiles/gmock.dir/src/gmock-all.cc.o: CXX_COMPILER__gmock_Release /home/code/db2025/deps/googletest/googlemock/src/gmock-all.cc || cmake_object_order_depends_target_gmock
   DEP_FILE = deps/googletest/googlemock/CMakeFiles/gmock.dir/src/gmock-all.cc.o.d
-  FLAGS = -Wall -O0 -g -ggdb3 -g -O0 -g -Wall -Wshadow -Wconversion -DGTEST_HAS_PTHREAD=1 -fexceptions -W -Wpointer-arith -Wreturn-type -Wcast-qual -Wwrite-strings -Wswitch -Wunused-parameter -Wcast-align -Wchar-subscripts -Winline -Wredundant-decls -std=c++17
+  FLAGS = -Wall -O0 -g -ggdb3 -O3 -DNDEBUG -Wall -Wshadow -Wconversion -DGTEST_HAS_PTHREAD=1 -fexceptions -W -Wpointer-arith -Wreturn-type -Wcast-qual -Wwrite-strings -Wswitch -Wunused-parameter -Wcast-align -Wchar-subscripts -Winline -Wredundant-decls -std=c++17
   INCLUDES = -I/home/code/db2025/deps/googletest/googlemock/include -I/home/code/db2025/deps/googletest/googlemock -isystem /home/code/db2025/deps/googletest/googletest/include -isystem /home/code/db2025/deps/googletest/googletest
   OBJECT_DIR = deps/googletest/googlemock/CMakeFiles/gmock.dir
   OBJECT_FILE_DIR = deps/googletest/googlemock/CMakeFiles/gmock.dir/src
@@ -2093,8 +2093,8 @@ build deps/googletest/googlemock/CMakeFiles/gmock.dir/src/gmock-all.cc.o: CXX_CO
 #############################################
 # Link the static library lib/libgmock.a
 
-build lib/libgmock.a: CXX_STATIC_LIBRARY_LINKER__gmock_Debug deps/googletest/googlemock/CMakeFiles/gmock.dir/src/gmock-all.cc.o || lib/libgtest.a
-  LANGUAGE_COMPILE_FLAGS = -Wall -O0 -g -ggdb3 -g -O0 -g
+build lib/libgmock.a: CXX_STATIC_LIBRARY_LINKER__gmock_Release deps/googletest/googlemock/CMakeFiles/gmock.dir/src/gmock-all.cc.o || lib/libgtest.a
+  LANGUAGE_COMPILE_FLAGS = -Wall -O0 -g -ggdb3 -O3 -DNDEBUG
   OBJECT_DIR = deps/googletest/googlemock/CMakeFiles/gmock.dir
   POST_BUILD = :
   PRE_LINK = :
@@ -2110,9 +2110,9 @@ build lib/libgmock.a: CXX_STATIC_LIBRARY_LINKER__gmock_Debug deps/googletest/goo
 
 build cmake_object_order_depends_target_gmock_main: phony || cmake_object_order_depends_target_gmock cmake_object_order_depends_target_gtest
 
-build deps/googletest/googlemock/CMakeFiles/gmock_main.dir/src/gmock_main.cc.o: CXX_COMPILER__gmock_main_Debug /home/code/db2025/deps/googletest/googlemock/src/gmock_main.cc || cmake_object_order_depends_target_gmock_main
+build deps/googletest/googlemock/CMakeFiles/gmock_main.dir/src/gmock_main.cc.o: CXX_COMPILER__gmock_main_Release /home/code/db2025/deps/googletest/googlemock/src/gmock_main.cc || cmake_object_order_depends_target_gmock_main
   DEP_FILE = deps/googletest/googlemock/CMakeFiles/gmock_main.dir/src/gmock_main.cc.o.d
-  FLAGS = -Wall -O0 -g -ggdb3 -g -O0 -g -Wall -Wshadow -Wconversion -DGTEST_HAS_PTHREAD=1 -fexceptions -W -Wpointer-arith -Wreturn-type -Wcast-qual -Wwrite-strings -Wswitch -Wunused-parameter -Wcast-align -Wchar-subscripts -Winline -Wredundant-decls -std=c++17
+  FLAGS = -Wall -O0 -g -ggdb3 -O3 -DNDEBUG -Wall -Wshadow -Wconversion -DGTEST_HAS_PTHREAD=1 -fexceptions -W -Wpointer-arith -Wreturn-type -Wcast-qual -Wwrite-strings -Wswitch -Wunused-parameter -Wcast-align -Wchar-subscripts -Winline -Wredundant-decls -std=c++17
   INCLUDES = -isystem /home/code/db2025/deps/googletest/googlemock/include -isystem /home/code/db2025/deps/googletest/googlemock -isystem /home/code/db2025/deps/googletest/googletest/include -isystem /home/code/db2025/deps/googletest/googletest
   OBJECT_DIR = deps/googletest/googlemock/CMakeFiles/gmock_main.dir
   OBJECT_FILE_DIR = deps/googletest/googlemock/CMakeFiles/gmock_main.dir/src
@@ -2125,8 +2125,8 @@ build deps/googletest/googlemock/CMakeFiles/gmock_main.dir/src/gmock_main.cc.o: 
 #############################################
 # Link the static library lib/libgmock_main.a
 
-build lib/libgmock_main.a: CXX_STATIC_LIBRARY_LINKER__gmock_main_Debug deps/googletest/googlemock/CMakeFiles/gmock_main.dir/src/gmock_main.cc.o || lib/libgmock.a lib/libgtest.a
-  LANGUAGE_COMPILE_FLAGS = -Wall -O0 -g -ggdb3 -g -O0 -g
+build lib/libgmock_main.a: CXX_STATIC_LIBRARY_LINKER__gmock_main_Release deps/googletest/googlemock/CMakeFiles/gmock_main.dir/src/gmock_main.cc.o || lib/libgmock.a lib/libgtest.a
+  LANGUAGE_COMPILE_FLAGS = -Wall -O0 -g -ggdb3 -O3 -DNDEBUG
   OBJECT_DIR = deps/googletest/googlemock/CMakeFiles/gmock_main.dir
   POST_BUILD = :
   PRE_LINK = :
@@ -2225,9 +2225,9 @@ build deps/googletest/googlemock/install/strip: phony deps/googletest/googlemock
 
 build cmake_object_order_depends_target_gtest: phony || deps/googletest/googletest/CMakeFiles/gtest.dir
 
-build deps/googletest/googletest/CMakeFiles/gtest.dir/src/gtest-all.cc.o: CXX_COMPILER__gtest_Debug /home/code/db2025/deps/googletest/googletest/src/gtest-all.cc || cmake_object_order_depends_target_gtest
+build deps/googletest/googletest/CMakeFiles/gtest.dir/src/gtest-all.cc.o: CXX_COMPILER__gtest_Release /home/code/db2025/deps/googletest/googletest/src/gtest-all.cc || cmake_object_order_depends_target_gtest
   DEP_FILE = deps/googletest/googletest/CMakeFiles/gtest.dir/src/gtest-all.cc.o.d
-  FLAGS = -Wall -O0 -g -ggdb3 -g -O0 -g -Wall -Wshadow -Wconversion -DGTEST_HAS_PTHREAD=1 -fexceptions -W -Wpointer-arith -Wreturn-type -Wcast-qual -Wwrite-strings -Wswitch -Wunused-parameter -Wcast-align -Wchar-subscripts -Winline -Wredundant-decls -std=c++17
+  FLAGS = -Wall -O0 -g -ggdb3 -O3 -DNDEBUG -Wall -Wshadow -Wconversion -DGTEST_HAS_PTHREAD=1 -fexceptions -W -Wpointer-arith -Wreturn-type -Wcast-qual -Wwrite-strings -Wswitch -Wunused-parameter -Wcast-align -Wchar-subscripts -Winline -Wredundant-decls -std=c++17
   INCLUDES = -I/home/code/db2025/deps/googletest/googletest/include -I/home/code/db2025/deps/googletest/googletest
   OBJECT_DIR = deps/googletest/googletest/CMakeFiles/gtest.dir
   OBJECT_FILE_DIR = deps/googletest/googletest/CMakeFiles/gtest.dir/src
@@ -2240,8 +2240,8 @@ build deps/googletest/googletest/CMakeFiles/gtest.dir/src/gtest-all.cc.o: CXX_CO
 #############################################
 # Link the static library lib/libgtest.a
 
-build lib/libgtest.a: CXX_STATIC_LIBRARY_LINKER__gtest_Debug deps/googletest/googletest/CMakeFiles/gtest.dir/src/gtest-all.cc.o
-  LANGUAGE_COMPILE_FLAGS = -Wall -O0 -g -ggdb3 -g -O0 -g
+build lib/libgtest.a: CXX_STATIC_LIBRARY_LINKER__gtest_Release deps/googletest/googletest/CMakeFiles/gtest.dir/src/gtest-all.cc.o
+  LANGUAGE_COMPILE_FLAGS = -Wall -O0 -g -ggdb3 -O3 -DNDEBUG
   OBJECT_DIR = deps/googletest/googletest/CMakeFiles/gtest.dir
   POST_BUILD = :
   PRE_LINK = :
@@ -2257,9 +2257,9 @@ build lib/libgtest.a: CXX_STATIC_LIBRARY_LINKER__gtest_Debug deps/googletest/goo
 
 build cmake_object_order_depends_target_gtest_main: phony || cmake_object_order_depends_target_gtest
 
-build deps/googletest/googletest/CMakeFiles/gtest_main.dir/src/gtest_main.cc.o: CXX_COMPILER__gtest_main_Debug /home/code/db2025/deps/googletest/googletest/src/gtest_main.cc || cmake_object_order_depends_target_gtest_main
+build deps/googletest/googletest/CMakeFiles/gtest_main.dir/src/gtest_main.cc.o: CXX_COMPILER__gtest_main_Release /home/code/db2025/deps/googletest/googletest/src/gtest_main.cc || cmake_object_order_depends_target_gtest_main
   DEP_FILE = deps/googletest/googletest/CMakeFiles/gtest_main.dir/src/gtest_main.cc.o.d
-  FLAGS = -Wall -O0 -g -ggdb3 -g -O0 -g -Wall -Wshadow -Wconversion -DGTEST_HAS_PTHREAD=1 -fexceptions -W -Wpointer-arith -Wreturn-type -Wcast-qual -Wwrite-strings -Wswitch -Wunused-parameter -Wcast-align -Wchar-subscripts -Winline -Wredundant-decls -std=c++17
+  FLAGS = -Wall -O0 -g -ggdb3 -O3 -DNDEBUG -Wall -Wshadow -Wconversion -DGTEST_HAS_PTHREAD=1 -fexceptions -W -Wpointer-arith -Wreturn-type -Wcast-qual -Wwrite-strings -Wswitch -Wunused-parameter -Wcast-align -Wchar-subscripts -Winline -Wredundant-decls -std=c++17
   INCLUDES = -isystem /home/code/db2025/deps/googletest/googletest/include -isystem /home/code/db2025/deps/googletest/googletest
   OBJECT_DIR = deps/googletest/googletest/CMakeFiles/gtest_main.dir
   OBJECT_FILE_DIR = deps/googletest/googletest/CMakeFiles/gtest_main.dir/src
@@ -2272,8 +2272,8 @@ build deps/googletest/googletest/CMakeFiles/gtest_main.dir/src/gtest_main.cc.o: 
 #############################################
 # Link the static library lib/libgtest_main.a
 
-build lib/libgtest_main.a: CXX_STATIC_LIBRARY_LINKER__gtest_main_Debug deps/googletest/googletest/CMakeFiles/gtest_main.dir/src/gtest_main.cc.o || lib/libgtest.a
-  LANGUAGE_COMPILE_FLAGS = -Wall -O0 -g -ggdb3 -g -O0 -g
+build lib/libgtest_main.a: CXX_STATIC_LIBRARY_LINKER__gtest_main_Release deps/googletest/googletest/CMakeFiles/gtest_main.dir/src/gtest_main.cc.o || lib/libgtest.a
+  LANGUAGE_COMPILE_FLAGS = -Wall -O0 -g -ggdb3 -O3 -DNDEBUG
   OBJECT_DIR = deps/googletest/googletest/CMakeFiles/gtest_main.dir
   POST_BUILD = :
   PRE_LINK = :
