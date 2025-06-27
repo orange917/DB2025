@@ -31,34 +31,88 @@ bool Planner::get_index_cols(std::string tab_name, std::vector<Condition> curr_c
     TabMeta& tab = sm_manager_->db_.get_table(tab_name);
     int best_match = 0;
     std::vector<std::string> best_index_cols;
+
+    // 存储条件中出现的列以及对应的操作符
+    std::map<std::string, std::vector<std::pair<CompOp, bool>>> col_conditions;
+
+    // 收集条件中的所有列名和操作符类型
+    for (const auto& cond : curr_conds) {
+        // 处理条件左侧为该表列的情况
+        if (cond.lhs_col.tab_name == tab_name && cond.is_rhs_val) {
+            // 存储列名及其操作符
+            col_conditions[cond.lhs_col.col_name].push_back({cond.op, true});
+        }
+        // 处理条件左侧为该表列，右侧也是列的情况
+        else if (cond.lhs_col.tab_name == tab_name && !cond.is_rhs_val) {
+            col_conditions[cond.lhs_col.col_name].push_back({cond.op, false});
+        }
+        // 处理条件右侧为该表列的情况，需要翻转操作符
+        else if (!cond.is_rhs_val && cond.rhs_col.tab_name == tab_name) {
+            CompOp reversed_op;
+            switch (cond.op) {
+                case OP_EQ: reversed_op = OP_EQ; break;
+                case OP_NE: reversed_op = OP_NE; break;
+                case OP_LT: reversed_op = OP_GT; break;
+                case OP_GT: reversed_op = OP_LT; break;
+                case OP_LE: reversed_op = OP_GE; break;
+                case OP_GE: reversed_op = OP_LE; break;
+                default: reversed_op = cond.op;
+            }
+            col_conditions[cond.rhs_col.col_name].push_back({reversed_op, false});
+        }
+    }
+
+    // 遍历所有可用索引
     for (const auto& index : tab.indexes) {
         int match = 0;
-        // 记录每个索引字段是否被where条件覆盖
-        for (size_t i = 0; i < index.cols.size(); ++i) {
-            bool found = false;
-            for (const auto& cond : curr_conds) {
-                if (cond.lhs_col.tab_name == tab_name && cond.lhs_col.col_name == index.cols[i].name && cond.is_rhs_val) {
-                    // 允许等值或范围
-                    if (cond.op == OP_EQ || cond.op == OP_LT || cond.op == OP_LE || cond.op == OP_GT || cond.op == OP_GE) {
-                        found = true;
-                        break;
+        bool can_continue = true;
+
+        // 遍历索引中的每个列，检查最左前缀匹配
+        for (size_t i = 0; i < index.cols.size() && can_continue; ++i) {
+            const auto& idx_col = index.cols[i];
+            auto it = col_conditions.find(idx_col.name);
+
+            if (it != col_conditions.end()) {
+                // 检查是否有可用于索引的操作符
+                bool col_usable = false;
+
+                for (const auto& op_pair : it->second) {
+                    CompOp op = op_pair.first;
+
+                    // 第一个列允许任何比较操作，后续列只有在前面都是等值条件时才能继续最左前缀匹配
+                    if (i == 0 || (match == i && op == OP_EQ)) {
+                        if (op == OP_EQ || op == OP_LT || op == OP_LE || op == OP_GT || op == OP_GE) {
+                            col_usable = true;
+                            break;
+                        }
                     }
                 }
-            }
-            if (found) {
-                match++;
+
+                if (col_usable) {
+                    match++;
+                } else if (i == 0) {
+                    // 第一列必须可用，否则不满足最左前缀原则
+                    can_continue = false;
+                } else {
+                    // 如果当前列不可用，停止匹配后续列，但保留已匹配的前缀
+                    break;
+                }
             } else {
-                break; // 最左前缀原则
+                // 如果索引列不在条件中，停止匹配后续列，但保留已匹配的前缀
+                break;
             }
         }
+
+        // 更新最佳匹配
         if (match > best_match) {
             best_match = match;
             best_index_cols.clear();
-            for (int i = 0; i < match; ++i) {
-                best_index_cols.push_back(index.cols[i].name);
+            for (const auto& col : index.cols) {
+                best_index_cols.push_back(col.name);
             }
         }
     }
+
     if (best_match > 0) {
         index_col_names = best_index_cols;
         return true;

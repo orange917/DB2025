@@ -403,6 +403,7 @@ void SmManager::create_index(const std::string& tab_name, const std::vector<std:
     // 添加索引到表的索引列表
     tab.indexes.push_back(index_meta);
 
+    
     // 将已有的数据插入到索引中
     auto file_handle = fhs_[tab_name].get();
     auto scan = file_handle->create_scan();
@@ -431,6 +432,9 @@ void SmManager::create_index(const std::string& tab_name, const std::vector<std:
         flush_meta();
         throw; // 继续抛出异常
     }
+
+    // 索引条目已成功插入内存（缓冲池），现在需要将它们持久化到磁盘
+    buffer_pool_manager_->flush_all_pages(ihs_[index_name]->get_fd());
 
     // 将修改后的元数据写入磁盘
     flush_meta();
