@@ -11,7 +11,7 @@ See the Mulan PSL v2 for more details. */
 #include "ix_scan.h"
 
 /**
- * @brief 
+ * @brief
  * @todo 加上读锁（需要使用缓冲池得到page）
  */
 void IxScan::next() {
@@ -27,6 +27,8 @@ void IxScan::next() {
         iid_.page_no = node->get_next_leaf();
     }
 }
+
+
 
 Rid IxScan::rid() const {
     return ih_->get_rid(iid_);

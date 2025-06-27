@@ -1,9 +1,75 @@
+| w_id | name |
+| 10 | qweruiop |
+| w_id | name |
+| 500 | bgtyhnmj |
+| w_id | name |
+failure
+| w_id | name |
+| 10 | qweruiop |
+| w_id | name |
+| 500 | bgtyhnmj |
+| w_id | name |
+| 100 | qwerghjk |
+failure
+| w_id | name |
+| 10 | qweruiop |
+| w_id | name |
+| 500 | bgtyhnmj |
+| w_id | name |
+failure
+| w_id | name |
+| 10 | qweruiop |
+| w_id | name |
+| 500 | bgtyhnmj |
+| w_id | name |
+| 100 | qwerghjk |
 failure
 failure
+| w_id | name |
+| 10 | qweruiop |
+| w_id | name |
+| 500 | bgtyhnmj |
+| w_id | name |
 failure
-| warehouse | unique | (id) |
-| warehouse | unique | (name) |
-| warehouse | unique | (id) |
-| warehouse | unique | (name) |
-| warehouse | unique | (id,name) |
-| warehouse | unique | (name) |
+| w_id | name |
+| 10 | qweruiop |
+| w_id | name |
+| 500 | bgtyhnmj |
+| w_id | name |
+| 100 | qwerghjk |
+| w_id | name |
+| 10 | qweruiop |
+| 100 | qwerghjk |
+failure
+failure
+| w_id | name |
+| 10 | qweruiop |
+| w_id | name |
+| 500 | bgtyhnmj |
+| w_id | name |
+failure
+| w_id | name |
+| 10 | qweruiop |
+| w_id | name |
+| 500 | bgtyhnmj |
+| w_id | name |
+| 100 | qwerghjk |
+| w_id | name |
+| 10 | qweruiop |
+| 100 | qwerghjk |
+failure
+| w_id | name |
+| 10 | qweruiop |
+| w_id | name |
+| 500 | bgtyhnmj |
+| w_id | name |
+failure
+| w_id | name |
+| 10 | qweruiop |
+| w_id | name |
+| 500 | bgtyhnmj |
+| w_id | name |
+| 100 | qwerghjk |
+| w_id | name |
+| 10 | qweruiop |
+| 100 | qwerghjk |

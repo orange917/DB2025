@@ -19,6 +19,9 @@ enum class Operation { FIND = 0, INSERT, DELETE };  // 三种操作：查找、�
 
 static const bool binary_search = false;
 
+
+class IxScan;
+
 inline int ix_compare(const char *a, const char *b, ColType type, int col_len) {
     switch (type) {
         case TYPE_INT: {
@@ -32,7 +35,7 @@ inline int ix_compare(const char *a, const char *b, ColType type, int col_len) {
             return (fa < fb) ? -1 : ((fa > fb) ? 1 : 0);
         }
         case TYPE_STRING:
-            return memcmp(a, b, col_len);
+            return strncmp(a, b, col_len);
         default:
             throw InternalError("Unexpected data type");
     }
@@ -125,6 +128,8 @@ class IxNodeHandle {
     // 用于在结点中的指定位置插入单个键值对
     void insert_pair(int pos, const char *key, const Rid &rid) { insert_pairs(pos, key, &rid, 1); }
 
+    void insert_pair(int key_idx, const char* key, int child_page_no);
+
     void erase_pair(int pos);
 
     int remove(const char *key);
@@ -147,15 +152,15 @@ class IxNodeHandle {
      * @param child
      * @return int
      */
-    int find_child(IxNodeHandle *child) {
-        int rid_idx;
-        for (rid_idx = 0; rid_idx < page_hdr->num_key; rid_idx++) {
+     int find_child(IxNodeHandle *child) {
+        // 修复：一个内部节点有 N 个键和 N+1 个子节点。
+        // 循环必须检查所有 N+1 个子节点，所以循环条件是 rid_idx <= page_hdr->num_key。
+        for (int rid_idx = 0; rid_idx <= page_hdr->num_key; rid_idx++) {
             if (get_rid(rid_idx)->page_no == child->get_page_no()) {
-                break;
+                return rid_idx;
             }
         }
-        assert(rid_idx < page_hdr->num_key);
-        return rid_idx;
+        throw std::runtime_error("FATAL: Child page not found in parent node. Index is likely corrupt.");
     }
 };
 
@@ -176,13 +181,14 @@ class IxIndexHandle {
     IxIndexHandle(DiskManager *disk_manager, BufferPoolManager *buffer_pool_manager, int fd);
     IxIndexHandle(DiskManager *disk_manager, BufferPoolManager *buffer_pool_manager, int fd, const IndexMeta& index_meta);
 
-    // 添加公共方法
     int get_fd() const { return fd_; }
-    
-    // 添加公共方法用于获取节点
+
+    // 用于获取节点
     IxNodeHandle *get_node(int page_no) const {
         return fetch_node(page_no);
     }
+
+
 
     // for search
     bool get_value(const char *key, std::vector<Rid> *result, Transaction *transaction);
@@ -208,6 +214,9 @@ class IxIndexHandle {
 
     bool coalesce(IxNodeHandle **neighbor_node, IxNodeHandle **node, IxNodeHandle **parent, int index,
                   Transaction *transaction, bool *root_is_latched);
+
+    std::unique_ptr<IxScan> create_scan(const char* lower_key, const char* upper_key, 
+        bool lower_inclusive, bool upper_inclusive);
 
     Iid lower_bound(const char *key);
 

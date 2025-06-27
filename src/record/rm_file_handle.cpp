@@ -12,6 +12,7 @@ See the Mulan PSL v2 for more details. */
 #include "bitmap.h"
 #include "rm_defs.h"
 #include "storage/page.h"
+#include "transaction/txn_defs.h"
 #include <cstddef>
 #include <memory>
 #include <defs.h>
@@ -77,6 +78,7 @@ Rid RmFileHandle::insert_record(char* buf, Context* context) {
         Rid rid;
         rid.page_no = page_handle.page->get_page_id().page_no;
         rid.slot_no = slot_no;
+
         return rid;
     }
 }
