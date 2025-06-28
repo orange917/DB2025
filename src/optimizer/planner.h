@@ -63,3 +63,27 @@ class Planner {
         return m.at(sv_type);
     }
 };
+
+class AggPlan : public Plan
+{
+public:
+    AggPlan(PlanTag tag, std::shared_ptr<Plan> subplan,
+            std::vector<AggFunc> agg_funcs,
+            std::vector<TabCol> group_by_cols,
+            std::vector<Condition> having_conds,
+            int limit_val)
+    {
+        Plan::tag = tag;
+        subplan_ = std::move(subplan);
+        agg_funcs_ = std::move(agg_funcs);
+        group_by_cols_ = std::move(group_by_cols);
+        having_conds_ = std::move(having_conds);
+        limit_val_ = limit_val;
+    }
+    ~AggPlan() {}
+    std::shared_ptr<Plan> subplan_;
+    std::vector<AggFunc> agg_funcs_;
+    std::vector<TabCol> group_by_cols_;
+    std::vector<Condition> having_conds_;
+    int limit_val_;
+};

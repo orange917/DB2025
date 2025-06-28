@@ -17,6 +17,7 @@ See the Mulan PSL v2 for more details. */
 #include "executor_projection.h"
 #include "executor_seq_scan.h"
 #include "executor_update.h"
+#include "executor_aggregation.h"
 #include "index/ix.h"
 #include "record_printer.h"
 
@@ -178,6 +179,12 @@ void QlManager::select_from(std::unique_ptr<AbstractExecutor> executorTreeRoot, 
     for (executorTreeRoot->beginTuple(); !executorTreeRoot->is_end(); executorTreeRoot->nextTuple()) {
         // 获取当前元组
         auto Tuple = executorTreeRoot->Next();
+        
+        // 检查是否为空指针
+        if (!Tuple) {
+            continue;
+        }
+        
         // 用于存储每一列转换后的字符串值
         std::vector<std::string> columns;
         // 遍历所有列，将每列的数据转换为字符串格式
@@ -219,4 +226,30 @@ void QlManager::select_from(std::unique_ptr<AbstractExecutor> executorTreeRoot, 
 // 执行DML语句
 void QlManager::run_dml(std::unique_ptr<AbstractExecutor> exec){
     exec->Next();
+}
+
+// 创建聚合执行器
+std::unique_ptr<AbstractExecutor> QlManager::create_aggregation_executor(
+    std::unique_ptr<AbstractExecutor> prev,
+    const std::vector<AggFunc>& agg_funcs,
+    const std::vector<TabCol>& group_by_cols,
+    const std::vector<Condition>& having_conds,
+    int limit_val) {
+    
+    return std::make_unique<AggregationExecutor>(
+        std::move(prev), agg_funcs, group_by_cols, having_conds, limit_val);
+}
+
+// 从AggPlan创建聚合执行器
+std::unique_ptr<AbstractExecutor> QlManager::create_executor_from_agg_plan(
+    std::shared_ptr<AggPlan> agg_plan,
+    std::unique_ptr<AbstractExecutor> sub_executor) {
+    
+    return std::make_unique<AggregationExecutor>(
+        std::move(sub_executor),
+        agg_plan->agg_funcs_,
+        agg_plan->group_by_cols_,
+        agg_plan->having_conds_,
+        agg_plan->limit_val_
+    );
 }

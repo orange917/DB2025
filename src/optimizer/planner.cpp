@@ -24,6 +24,7 @@ See the Mulan PSL v2 for more details. */
 #include "index/ix.h"
 #include "optimizer/plan.h"
 #include "record_printer.h"
+#include "common/common.h"
 
 // 目前的索引匹配规则为：完全匹配索引字段，且全部为单点查询，不会自动调整where条件的顺序
 bool Planner::get_index_cols(std::string tab_name, std::vector<Condition> curr_conds, std::vector<std::string>& index_col_names) {
@@ -490,9 +491,33 @@ std::shared_ptr<Plan> Planner::generate_select_plan(std::shared_ptr<Query> query
     //物理优化
     auto sel_cols = query->cols;
     std::shared_ptr<Plan> plannerRoot = physical_optimization(query, context);
-    plannerRoot = std::make_shared<ProjectionPlan>(T_Projection, std::move(plannerRoot), 
-                                                        std::move(sel_cols));
 
+    // 新增：如果有聚合或分组，插入AggPlan
+    if (query->has_agg || query->has_group_by) {
+        plannerRoot = std::make_shared<AggPlan>(
+            T_Aggregation, plannerRoot, query->agg_funcs, query->group_by_cols, query->having_conds, query->limit_val
+        );
+        
+        // 为聚合查询创建正确的投影列
+        std::vector<TabCol> agg_sel_cols;
+        
+        // 如果有GROUP BY，先添加分组列
+        for (const auto& group_col : query->group_by_cols) {
+            agg_sel_cols.push_back(group_col);
+        }
+        
+        // 添加聚合函数列（使用别名）
+        for (const auto& agg_func : query->agg_funcs) {
+            TabCol agg_col;
+            agg_col.tab_name = "";
+            agg_col.col_name = agg_func.alias.empty() ? "agg_" + std::to_string(agg_sel_cols.size()) : agg_func.alias;
+            agg_sel_cols.push_back(agg_col);
+        }
+        
+        sel_cols = std::move(agg_sel_cols);
+    }
+
+    plannerRoot = std::make_shared<ProjectionPlan>(T_Projection, std::move(plannerRoot), std::move(sel_cols));
     return plannerRoot;
 }
 

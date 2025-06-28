@@ -74,12 +74,25 @@ struct Value {
 
 enum CompOp { OP_EQ, OP_NE, OP_LT, OP_GT, OP_LE, OP_GE };
 
+// 添加聚合函数类型枚举
+enum AggFuncType { AGG_COUNT, AGG_MAX, AGG_MIN, AGG_SUM, AGG_AVG };
+
 struct Condition {
     TabCol lhs_col;   // left-hand side column
     CompOp op;        // comparison operator
     bool is_rhs_val;  // true if right-hand side is a value (not a column)
     TabCol rhs_col;   // right-hand side column
     Value rhs_val;    // right-hand side value
+};
+
+// 添加聚合函数结构
+struct AggFunc {
+    AggFuncType func_type;
+    TabCol col;       // 列名，对于COUNT(*)时tab_name和col_name都为空
+    std::string alias; // 别名
+    
+    AggFunc(AggFuncType func_type_, TabCol col_, std::string alias_ = "") :
+        func_type(func_type_), col(std::move(col_)), alias(std::move(alias_)) {}
 };
 
 struct SetClause {
