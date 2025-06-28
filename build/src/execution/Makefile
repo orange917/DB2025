@@ -209,6 +209,30 @@ execution_manager.cpp.s:
 	cd /home/code/db2025/build && $(MAKE) $(MAKESILENT) -f src/execution/CMakeFiles/execution.dir/build.make src/execution/CMakeFiles/execution.dir/execution_manager.cpp.s
 .PHONY : execution_manager.cpp.s
 
+executor_aggregation.o: executor_aggregation.cpp.o
+.PHONY : executor_aggregation.o
+
+# target to build an object file
+executor_aggregation.cpp.o:
+	cd /home/code/db2025/build && $(MAKE) $(MAKESILENT) -f src/execution/CMakeFiles/execution.dir/build.make src/execution/CMakeFiles/execution.dir/executor_aggregation.cpp.o
+.PHONY : executor_aggregation.cpp.o
+
+executor_aggregation.i: executor_aggregation.cpp.i
+.PHONY : executor_aggregation.i
+
+# target to preprocess a source file
+executor_aggregation.cpp.i:
+	cd /home/code/db2025/build && $(MAKE) $(MAKESILENT) -f src/execution/CMakeFiles/execution.dir/build.make src/execution/CMakeFiles/execution.dir/executor_aggregation.cpp.i
+.PHONY : executor_aggregation.cpp.i
+
+executor_aggregation.s: executor_aggregation.cpp.s
+.PHONY : executor_aggregation.s
+
+# target to generate assembly for a file
+executor_aggregation.cpp.s:
+	cd /home/code/db2025/build && $(MAKE) $(MAKESILENT) -f src/execution/CMakeFiles/execution.dir/build.make src/execution/CMakeFiles/execution.dir/executor_aggregation.cpp.s
+.PHONY : executor_aggregation.cpp.s
+
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -226,6 +250,9 @@ help:
 	@echo "... execution_manager.o"
 	@echo "... execution_manager.i"
 	@echo "... execution_manager.s"
+	@echo "... executor_aggregation.o"
+	@echo "... executor_aggregation.i"
+	@echo "... executor_aggregation.s"
 .PHONY : help
 
 

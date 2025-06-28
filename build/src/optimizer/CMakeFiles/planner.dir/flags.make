@@ -6,5 +6,5 @@ CXX_DEFINES =
 
 CXX_INCLUDES = -I/home/code/db2025/src
 
-CXX_FLAGS = -Wall -O0 -g -ggdb3
+CXX_FLAGS = -Wall -O0 -g -ggdb3 -O3 -DNDEBUG
 

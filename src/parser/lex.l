@@ -39,7 +39,7 @@ identifier {alpha}(_|{alpha}|{digit})*
 value_int {sign}?{digit}+
 value_float {sign}?{digit}+\.({digit}+)?
 value_string '[^']*'
-single_op ";"|"("|")"|","|"*"|"="|">"|"<"|"."
+single_op ";"|"("|")"|","|"="|">"|"<"|"."
 
 %x STATE_COMMENT
 
@@ -79,14 +79,23 @@ single_op ";"|"("|")"|","|"*"|"="|">"|"<"|"."
 "FLOAT" { return FLOAT; }
 "INDEX" { return INDEX; }
 "AND" { return AND; }
-"JOIN" {return JOIN;}
+"JOIN" { return JOIN; }
 "EXIT" { return EXIT; }
 "HELP" { return HELP; }
 "ORDER" { return ORDER; }
-"BY" {  return BY;  }
+"BY" { return BY; }
 "ASC" { return ASC; }
 "ENABLE_NESTLOOP" { return ENABLE_NESTLOOP; }
 "ENABLE_SORTMERGE" { return ENABLE_SORTMERGE; }
+"COUNT" { return COUNT; }
+"MAX" { return MAX; }
+"MIN" { return MIN; }
+"SUM" { return SUM; }
+"AVG" { return AVG; }
+"GROUP" { return GROUP; }
+"HAVING" { return HAVING; }
+"LIMIT" { return LIMIT; }
+"AS" { return AS; }
 "TRUE" { 
     yylval->sv_bool = true;
     return VALUE_BOOL; 
@@ -99,6 +108,7 @@ single_op ";"|"("|")"|","|"*"|"="|">"|"<"|"."
 ">=" { return GEQ; }
 "<=" { return LEQ; }
 "<>" { return NEQ; }
+"*" { return '*'; }
 {single_op} { return yytext[0]; }
     /* id */
 {identifier} {

@@ -37,6 +37,7 @@ src/CMakeFiles/rmdb.dir/rmdb.cpp.o: ../src/rmdb.cpp \
   /usr/include/x86_64-linux-gnu/bits/types/__sigset_t.h \
   /usr/include/x86_64-linux-gnu/bits/types/struct_timeval.h \
   /usr/include/x86_64-linux-gnu/bits/types/struct_timespec.h \
+  /usr/include/x86_64-linux-gnu/bits/select2.h \
   /usr/include/x86_64-linux-gnu/bits/pthreadtypes.h \
   /usr/include/x86_64-linux-gnu/bits/thread-shared-types.h \
   /usr/include/x86_64-linux-gnu/bits/pthreadtypes-arch.h \
@@ -57,6 +58,7 @@ src/CMakeFiles/rmdb.dir/rmdb.cpp.o: ../src/rmdb.cpp \
   /usr/include/x86_64-linux-gnu/asm/sockios.h \
   /usr/include/asm-generic/sockios.h \
   /usr/include/x86_64-linux-gnu/bits/types/struct_osockaddr.h \
+  /usr/include/x86_64-linux-gnu/bits/socket2.h \
   /usr/include/x86_64-linux-gnu/bits/in.h \
   /usr/include/readline/history.h \
   /usr/include/time.h \
@@ -79,6 +81,8 @@ src/CMakeFiles/rmdb.dir/rmdb.cpp.o: ../src/rmdb.cpp \
   /usr/include/x86_64-linux-gnu/bits/stdio_lim.h \
   /usr/include/x86_64-linux-gnu/bits/floatn.h \
   /usr/include/x86_64-linux-gnu/bits/floatn-common.h \
+  /usr/include/x86_64-linux-gnu/bits/stdio.h \
+  /usr/include/x86_64-linux-gnu/bits/stdio2.h \
   /usr/include/readline/rlstdc.h \
   /usr/include/readline/rltypedefs.h \
   /usr/include/readline/readline.h \
@@ -87,10 +91,13 @@ src/CMakeFiles/rmdb.dir/rmdb.cpp.o: ../src/rmdb.cpp \
   /usr/include/ctype.h \
   /usr/include/string.h \
   /usr/include/strings.h \
+  /usr/include/x86_64-linux-gnu/bits/strings_fortified.h \
+  /usr/include/x86_64-linux-gnu/bits/string_fortified.h \
   /usr/include/readline/tilde.h \
   /usr/include/setjmp.h \
   /usr/include/x86_64-linux-gnu/bits/setjmp.h \
   /usr/include/x86_64-linux-gnu/bits/types/struct___jmp_buf_tag.h \
+  /usr/include/x86_64-linux-gnu/bits/setjmp2.h \
   /usr/include/signal.h \
   /usr/include/x86_64-linux-gnu/bits/signum-generic.h \
   /usr/include/x86_64-linux-gnu/bits/signum-arch.h \
@@ -115,6 +122,7 @@ src/CMakeFiles/rmdb.dir/rmdb.cpp.o: ../src/rmdb.cpp \
   /usr/include/x86_64-linux-gnu/bits/confname.h \
   /usr/include/x86_64-linux-gnu/bits/getopt_posix.h \
   /usr/include/x86_64-linux-gnu/bits/getopt_core.h \
+  /usr/include/x86_64-linux-gnu/bits/unistd.h \
   /usr/include/x86_64-linux-gnu/bits/unistd_ext.h \
   /usr/include/linux/close_range.h \
   /usr/include/x86_64-linux-gnu/bits/ss_flags.h \
@@ -167,6 +175,7 @@ src/CMakeFiles/rmdb.dir/rmdb.cpp.o: ../src/rmdb.cpp \
   /usr/include/wchar.h \
   /usr/include/x86_64-linux-gnu/bits/types/wint_t.h \
   /usr/include/x86_64-linux-gnu/bits/types/mbstate_t.h \
+  /usr/include/x86_64-linux-gnu/bits/wchar2.h \
   /usr/include/c++/11/cstdint \
   /usr/include/c++/11/bits/allocator.h \
   /usr/include/x86_64-linux-gnu/c++/11/bits/c++allocator.h \
@@ -211,7 +220,9 @@ src/CMakeFiles/rmdb.dir/rmdb.cpp.o: ../src/rmdb.cpp \
   /usr/include/x86_64-linux-gnu/bits/waitflags.h \
   /usr/include/x86_64-linux-gnu/bits/waitstatus.h \
   /usr/include/alloca.h \
+  /usr/include/x86_64-linux-gnu/bits/stdlib-bsearch.h \
   /usr/include/x86_64-linux-gnu/bits/stdlib-float.h \
+  /usr/include/x86_64-linux-gnu/bits/stdlib.h \
   /usr/include/c++/11/bits/std_abs.h \
   /usr/include/c++/11/cstdio \
   /usr/include/c++/11/bits/charconv.h \
@@ -295,6 +306,7 @@ src/CMakeFiles/rmdb.dir/rmdb.cpp.o: ../src/rmdb.cpp \
   /usr/include/linux/falloc.h \
   /usr/include/x86_64-linux-gnu/bits/stat.h \
   /usr/include/x86_64-linux-gnu/bits/struct_stat.h \
+  /usr/include/x86_64-linux-gnu/bits/fcntl2.h \
   /usr/include/c++/11/list \
   /usr/include/c++/11/bits/stl_list.h \
   /usr/include/c++/11/bits/list.tcc \
@@ -382,6 +394,7 @@ src/CMakeFiles/rmdb.dir/rmdb.cpp.o: ../src/rmdb.cpp \
   ../src/common/exception.h \
   ../src/optimizer/planner.h \
   ../src/analyze/analyze.h \
+  ../src/execution/executor_aggregation.h \
   ../src/recovery/log_recovery.h \
   ../src/portal.h \
   ../src/execution/executor_nestedloop_join.h \
@@ -439,8 +452,6 @@ src/CMakeFiles/rmdb.dir/rmdb.cpp.o: ../src/rmdb.cpp \
 /usr/include/x86_64-linux-gnu/bits/mathcalls.h:
 
 /usr/include/x86_64-linux-gnu/bits/mathcalls-helper-functions.h:
-
-/usr/include/x86_64-linux-gnu/bits/fp-logb.h:
 
 /usr/include/x86_64-linux-gnu/bits/flt-eval-method.h:
 
@@ -598,8 +609,6 @@ src/CMakeFiles/rmdb.dir/rmdb.cpp.o: ../src/rmdb.cpp \
 
 /usr/include/c++/11/bits/stl_tempbuf.h:
 
-/usr/include/c++/11/memory:
-
 /usr/include/assert.h:
 
 /usr/include/c++/11/cassert:
@@ -628,31 +637,33 @@ src/CMakeFiles/rmdb.dir/rmdb.cpp.o: ../src/rmdb.cpp \
 
 /usr/include/x86_64-linux-gnu/bits/wctype-wchar.h:
 
-/usr/include/c++/11/pstl/pstl_config.h:
+/usr/include/x86_64-linux-gnu/bits/types/struct_statx_timestamp.h:
 
-/usr/include/c++/11/cmath:
+/usr/include/c++/11/cwctype:
 
-/usr/include/c++/11/bits/allocator.h:
+/usr/include/c++/11/bits/uniform_int_dist.h:
 
-/usr/include/x86_64-linux-gnu/bits/confname.h:
+/usr/include/c++/11/bits/basic_ios.h:
 
-/usr/include/x86_64-linux-gnu/bits/siginfo-arch.h:
+/usr/include/c++/11/streambuf:
 
-/usr/include/c++/11/bits/refwrap.h:
+/usr/include/c++/11/pstl/glue_algorithm_defs.h:
 
-/usr/include/linux/stddef.h:
+/usr/include/c++/11/stdexcept:
 
-/usr/include/c++/11/atomic:
+/usr/include/c++/11/system_error:
 
-/usr/include/x86_64-linux-gnu/bits/signal_ext.h:
+/usr/include/c++/11/bits/locale_classes.tcc:
 
-/usr/include/readline/rltypedefs.h:
+/usr/include/c++/11/bits/locale_classes.h:
 
 /usr/include/linux/close_range.h:
 
 ../src/execution/executor_insert.h:
 
 /usr/include/x86_64-linux-gnu/bits/unistd_ext.h:
+
+/usr/include/x86_64-linux-gnu/bits/unistd.h:
 
 /usr/include/x86_64-linux-gnu/bits/posix_opt.h:
 
@@ -674,13 +685,13 @@ src/CMakeFiles/rmdb.dir/rmdb.cpp.o: ../src/rmdb.cpp \
 
 /usr/include/x86_64-linux-gnu/c++/11/bits/c++locale.h:
 
-/usr/include/x86_64-linux-gnu/c++/11/bits/cpu_defines.h:
-
-/usr/include/x86_64-linux-gnu/bits/timesize.h:
-
 /usr/include/readline/chardefs.h:
 
 /usr/include/errno.h:
+
+/usr/include/x86_64-linux-gnu/bits/confname.h:
+
+/usr/include/x86_64-linux-gnu/bits/siginfo-arch.h:
 
 /usr/include/x86_64-linux-gnu/bits/sigcontext.h:
 
@@ -692,7 +703,13 @@ src/CMakeFiles/rmdb.dir/rmdb.cpp.o: ../src/rmdb.cpp \
 
 /usr/include/x86_64-linux-gnu/bits/types/timer_t.h:
 
+/usr/include/x86_64-linux-gnu/bits/setjmp2.h:
+
 /usr/include/x86_64-linux-gnu/bits/types/__fpos64_t.h:
+
+/usr/include/x86_64-linux-gnu/bits/strings_fortified.h:
+
+/usr/include/x86_64-linux-gnu/bits/types/mbstate_t.h:
 
 /usr/include/x86_64-linux-gnu/bits/struct_rwlock.h:
 
@@ -707,6 +724,10 @@ src/CMakeFiles/rmdb.dir/rmdb.cpp.o: ../src/rmdb.cpp \
 ../src/transaction/watermark.h:
 
 /usr/include/readline/readline.h:
+
+/usr/include/readline/rltypedefs.h:
+
+/usr/include/x86_64-linux-gnu/bits/signal_ext.h:
 
 /usr/include/x86_64-linux-gnu/bits/floatn-common.h:
 
@@ -734,6 +755,14 @@ src/CMakeFiles/rmdb.dir/rmdb.cpp.o: ../src/rmdb.cpp \
 
 /usr/include/signal.h:
 
+/usr/include/c++/11/memory:
+
+/usr/include/x86_64-linux-gnu/bits/string_fortified.h:
+
+/usr/include/c++/11/bits/stl_tree.h:
+
+/usr/include/c++/11/tuple:
+
 /usr/include/x86_64-linux-gnu/bits/wchar.h:
 
 /usr/include/x86_64-linux-gnu/bits/types/stack_t.h:
@@ -752,7 +781,15 @@ src/CMakeFiles/rmdb.dir/rmdb.cpp.o: ../src/rmdb.cpp \
 
 /usr/include/x86_64-linux-gnu/bits/types/__locale_t.h:
 
+/usr/include/x86_64-linux-gnu/c++/11/bits/error_constants.h:
+
+/usr/include/c++/11/utility:
+
+/usr/include/c++/11/ios:
+
 /usr/include/x86_64-linux-gnu/bits/sigthread.h:
+
+../src/execution/executor_aggregation.h:
 
 /usr/include/x86_64-linux-gnu/bits/types/locale_t.h:
 
@@ -773,6 +810,18 @@ src/CMakeFiles/rmdb.dir/rmdb.cpp.o: ../src/rmdb.cpp \
 /usr/include/c++/11/bits/stl_pair.h:
 
 /usr/include/c++/11/ext/atomicity.h:
+
+/usr/include/x86_64-linux-gnu/bits/setjmp.h:
+
+/usr/include/x86_64-linux-gnu/bits/getopt_posix.h:
+
+/usr/include/time.h:
+
+/usr/include/c++/11/bits/streambuf.tcc:
+
+/usr/include/string.h:
+
+/usr/include/x86_64-linux-gnu/bits/stdio.h:
 
 ../src/system/sm_manager.h:
 
@@ -798,12 +847,6 @@ src/CMakeFiles/rmdb.dir/rmdb.cpp.o: ../src/rmdb.cpp \
 
 ../src/rmdb.cpp:
 
-/usr/include/c++/11/bits/atomic_base.h:
-
-../src/execution/executor_index_scan.h:
-
-/usr/include/c++/11/ext/numeric_traits.h:
-
 /usr/include/c++/11/bits/fstream.tcc:
 
 /usr/include/asm-generic/posix_types.h:
@@ -815,20 +858,6 @@ src/CMakeFiles/rmdb.dir/rmdb.cpp.o: ../src/rmdb.cpp \
 /usr/include/c++/11/bits/stl_iterator.h:
 
 /usr/include/x86_64-linux-gnu/bits/struct_mutex.h:
-
-../src/optimizer/planner.h:
-
-/usr/lib/gcc/x86_64-linux-gnu/11/include/stdint.h:
-
-/usr/include/x86_64-linux-gnu/bits/sockaddr.h:
-
-/usr/include/x86_64-linux-gnu/bits/statx.h:
-
-/usr/include/unistd.h:
-
-/usr/include/c++/11/bits/stl_algobase.h:
-
-/usr/include/c++/11/cwchar:
 
 ../src/record/rm_manager.h:
 
@@ -848,21 +877,9 @@ src/CMakeFiles/rmdb.dir/rmdb.cpp.o: ../src/rmdb.cpp \
 
 /usr/include/c++/11/bits/stringfwd.h:
 
-/usr/include/x86_64-linux-gnu/c++/11/bits/os_defines.h:
-
-/usr/include/c++/11/bits/exception_defines.h:
-
-/usr/include/x86_64-linux-gnu/bits/environments.h:
-
 /usr/include/x86_64-linux-gnu/bits/types/sigval_t.h:
 
 ../src/execution/execution_defs.h:
-
-/usr/include/x86_64-linux-gnu/bits/setjmp.h:
-
-/usr/include/x86_64-linux-gnu/bits/getopt_posix.h:
-
-/usr/include/time.h:
 
 /usr/include/c++/11/tr1/special_function_util.h:
 
@@ -874,6 +891,12 @@ src/CMakeFiles/rmdb.dir/rmdb.cpp.o: ../src/rmdb.cpp \
 
 /usr/include/x86_64-linux-gnu/bits/wordsize.h:
 
+/usr/include/readline/history.h:
+
+/usr/include/c++/11/tr1/gamma.tcc:
+
+/usr/include/x86_64-linux-gnu/gnu/stubs-64.h:
+
 /usr/include/ctype.h:
 
 ../src/transaction/txn_defs.h:
@@ -883,8 +906,6 @@ src/CMakeFiles/rmdb.dir/rmdb.cpp.o: ../src/rmdb.cpp \
 /usr/include/c++/11/bits/functexcept.h:
 
 ../src/execution/execution.h:
-
-/usr/include/c++/11/streambuf:
 
 /usr/include/x86_64-linux-gnu/bits/time64.h:
 
@@ -914,19 +935,17 @@ src/CMakeFiles/rmdb.dir/rmdb.cpp.o: ../src/rmdb.cpp \
 
 /usr/include/x86_64-linux-gnu/asm/errno.h:
 
+/usr/include/x86_64-linux-gnu/bits/stdlib.h:
+
 /usr/include/x86_64-linux-gnu/bits/types/sigevent_t.h:
 
 /usr/include/x86_64-linux-gnu/bits/types/struct_osockaddr.h:
 
-/usr/include/x86_64-linux-gnu/bits/types/struct___jmp_buf_tag.h:
-
-/usr/include/x86_64-linux-gnu/bits/types/clockid_t.h:
-
-/usr/include/c++/11/bits/stl_bvector.h:
-
 /usr/include/x86_64-linux-gnu/bits/stdint-uintn.h:
 
 /usr/include/x86_64-linux-gnu/bits/types/struct_timespec.h:
+
+/usr/include/x86_64-linux-gnu/bits/stdio2.h:
 
 /usr/include/x86_64-linux-gnu/bits/pthreadtypes.h:
 
@@ -948,6 +967,12 @@ src/CMakeFiles/rmdb.dir/rmdb.cpp.o: ../src/rmdb.cpp \
 
 /usr/include/c++/11/vector:
 
+/usr/include/x86_64-linux-gnu/bits/fcntl2.h:
+
+/usr/include/x86_64-linux-gnu/bits/timesize.h:
+
+/usr/include/x86_64-linux-gnu/c++/11/bits/cpu_defines.h:
+
 ../src/storage/disk_manager.h:
 
 /usr/include/x86_64-linux-gnu/sys/select.h:
@@ -956,9 +981,29 @@ src/CMakeFiles/rmdb.dir/rmdb.cpp.o: ../src/rmdb.cpp \
 
 /usr/include/stdlib.h:
 
+/usr/include/c++/11/bits/refwrap.h:
+
+/usr/include/linux/stddef.h:
+
 /usr/include/asm-generic/errno-base.h:
 
 /usr/include/c++/11/bits/char_traits.h:
+
+/usr/include/x86_64-linux-gnu/bits/sockaddr.h:
+
+../src/optimizer/planner.h:
+
+/usr/lib/gcc/x86_64-linux-gnu/11/include/stdint.h:
+
+/usr/include/x86_64-linux-gnu/bits/statx.h:
+
+/usr/include/unistd.h:
+
+/usr/include/c++/11/bits/stl_algobase.h:
+
+/usr/include/x86_64-linux-gnu/bits/select2.h:
+
+/usr/include/c++/11/cwchar:
 
 ../src/optimizer/plan.h:
 
@@ -968,17 +1013,29 @@ src/CMakeFiles/rmdb.dir/rmdb.cpp.o: ../src/rmdb.cpp \
 
 /usr/include/asm-generic/sockios.h:
 
-/usr/include/c++/11/tr1/gamma.tcc:
+/usr/include/c++/11/atomic:
 
-/usr/include/x86_64-linux-gnu/gnu/stubs-64.h:
+/usr/include/x86_64-linux-gnu/bits/environments.h:
 
-/usr/include/readline/history.h:
+/usr/include/x86_64-linux-gnu/c++/11/bits/os_defines.h:
 
-/usr/include/c++/11/utility:
+/usr/include/c++/11/bits/exception_defines.h:
 
-/usr/include/c++/11/ios:
+/usr/include/c++/11/bits/atomic_base.h:
 
-/usr/include/x86_64-linux-gnu/c++/11/bits/error_constants.h:
+../src/execution/executor_index_scan.h:
+
+/usr/include/c++/11/ext/numeric_traits.h:
+
+/usr/include/c++/11/pstl/pstl_config.h:
+
+/usr/include/c++/11/cmath:
+
+/usr/include/c++/11/bits/allocator.h:
+
+/usr/include/c++/11/type_traits:
+
+/usr/include/x86_64-linux-gnu/sys/single_threaded.h:
 
 /usr/include/c++/11/bits/erase_if.h:
 
@@ -989,18 +1046,6 @@ src/CMakeFiles/rmdb.dir/rmdb.cpp.o: ../src/rmdb.cpp \
 /usr/include/stdint.h:
 
 /usr/include/c++/11/bits/atomic_lockfree_defines.h:
-
-/usr/include/string.h:
-
-/usr/include/c++/11/bits/streambuf.tcc:
-
-/usr/include/x86_64-linux-gnu/sys/single_threaded.h:
-
-/usr/include/c++/11/type_traits:
-
-/usr/include/c++/11/bits/stl_tree.h:
-
-/usr/include/c++/11/tuple:
 
 /usr/include/features.h:
 
@@ -1074,19 +1119,27 @@ src/CMakeFiles/rmdb.dir/rmdb.cpp.o: ../src/rmdb.cpp \
 
 /usr/include/c++/11/bits/postypes.h:
 
+/usr/include/x86_64-linux-gnu/bits/socket2.h:
+
 ../src/optimizer/optimizer.h:
 
 /usr/include/wchar.h:
 
 /usr/include/c++/11/bits/cxxabi_init_exception.h:
 
-/usr/include/x86_64-linux-gnu/bits/types/mbstate_t.h:
+/usr/include/x86_64-linux-gnu/bits/fp-logb.h:
+
+/usr/include/x86_64-linux-gnu/bits/wchar2.h:
 
 /usr/include/x86_64-linux-gnu/bits/waitstatus.h:
 
 /usr/include/c++/11/cstdint:
 
 /usr/include/x86_64-linux-gnu/c++/11/bits/c++allocator.h:
+
+/usr/include/c++/11/bits/locale_facets.h:
+
+/usr/include/c++/11/bits/exception.h:
 
 /usr/include/c++/11/bits/localefwd.h:
 
@@ -1178,6 +1231,14 @@ src/CMakeFiles/rmdb.dir/rmdb.cpp.o: ../src/rmdb.cpp \
 
 /usr/include/alloca.h:
 
+/usr/include/x86_64-linux-gnu/bits/types/struct___jmp_buf_tag.h:
+
+/usr/include/x86_64-linux-gnu/bits/types/clockid_t.h:
+
+/usr/include/c++/11/bits/stl_bvector.h:
+
+/usr/include/x86_64-linux-gnu/bits/stdlib-bsearch.h:
+
 /usr/include/c++/11/bits/stl_heap.h:
 
 /usr/include/c++/11/bits/std_abs.h:
@@ -1195,8 +1256,6 @@ src/CMakeFiles/rmdb.dir/rmdb.cpp.o: ../src/rmdb.cpp \
 /usr/include/readline/keymaps.h:
 
 /usr/include/c++/11/bits/stl_vector.h:
-
-/usr/include/c++/11/system_error:
 
 ../src/execution/executor_projection.h:
 
@@ -1222,28 +1281,8 @@ src/CMakeFiles/rmdb.dir/rmdb.cpp.o: ../src/rmdb.cpp \
 
 /usr/include/c++/11/bits/nested_exception.h:
 
-/usr/include/x86_64-linux-gnu/bits/types/siginfo_t.h:
-
 ../src/defs.h:
 
+/usr/include/x86_64-linux-gnu/bits/types/siginfo_t.h:
+
 /usr/include/c++/11/bits/ios_base.h:
-
-/usr/include/c++/11/bits/locale_classes.h:
-
-/usr/include/c++/11/bits/locale_classes.tcc:
-
-/usr/include/c++/11/pstl/glue_algorithm_defs.h:
-
-/usr/include/c++/11/stdexcept:
-
-/usr/include/c++/11/bits/uniform_int_dist.h:
-
-/usr/include/c++/11/bits/basic_ios.h:
-
-/usr/include/c++/11/bits/exception.h:
-
-/usr/include/c++/11/bits/locale_facets.h:
-
-/usr/include/x86_64-linux-gnu/bits/types/struct_statx_timestamp.h:
-
-/usr/include/c++/11/cwctype:

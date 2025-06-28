@@ -1,10 +1,9 @@
 t1
 1
-compositetest
-4
-compositetest id 0 4 0 0
-compositetest name 2 10 4 0
-compositetest value 1 4 14 0
-compositetest category 2 5 18 0
+grade
+3
+grade course 2 20 0 0
+grade id 0 4 20 0
+grade score 1 4 24 0
 0
 

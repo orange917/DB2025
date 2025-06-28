@@ -6,5 +6,5 @@ CXX_DEFINES =
 
 CXX_INCLUDES = -I/home/code/db2025/deps/googletest/googletest/include -I/home/code/db2025/deps/googletest/googletest
 
-CXX_FLAGS = -Wall -O0 -g -ggdb3 -Wall -Wshadow -Wno-error=dangling-else -DGTEST_HAS_PTHREAD=1 -fexceptions -Wextra -Wno-unused-parameter -Wno-missing-field-initializers
+CXX_FLAGS = -Wall -O0 -g -ggdb3 -O3 -DNDEBUG -Wall -Wshadow -Wno-error=dangling-else -DGTEST_HAS_PTHREAD=1 -fexceptions -Wextra -Wno-unused-parameter -Wno-missing-field-initializers
 

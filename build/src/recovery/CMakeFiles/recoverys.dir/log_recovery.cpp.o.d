@@ -102,6 +102,7 @@ src/recovery/CMakeFiles/recoverys.dir/log_recovery.cpp.o: \
  /usr/include/x86_64-linux-gnu/bits/types/__mbstate_t.h \
  /usr/include/x86_64-linux-gnu/bits/types/__FILE.h \
  /usr/include/x86_64-linux-gnu/bits/types/FILE.h \
+ /usr/include/x86_64-linux-gnu/bits/wchar2.h \
  /usr/include/c++/11/stdexcept /usr/include/c++/11/string \
  /usr/include/c++/11/bits/char_traits.h \
  /usr/include/c++/11/bits/localefwd.h \
@@ -140,13 +141,18 @@ src/recovery/CMakeFiles/recoverys.dir/log_recovery.cpp.o: \
  /usr/include/x86_64-linux-gnu/sys/select.h \
  /usr/include/x86_64-linux-gnu/bits/select.h \
  /usr/include/x86_64-linux-gnu/bits/types/sigset_t.h \
- /usr/include/alloca.h /usr/include/x86_64-linux-gnu/bits/stdlib-float.h \
+ /usr/include/x86_64-linux-gnu/bits/select2.h /usr/include/alloca.h \
+ /usr/include/x86_64-linux-gnu/bits/stdlib-bsearch.h \
+ /usr/include/x86_64-linux-gnu/bits/stdlib-float.h \
+ /usr/include/x86_64-linux-gnu/bits/stdlib.h \
  /usr/include/c++/11/bits/std_abs.h /usr/include/c++/11/cstdio \
  /usr/include/stdio.h /usr/include/x86_64-linux-gnu/bits/types/__fpos_t.h \
  /usr/include/x86_64-linux-gnu/bits/types/__fpos64_t.h \
  /usr/include/x86_64-linux-gnu/bits/types/struct_FILE.h \
  /usr/include/x86_64-linux-gnu/bits/types/cookie_io_functions_t.h \
  /usr/include/x86_64-linux-gnu/bits/stdio_lim.h \
+ /usr/include/x86_64-linux-gnu/bits/stdio.h \
+ /usr/include/x86_64-linux-gnu/bits/stdio2.h \
  /usr/include/c++/11/bits/charconv.h \
  /usr/include/c++/11/bits/basic_string.tcc \
  /usr/include/c++/11/bits/std_mutex.h \
@@ -177,6 +183,7 @@ src/recovery/CMakeFiles/recoverys.dir/log_recovery.cpp.o: \
  /usr/include/x86_64-linux-gnu/bits/types/struct_iovec.h \
  /usr/include/linux/falloc.h /usr/include/x86_64-linux-gnu/bits/stat.h \
  /usr/include/x86_64-linux-gnu/bits/struct_stat.h \
+ /usr/include/x86_64-linux-gnu/bits/fcntl2.h \
  /usr/include/x86_64-linux-gnu/sys/stat.h \
  /usr/include/x86_64-linux-gnu/bits/statx.h /usr/include/linux/stat.h \
  /usr/include/linux/types.h /usr/include/x86_64-linux-gnu/asm/types.h \
@@ -195,6 +202,7 @@ src/recovery/CMakeFiles/recoverys.dir/log_recovery.cpp.o: \
  /usr/include/x86_64-linux-gnu/bits/confname.h \
  /usr/include/x86_64-linux-gnu/bits/getopt_posix.h \
  /usr/include/x86_64-linux-gnu/bits/getopt_core.h \
+ /usr/include/x86_64-linux-gnu/bits/unistd.h \
  /usr/include/x86_64-linux-gnu/bits/unistd_ext.h \
  /usr/include/linux/close_range.h /usr/include/c++/11/atomic \
  /usr/include/c++/11/bits/atomic_base.h \
@@ -205,6 +213,8 @@ src/recovery/CMakeFiles/recoverys.dir/log_recovery.cpp.o: \
  /usr/include/c++/11/bits/fstream.tcc \
  /home/code/db2025/src/common/config.h /home/code/db2025/src/errors.h \
  /usr/include/c++/11/cstring /usr/include/string.h /usr/include/strings.h \
+ /usr/include/x86_64-linux-gnu/bits/strings_fortified.h \
+ /usr/include/x86_64-linux-gnu/bits/string_fortified.h \
  /home/code/db2025/src/record/rm_defs.h \
  /home/code/db2025/src/storage/buffer_pool_manager.h \
  /usr/include/c++/11/cassert /usr/include/assert.h \
@@ -237,7 +247,6 @@ src/recovery/CMakeFiles/recoverys.dir/log_recovery.cpp.o: \
  /usr/include/c++/11/bits/unordered_set.h \
  /home/code/db2025/src/common/common.h \
  /home/code/db2025/src/transaction/txn_defs.h \
- /home/code/db2025/src/index/ix_manager.h \
  /home/code/db2025/src/system/sm_meta.h /usr/include/c++/11/algorithm \
  /usr/include/c++/11/bits/stl_algo.h \
  /usr/include/c++/11/bits/algorithmfwd.h \
@@ -246,6 +255,7 @@ src/recovery/CMakeFiles/recoverys.dir/log_recovery.cpp.o: \
  /usr/include/c++/11/pstl/glue_algorithm_defs.h \
  /usr/include/c++/11/functional /usr/include/c++/11/bits/std_function.h \
  /home/code/db2025/src/system/sm_defs.h \
+ /home/code/db2025/src/index/ix_manager.h \
  /home/code/db2025/src/record/rm_file_handle.h \
  /home/code/db2025/src/record/bitmap.h /usr/include/c++/11/cinttypes \
  /usr/include/inttypes.h /home/code/db2025/src/common/context.h \

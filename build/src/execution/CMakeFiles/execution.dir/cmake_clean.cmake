@@ -3,6 +3,8 @@ file(REMOVE_RECURSE
   "../../lib/libexecution.pdb"
   "CMakeFiles/execution.dir/execution_manager.cpp.o"
   "CMakeFiles/execution.dir/execution_manager.cpp.o.d"
+  "CMakeFiles/execution.dir/executor_aggregation.cpp.o"
+  "CMakeFiles/execution.dir/executor_aggregation.cpp.o.d"
 )
 
 # Per-language clean rules from dependency scanning.

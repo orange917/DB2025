@@ -22,6 +22,8 @@ src/recovery/CMakeFiles/recovery.dir/log_manager.cpp.o: ../src/recovery/log_mana
   /usr/include/x86_64-linux-gnu/bits/types/locale_t.h \
   /usr/include/x86_64-linux-gnu/bits/types/__locale_t.h \
   /usr/include/strings.h \
+  /usr/include/x86_64-linux-gnu/bits/strings_fortified.h \
+  /usr/include/x86_64-linux-gnu/bits/string_fortified.h \
   ../src/recovery/log_manager.h \
   /usr/include/c++/11/mutex \
   /usr/include/c++/11/tuple \
@@ -108,6 +110,7 @@ src/recovery/CMakeFiles/recovery.dir/log_manager.cpp.o: ../src/recovery/log_mana
   /usr/include/x86_64-linux-gnu/bits/types/__mbstate_t.h \
   /usr/include/x86_64-linux-gnu/bits/types/__FILE.h \
   /usr/include/x86_64-linux-gnu/bits/types/FILE.h \
+  /usr/include/x86_64-linux-gnu/bits/wchar2.h \
   /usr/include/c++/11/stdexcept \
   /usr/include/c++/11/string \
   /usr/include/c++/11/bits/char_traits.h \
@@ -164,8 +167,11 @@ src/recovery/CMakeFiles/recovery.dir/log_manager.cpp.o: ../src/recovery/log_mana
   /usr/include/x86_64-linux-gnu/sys/select.h \
   /usr/include/x86_64-linux-gnu/bits/select.h \
   /usr/include/x86_64-linux-gnu/bits/types/sigset_t.h \
+  /usr/include/x86_64-linux-gnu/bits/select2.h \
   /usr/include/alloca.h \
+  /usr/include/x86_64-linux-gnu/bits/stdlib-bsearch.h \
   /usr/include/x86_64-linux-gnu/bits/stdlib-float.h \
+  /usr/include/x86_64-linux-gnu/bits/stdlib.h \
   /usr/include/c++/11/bits/std_abs.h \
   /usr/include/c++/11/cstdio \
   /usr/include/stdio.h \
@@ -174,6 +180,8 @@ src/recovery/CMakeFiles/recovery.dir/log_manager.cpp.o: ../src/recovery/log_mana
   /usr/include/x86_64-linux-gnu/bits/types/struct_FILE.h \
   /usr/include/x86_64-linux-gnu/bits/types/cookie_io_functions_t.h \
   /usr/include/x86_64-linux-gnu/bits/stdio_lim.h \
+  /usr/include/x86_64-linux-gnu/bits/stdio.h \
+  /usr/include/x86_64-linux-gnu/bits/stdio2.h \
   /usr/include/c++/11/bits/charconv.h \
   /usr/include/c++/11/bits/basic_string.tcc \
   /usr/include/c++/11/bits/std_mutex.h \
@@ -221,6 +229,7 @@ src/recovery/CMakeFiles/recovery.dir/log_manager.cpp.o: ../src/recovery/log_mana
   /usr/include/linux/falloc.h \
   /usr/include/x86_64-linux-gnu/bits/stat.h \
   /usr/include/x86_64-linux-gnu/bits/struct_stat.h \
+  /usr/include/x86_64-linux-gnu/bits/fcntl2.h \
   /usr/include/x86_64-linux-gnu/sys/stat.h \
   /usr/include/x86_64-linux-gnu/bits/statx.h \
   /usr/include/linux/stat.h \
@@ -244,6 +253,7 @@ src/recovery/CMakeFiles/recovery.dir/log_manager.cpp.o: ../src/recovery/log_mana
   /usr/include/x86_64-linux-gnu/bits/confname.h \
   /usr/include/x86_64-linux-gnu/bits/getopt_posix.h \
   /usr/include/x86_64-linux-gnu/bits/getopt_core.h \
+  /usr/include/x86_64-linux-gnu/bits/unistd.h \
   /usr/include/x86_64-linux-gnu/bits/unistd_ext.h \
   /usr/include/linux/close_range.h \
   /usr/include/c++/11/atomic \
@@ -399,6 +409,7 @@ src/recovery/CMakeFiles/recovery.dir/log_recovery.cpp.o: ../src/recovery/log_rec
   /usr/include/x86_64-linux-gnu/bits/types/__mbstate_t.h \
   /usr/include/x86_64-linux-gnu/bits/types/__FILE.h \
   /usr/include/x86_64-linux-gnu/bits/types/FILE.h \
+  /usr/include/x86_64-linux-gnu/bits/wchar2.h \
   /usr/include/c++/11/stdexcept \
   /usr/include/c++/11/string \
   /usr/include/c++/11/bits/char_traits.h \
@@ -446,8 +457,11 @@ src/recovery/CMakeFiles/recovery.dir/log_recovery.cpp.o: ../src/recovery/log_rec
   /usr/include/x86_64-linux-gnu/sys/select.h \
   /usr/include/x86_64-linux-gnu/bits/select.h \
   /usr/include/x86_64-linux-gnu/bits/types/sigset_t.h \
+  /usr/include/x86_64-linux-gnu/bits/select2.h \
   /usr/include/alloca.h \
+  /usr/include/x86_64-linux-gnu/bits/stdlib-bsearch.h \
   /usr/include/x86_64-linux-gnu/bits/stdlib-float.h \
+  /usr/include/x86_64-linux-gnu/bits/stdlib.h \
   /usr/include/c++/11/bits/std_abs.h \
   /usr/include/c++/11/cstdio \
   /usr/include/stdio.h \
@@ -456,6 +470,8 @@ src/recovery/CMakeFiles/recovery.dir/log_recovery.cpp.o: ../src/recovery/log_rec
   /usr/include/x86_64-linux-gnu/bits/types/struct_FILE.h \
   /usr/include/x86_64-linux-gnu/bits/types/cookie_io_functions_t.h \
   /usr/include/x86_64-linux-gnu/bits/stdio_lim.h \
+  /usr/include/x86_64-linux-gnu/bits/stdio.h \
+  /usr/include/x86_64-linux-gnu/bits/stdio2.h \
   /usr/include/c++/11/bits/charconv.h \
   /usr/include/c++/11/bits/basic_string.tcc \
   /usr/include/c++/11/bits/std_mutex.h \
@@ -496,6 +512,7 @@ src/recovery/CMakeFiles/recovery.dir/log_recovery.cpp.o: ../src/recovery/log_rec
   /usr/include/linux/falloc.h \
   /usr/include/x86_64-linux-gnu/bits/stat.h \
   /usr/include/x86_64-linux-gnu/bits/struct_stat.h \
+  /usr/include/x86_64-linux-gnu/bits/fcntl2.h \
   /usr/include/x86_64-linux-gnu/sys/stat.h \
   /usr/include/x86_64-linux-gnu/bits/statx.h \
   /usr/include/linux/stat.h \
@@ -519,6 +536,7 @@ src/recovery/CMakeFiles/recovery.dir/log_recovery.cpp.o: ../src/recovery/log_rec
   /usr/include/x86_64-linux-gnu/bits/confname.h \
   /usr/include/x86_64-linux-gnu/bits/getopt_posix.h \
   /usr/include/x86_64-linux-gnu/bits/getopt_core.h \
+  /usr/include/x86_64-linux-gnu/bits/unistd.h \
   /usr/include/x86_64-linux-gnu/bits/unistd_ext.h \
   /usr/include/linux/close_range.h \
   /usr/include/c++/11/atomic \
@@ -534,6 +552,8 @@ src/recovery/CMakeFiles/recovery.dir/log_recovery.cpp.o: ../src/recovery/log_rec
   /usr/include/c++/11/cstring \
   /usr/include/string.h \
   /usr/include/strings.h \
+  /usr/include/x86_64-linux-gnu/bits/strings_fortified.h \
+  /usr/include/x86_64-linux-gnu/bits/string_fortified.h \
   ../src/record/rm_defs.h \
   ../src/storage/buffer_pool_manager.h \
   /usr/include/c++/11/cassert \
@@ -634,8 +654,6 @@ src/recovery/CMakeFiles/recovery.dir/log_recovery.cpp.o: ../src/recovery/log_rec
 
 /usr/include/c++/11/bits/stl_tempbuf.h:
 
-/usr/include/c++/11/memory:
-
 /usr/include/c++/11/bits/deque.tcc:
 
 ../src/transaction/transaction.h:
@@ -674,35 +692,29 @@ src/recovery/CMakeFiles/recovery.dir/log_recovery.cpp.o: ../src/recovery/log_rec
 
 /usr/include/c++/11/bits/unordered_map.h:
 
-/usr/include/c++/11/bits/shared_ptr_base.h:
+/usr/include/c++/11/bits/hashtable.h:
 
-/usr/include/c++/11/bits/basic_string.h:
+../src/common/context.h:
 
-../src/system/sm_manager.h:
+/usr/include/c++/11/unordered_map:
 
-/usr/include/x86_64-linux-gnu/bits/endian.h:
+/usr/include/x86_64-linux-gnu/c++/11/bits/c++io.h:
 
-/usr/include/c++/11/bits/stl_deque.h:
+/usr/include/x86_64-linux-gnu/c++/11/bits/basic_file.h:
 
-/usr/include/x86_64-linux-gnu/gnu/stubs.h:
+/usr/include/c++/11/fstream:
 
-/usr/include/x86_64-linux-gnu/bits/struct_stat.h:
+/usr/include/c++/11/bits/atomic_lockfree_defines.h:
 
 ../src/common/common.h:
 
 /usr/include/c++/11/bits/cxxabi_forced.h:
-
-/usr/include/c++/11/fstream:
 
 /usr/include/x86_64-linux-gnu/bits/locale.h:
 
 /usr/include/locale.h:
 
 /usr/include/x86_64-linux-gnu/bits/pthreadtypes-arch.h:
-
-/usr/include/c++/11/backward/binders.h:
-
-/usr/include/x86_64-linux-gnu/asm/bitsperlong.h:
 
 /usr/include/c++/11/bits/localefwd.h:
 
@@ -712,6 +724,14 @@ src/recovery/CMakeFiles/recovery.dir/log_recovery.cpp.o: ../src/recovery/log_rec
 
 /usr/include/asm-generic/errno-base.h:
 
+/usr/include/x86_64-linux-gnu/asm/bitsperlong.h:
+
+/usr/include/c++/11/backward/binders.h:
+
+/usr/include/x86_64-linux-gnu/bits/struct_stat.h:
+
+/usr/include/x86_64-linux-gnu/bits/wchar2.h:
+
 ../src/record/rm_defs.h:
 
 /usr/include/c++/11/iostream:
@@ -719,6 +739,8 @@ src/recovery/CMakeFiles/recovery.dir/log_recovery.cpp.o: ../src/recovery/log_rec
 /usr/include/c++/11/bits/node_handle.h:
 
 /usr/include/x86_64-linux-gnu/bits/types/mbstate_t.h:
+
+/usr/include/x86_64-linux-gnu/bits/strings_fortified.h:
 
 /usr/include/x86_64-linux-gnu/bits/types/wint_t.h:
 
@@ -732,13 +754,9 @@ src/recovery/CMakeFiles/recovery.dir/log_recovery.cpp.o: ../src/recovery/log_rec
 
 /usr/include/x86_64-linux-gnu/bits/types/struct_timeval.h:
 
-/usr/include/x86_64-linux-gnu/bits/errno.h:
-
-/usr/include/x86_64-linux-gnu/c++/11/bits/ctype_base.h:
+/usr/include/x86_64-linux-gnu/bits/stdlib.h:
 
 /usr/include/errno.h:
-
-/usr/include/c++/11/cwchar:
 
 /usr/lib/gcc/x86_64-linux-gnu/11/include/stdint.h:
 
@@ -788,21 +806,19 @@ src/recovery/CMakeFiles/recovery.dir/log_recovery.cpp.o: ../src/recovery/log_rec
 
 /usr/include/x86_64-linux-gnu/bits/time.h:
 
-/usr/include/c++/11/ext/atomicity.h:
-
 /usr/include/c++/11/bits/stl_pair.h:
+
+/usr/include/c++/11/ext/atomicity.h:
 
 /usr/include/c++/11/ctime:
 
 /usr/include/x86_64-linux-gnu/bits/time64.h:
 
-/usr/include/c++/11/string:
+/usr/include/c++/11/cctype:
 
-/usr/include/x86_64-linux-gnu/bits/types/time_t.h:
+/usr/include/x86_64-linux-gnu/bits/stdint-intn.h:
 
-/usr/include/strings.h:
-
-/usr/include/x86_64-linux-gnu/bits/struct_rwlock.h:
+/usr/include/x86_64-linux-gnu/bits/types.h:
 
 /usr/include/x86_64-linux-gnu/bits/fcntl.h:
 
@@ -810,21 +826,13 @@ src/recovery/CMakeFiles/recovery.dir/log_recovery.cpp.o: ../src/recovery/log_rec
 
 /usr/include/c++/11/bits/stl_vector.h:
 
-/usr/include/c++/11/bits/hash_bytes.h:
+/usr/include/c++/11/bits/fstream.tcc:
 
-/usr/include/c++/11/bits/move.h:
-
-/usr/include/x86_64-linux-gnu/bits/atomic_wide_counter.h:
-
-../src/record/rm_file_handle.h:
-
-/usr/include/c++/11/bits/stl_relops.h:
+/usr/include/asm-generic/posix_types.h:
 
 /usr/include/c++/11/limits:
 
 /usr/include/x86_64-linux-gnu/c++/11/bits/cpu_defines.h:
-
-/usr/include/x86_64-linux-gnu/bits/timesize.h:
 
 /usr/include/c++/11/mutex:
 
@@ -834,11 +842,59 @@ src/recovery/CMakeFiles/recovery.dir/log_recovery.cpp.o: ../src/recovery/log_rec
 
 /usr/include/c++/11/atomic:
 
+/usr/include/x86_64-linux-gnu/bits/errno.h:
+
+/usr/include/x86_64-linux-gnu/c++/11/bits/ctype_base.h:
+
+/usr/include/c++/11/memory:
+
+/usr/include/x86_64-linux-gnu/bits/string_fortified.h:
+
+/usr/include/c++/11/tuple:
+
+/usr/include/c++/11/bits/stl_tree.h:
+
+/usr/include/strings.h:
+
+/usr/include/x86_64-linux-gnu/bits/struct_rwlock.h:
+
 /usr/include/x86_64-linux-gnu/bits/types/__locale_t.h:
+
+/usr/include/x86_64-linux-gnu/bits/stdint-uintn.h:
+
+/usr/include/x86_64-linux-gnu/bits/types/struct_timespec.h:
 
 /usr/include/c++/11/bits/stl_iterator_base_types.h:
 
 /usr/include/c++/11/cstdlib:
+
+/usr/include/c++/11/string:
+
+/usr/include/x86_64-linux-gnu/bits/types/time_t.h:
+
+../src/record/rm_file_handle.h:
+
+/usr/include/c++/11/bits/stl_relops.h:
+
+/usr/include/c++/11/bits/hash_bytes.h:
+
+/usr/include/c++/11/bits/move.h:
+
+/usr/include/x86_64-linux-gnu/bits/atomic_wide_counter.h:
+
+../src/system/sm_manager.h:
+
+/usr/include/x86_64-linux-gnu/bits/endian.h:
+
+/usr/include/c++/11/bits/stl_deque.h:
+
+/usr/include/x86_64-linux-gnu/gnu/stubs.h:
+
+/usr/include/c++/11/bits/shared_ptr_base.h:
+
+/usr/include/c++/11/bits/basic_string.h:
+
+/usr/include/x86_64-linux-gnu/bits/stdio.h:
 
 /usr/include/x86_64-linux-gnu/bits/types/__fpos_t.h:
 
@@ -851,10 +907,6 @@ src/recovery/CMakeFiles/recovery.dir/log_recovery.cpp.o: ../src/recovery/log_rec
 ../src/index/ix_manager.h:
 
 /usr/include/x86_64-linux-gnu/sys/stat.h:
-
-/usr/include/x86_64-linux-gnu/bits/types/struct_timespec.h:
-
-/usr/include/x86_64-linux-gnu/bits/stdint-uintn.h:
 
 /usr/include/c++/11/condition_variable:
 
@@ -880,17 +932,9 @@ src/recovery/CMakeFiles/recovery.dir/log_recovery.cpp.o: ../src/recovery/log_rec
 
 ../src/recovery/log_manager.h:
 
-/usr/include/x86_64-linux-gnu/sys/single_threaded.h:
-
 /usr/include/c++/11/type_traits:
 
-/usr/include/c++/11/tuple:
-
-/usr/include/c++/11/bits/stl_tree.h:
-
-../src/recovery/log_manager.cpp:
-
-/usr/include/x86_64-linux-gnu/c++/11/bits/gthr.h:
+/usr/include/x86_64-linux-gnu/sys/single_threaded.h:
 
 ../src/transaction/txn_defs.h:
 
@@ -898,9 +942,7 @@ src/recovery/CMakeFiles/recovery.dir/log_recovery.cpp.o: ../src/recovery/log_rec
 
 /usr/include/c++/11/streambuf:
 
-/usr/include/x86_64-linux-gnu/bits/types.h:
-
-/usr/include/x86_64-linux-gnu/bits/stdint-intn.h:
+/usr/include/c++/11/array:
 
 /usr/include/x86_64-linux-gnu/bits/types/locale_t.h:
 
@@ -935,8 +977,6 @@ src/recovery/CMakeFiles/recovery.dir/log_recovery.cpp.o: ../src/recovery/log_rec
 /usr/include/features.h:
 
 /usr/include/c++/11/bits/stl_multimap.h:
-
-/usr/include/c++/11/array:
 
 /usr/include/x86_64-linux-gnu/c++/11/bits/c++locale.h:
 
@@ -1016,11 +1056,7 @@ src/recovery/CMakeFiles/recovery.dir/log_recovery.cpp.o: ../src/recovery/log_rec
 
 /usr/include/x86_64-linux-gnu/bits/typesizes.h:
 
-/usr/include/c++/11/cctype:
-
-../src/common/context.h:
-
-/usr/include/c++/11/unordered_map:
+/usr/include/x86_64-linux-gnu/c++/11/bits/gthr.h:
 
 /usr/include/x86_64-linux-gnu/c++/11/bits/gthr-default.h:
 
@@ -1082,13 +1118,29 @@ src/recovery/CMakeFiles/recovery.dir/log_recovery.cpp.o: ../src/recovery/log_rec
 
 /usr/include/x86_64-linux-gnu/bits/stdlib-float.h:
 
+/usr/include/c++/11/cwchar:
+
+/usr/include/x86_64-linux-gnu/bits/select2.h:
+
 /usr/include/alloca.h:
+
+/usr/include/x86_64-linux-gnu/asm/types.h:
 
 /usr/include/c++/11/bits/stl_heap.h:
 
 /usr/include/c++/11/bits/std_abs.h:
 
 /usr/include/stdio.h:
+
+../src/recovery/log_manager.cpp:
+
+/usr/include/x86_64-linux-gnu/bits/stdio2.h:
+
+/usr/include/c++/11/bits/this_thread_sleep.h:
+
+/usr/include/x86_64-linux-gnu/bits/types/struct_tm.h:
+
+/usr/include/c++/11/bits/locale_facets.tcc:
 
 ../src/transaction/concurrency/lock_manager.h:
 
@@ -1110,6 +1162,8 @@ src/recovery/CMakeFiles/recovery.dir/log_recovery.cpp.o: ../src/recovery/log_rec
 
 /usr/include/x86_64-linux-gnu/bits/types/struct___jmp_buf_tag.h:
 
+/usr/include/x86_64-linux-gnu/bits/stdlib-bsearch.h:
+
 /usr/include/c++/11/bits/stl_bvector.h:
 
 /usr/include/c++/11/bits/vector.tcc:
@@ -1119,6 +1173,10 @@ src/recovery/CMakeFiles/recovery.dir/log_recovery.cpp.o: ../src/recovery/log_rec
 ../src/defs.h:
 
 /usr/include/c++/11/bits/ios_base.h:
+
+/usr/include/x86_64-linux-gnu/bits/timesize.h:
+
+/usr/include/x86_64-linux-gnu/bits/fcntl2.h:
 
 /usr/include/c++/11/bits/locale_classes.h:
 
@@ -1132,8 +1190,6 @@ src/recovery/CMakeFiles/recovery.dir/log_recovery.cpp.o: ../src/recovery/log_rec
 
 /usr/include/c++/11/bits/streambuf.tcc:
 
-/usr/include/c++/11/bits/atomic_lockfree_defines.h:
-
 /usr/include/c++/11/bits/uniform_int_dist.h:
 
 /usr/include/c++/11/bits/basic_ios.h:
@@ -1146,15 +1202,17 @@ src/recovery/CMakeFiles/recovery.dir/log_recovery.cpp.o: ../src/recovery/log_rec
 
 ../src/storage/disk_manager.h:
 
-/usr/include/x86_64-linux-gnu/asm/types.h:
-
 /usr/include/c++/11/bits/streambuf_iterator.h:
 
-/usr/include/c++/11/bits/this_thread_sleep.h:
+/usr/include/linux/types.h:
 
-/usr/include/x86_64-linux-gnu/bits/types/struct_tm.h:
+/usr/include/x86_64-linux-gnu/c++/11/bits/ctype_inline.h:
 
-/usr/include/c++/11/bits/locale_facets.tcc:
+/usr/include/c++/11/bits/enable_special_members.h:
+
+/usr/include/c++/11/bits/codecvt.h:
+
+/usr/include/c++/11/bits/basic_ios.tcc:
 
 /usr/include/c++/11/istream:
 
@@ -1184,12 +1242,6 @@ src/recovery/CMakeFiles/recovery.dir/log_recovery.cpp.o: ../src/recovery/log_rec
 
 /usr/include/x86_64-linux-gnu/bits/statx.h:
 
-/usr/include/x86_64-linux-gnu/c++/11/bits/basic_file.h:
-
-/usr/include/x86_64-linux-gnu/c++/11/bits/ctype_inline.h:
-
-/usr/include/linux/types.h:
-
 /usr/include/asm-generic/types.h:
 
 /usr/include/x86_64-linux-gnu/bits/types/sigset_t.h:
@@ -1206,6 +1258,10 @@ src/recovery/CMakeFiles/recovery.dir/log_recovery.cpp.o: ../src/recovery/log_rec
 
 /usr/include/x86_64-linux-gnu/asm/posix_types.h:
 
+/usr/include/c++/11/bits/hashtable_policy.h:
+
+/usr/include/x86_64-linux-gnu/bits/statx-generic.h:
+
 /usr/include/x86_64-linux-gnu/bits/posix_opt.h:
 
 /usr/include/c++/11/bits/exception_defines.h:
@@ -1220,22 +1276,6 @@ src/recovery/CMakeFiles/recovery.dir/log_recovery.cpp.o: ../src/recovery/log_rec
 
 /usr/include/x86_64-linux-gnu/bits/getopt_posix.h:
 
+/usr/include/x86_64-linux-gnu/bits/unistd.h:
+
 /usr/include/x86_64-linux-gnu/bits/unistd_ext.h:
-
-/usr/include/x86_64-linux-gnu/c++/11/bits/c++io.h:
-
-/usr/include/asm-generic/posix_types.h:
-
-/usr/include/c++/11/bits/fstream.tcc:
-
-/usr/include/c++/11/bits/hashtable.h:
-
-/usr/include/x86_64-linux-gnu/bits/statx-generic.h:
-
-/usr/include/c++/11/bits/hashtable_policy.h:
-
-/usr/include/c++/11/bits/codecvt.h:
-
-/usr/include/c++/11/bits/basic_ios.tcc:
-
-/usr/include/c++/11/bits/enable_special_members.h:

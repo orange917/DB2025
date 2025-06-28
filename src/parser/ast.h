@@ -26,6 +26,11 @@ enum SvCompOp {
     SV_OP_EQ, SV_OP_NE, SV_OP_LT, SV_OP_GT, SV_OP_LE, SV_OP_GE
 };
 
+// 添加聚合函数类型枚举
+enum AggFuncType {
+    AGG_COUNT, AGG_MAX, AGG_MIN, AGG_SUM, AGG_AVG
+};
+
 enum OrderByDir {
     OrderBy_DEFAULT,
     OrderBy_ASC,
@@ -151,6 +156,16 @@ struct Col : public Expr {
             tab_name(std::move(tab_name_)), col_name(std::move(col_name_)) {}
 };
 
+// 添加聚合函数表达式
+struct AggFunc : public Expr {
+    AggFuncType func_type;
+    std::shared_ptr<Col> col;  // 可以是列名或nullptr(对于COUNT(*))
+    std::string alias;         // 别名
+
+    AggFunc(AggFuncType func_type_, std::shared_ptr<Col> col_, std::string alias_ = "") :
+            func_type(func_type_), col(std::move(col_)), alias(std::move(alias_)) {}
+};
+
 struct SetClause : public TreeNode {
     std::string col_name;
     std::shared_ptr<Value> val;
@@ -214,24 +229,60 @@ struct JoinExpr : public TreeNode {
             left(std::move(left_)), right(std::move(right_)), conds(std::move(conds_)), type(type_) {}
 };
 
+// 添加分组子句
+struct GroupBy : public TreeNode {
+    std::vector<std::shared_ptr<Col>> cols;
+
+    GroupBy(std::vector<std::shared_ptr<Col>> cols_) : cols(std::move(cols_)) {}
+};
+
+// 添加HAVING子句
+struct Having : public TreeNode {
+    std::vector<std::shared_ptr<BinaryExpr>> conds;
+
+    Having(std::vector<std::shared_ptr<BinaryExpr>> conds_) : conds(std::move(conds_)) {}
+};
+
+// 添加LIMIT子句
+struct Limit : public TreeNode {
+    int limit_val;
+
+    Limit(int limit_val_) : limit_val(limit_val_) {}
+};
+
 struct SelectStmt : public TreeNode {
     std::vector<std::shared_ptr<Col>> cols;
+    std::vector<std::shared_ptr<AggFunc>> agg_funcs;  // 添加聚合函数列表
     std::vector<std::string> tabs;
     std::vector<std::shared_ptr<BinaryExpr>> conds;
     std::vector<std::shared_ptr<JoinExpr>> jointree;
-
     
     bool has_sort;
     std::shared_ptr<OrderBy> order;
-
+    
+    // 添加分组、HAVING和LIMIT支持
+    bool has_group_by;
+    std::shared_ptr<GroupBy> group_by;
+    bool has_having;
+    std::shared_ptr<Having> having;
+    bool has_limit;
+    std::shared_ptr<Limit> limit;
 
     SelectStmt(std::vector<std::shared_ptr<Col>> cols_,
+               std::vector<std::shared_ptr<AggFunc>> agg_funcs_,
                std::vector<std::string> tabs_,
                std::vector<std::shared_ptr<BinaryExpr>> conds_,
-               std::shared_ptr<OrderBy> order_) :
-            cols(std::move(cols_)), tabs(std::move(tabs_)), conds(std::move(conds_)), 
-            order(std::move(order_)) {
+               std::shared_ptr<OrderBy> order_,
+               std::shared_ptr<GroupBy> group_by_ = nullptr,
+               std::shared_ptr<Having> having_ = nullptr,
+               std::shared_ptr<Limit> limit_ = nullptr) :
+            cols(std::move(cols_)), agg_funcs(std::move(agg_funcs_)), tabs(std::move(tabs_)), 
+            conds(std::move(conds_)), order(std::move(order_)), group_by(std::move(group_by_)),
+            having(std::move(having_)), limit(std::move(limit_)) {
                 has_sort = (bool)order;
+                has_group_by = (bool)group_by;
+                has_having = (bool)having;
+                has_limit = (bool)limit;
             }
 };
 
@@ -256,6 +307,7 @@ struct SemValue {
     std::shared_ptr<TreeNode> sv_node;
 
     SvCompOp sv_comp_op;
+    AggFuncType sv_agg_func_type;  // 添加聚合函数类型
 
     std::shared_ptr<TypeLen> sv_type_len;
 
@@ -263,6 +315,8 @@ struct SemValue {
     std::vector<std::shared_ptr<Field>> sv_fields;
 
     std::shared_ptr<Expr> sv_expr;
+    std::shared_ptr<AggFunc> sv_agg_func;  // 添加聚合函数
+    std::vector<std::shared_ptr<AggFunc>> sv_agg_funcs;  // 添加聚合函数列表
 
     std::shared_ptr<Value> sv_val;
     std::vector<std::shared_ptr<Value>> sv_vals;
@@ -277,6 +331,9 @@ struct SemValue {
     std::vector<std::shared_ptr<BinaryExpr>> sv_conds;
 
     std::shared_ptr<OrderBy> sv_orderby;
+    std::shared_ptr<GroupBy> sv_groupby;  // 添加分组
+    std::shared_ptr<Having> sv_having;    // 添加HAVING
+    std::shared_ptr<Limit> sv_limit;      // 添加LIMIT
 
     SetKnobType sv_setKnobType;
 };

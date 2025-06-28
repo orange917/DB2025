@@ -31,6 +31,21 @@ std::shared_ptr<Query> Analyze::do_analyze(std::shared_ptr<ast::TreeNode> parse)
                 throw TableNotFoundError(tab_name);
             }
         }
+        
+        // 处理聚合函数
+        if (!x->agg_funcs.empty()) {
+            query->has_agg = true;
+            for (auto &sv_agg_func : x->agg_funcs) {
+                AggFuncType func_type = convert_agg_func_type(sv_agg_func->func_type);
+                TabCol col = {.tab_name = "", .col_name = ""};
+                if (sv_agg_func->col) {
+                    col = {.tab_name = sv_agg_func->col->tab_name, .col_name = sv_agg_func->col->col_name};
+                }
+                AggFunc agg_func(func_type, col, sv_agg_func->alias);
+                query->agg_funcs.push_back(agg_func);
+            }
+        }
+        
         // 处理target list，再target list中添加上表名，例如 a.id
         for (auto &sv_sel_col : x->cols) {
             TabCol sel_col = {.tab_name = sv_sel_col->tab_name, .col_name = sv_sel_col->col_name};
@@ -39,7 +54,7 @@ std::shared_ptr<Query> Analyze::do_analyze(std::shared_ptr<ast::TreeNode> parse)
         
         std::vector<ColMeta> all_cols;
         get_all_cols(query->tables, all_cols);
-        if (query->cols.empty()) {
+        if (query->cols.empty() && query->agg_funcs.empty()) {
             // select all columns
             for (auto &col : all_cols) {
                 TabCol sel_col = {.tab_name = col.tab_name, .col_name = col.name};
@@ -50,7 +65,37 @@ std::shared_ptr<Query> Analyze::do_analyze(std::shared_ptr<ast::TreeNode> parse)
             for (auto &sel_col : query->cols) {
                 sel_col = check_column(all_cols, sel_col);  // 列元数据校验
             }
+            // 检查聚合函数中的列
+            for (auto &agg_func : query->agg_funcs) {
+                if (!agg_func.col.tab_name.empty() || !agg_func.col.col_name.empty()) {
+                    agg_func.col = check_column(all_cols, agg_func.col);
+                }
+            }
         }
+        
+        // 处理GROUP BY
+        if (x->has_group_by && x->group_by) {
+            query->has_group_by = true;
+            for (auto &sv_group_col : x->group_by->cols) {
+                TabCol group_col = {.tab_name = sv_group_col->tab_name, .col_name = sv_group_col->col_name};
+                group_col = check_column(all_cols, group_col);
+                query->group_by_cols.push_back(group_col);
+            }
+        }
+        
+        // 处理HAVING
+        if (x->has_having && x->having) {
+            query->has_having = true;
+            get_clause(x->having->conds, query->having_conds);
+            check_clause(query->tables, query->having_conds);
+        }
+        
+        // 处理LIMIT
+        if (x->has_limit && x->limit) {
+            query->has_limit = true;
+            query->limit_val = x->limit->limit_val;
+        }
+        
         //处理where条件
         get_clause(x->conds, query->conds);
         check_clause(query->tables, query->conds);
@@ -202,4 +247,12 @@ CompOp Analyze::convert_sv_comp_op(ast::SvCompOp op) {
         {ast::SV_OP_GT, OP_GT}, {ast::SV_OP_LE, OP_LE}, {ast::SV_OP_GE, OP_GE},
     };
     return m.at(op);
+}
+
+AggFuncType Analyze::convert_agg_func_type(ast::AggFuncType sv_agg_func_type) {
+    std::map<ast::AggFuncType, AggFuncType> m = {
+        {ast::AGG_COUNT, AGG_COUNT}, {ast::AGG_MAX, AGG_MAX}, {ast::AGG_MIN, AGG_MIN},
+        {ast::AGG_SUM, AGG_SUM}, {ast::AGG_AVG, AGG_AVG},
+    };
+    return m.at(sv_agg_func_type);
 }

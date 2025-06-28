@@ -23,6 +23,8 @@ using namespace ast;
 // keywords
 %token SHOW TABLES CREATE TABLE DROP DESC INSERT INTO VALUES DELETE FROM ASC ORDER BY
 WHERE UPDATE SET SELECT INT CHAR FLOAT INDEX AND JOIN EXIT HELP TXN_BEGIN TXN_COMMIT TXN_ABORT TXN_ROLLBACK ORDER_BY ENABLE_NESTLOOP ENABLE_SORTMERGE
+// 添加聚合函数和分组关键字
+COUNT MAX MIN SUM AVG GROUP HAVING LIMIT AS
 // non-keywords
 %token LEQ NEQ GEQ T_EOF
 
@@ -52,6 +54,14 @@ WHERE UPDATE SET SELECT INT CHAR FLOAT INDEX AND JOIN EXIT HELP TXN_BEGIN TXN_CO
 %type <sv_orderby>  order_clause opt_order_clause
 %type <sv_orderby_dir> opt_asc_desc
 %type <sv_setKnobType> set_knob_type
+
+// 添加聚合函数和分组相关的类型声明
+%type <sv_agg_func> agg_func
+%type <sv_agg_func_type> agg_func_type
+%type <sv_groupby> opt_group_by_clause
+%type <sv_having> opt_having_clause
+%type <sv_limit> opt_limit_clause
+%type <sv_agg_funcs> agg_func_list
 
 %%
 start:
@@ -158,9 +168,13 @@ dml:
     {
         $$ = std::make_shared<UpdateStmt>($2, $4, $5);
     }
-    |   SELECT selector FROM tableList optWhereClause opt_order_clause
+    |   SELECT selector FROM tableList optWhereClause opt_order_clause opt_group_by_clause opt_having_clause opt_limit_clause
     {
-        $$ = std::make_shared<SelectStmt>($2, $4, $5, $6);
+        $$ = std::make_shared<SelectStmt>($2, std::vector<std::shared_ptr<AggFunc>>(), $4, $5, $6, $7, $8, $9);
+    }
+    |   SELECT agg_func_list FROM tableList optWhereClause opt_order_clause opt_group_by_clause opt_having_clause opt_limit_clause
+    {
+        $$ = std::make_shared<SelectStmt>(std::vector<std::shared_ptr<Col>>(), $2, $4, $5, $6, $7, $8, $9);
     }
     ;
 
@@ -389,6 +403,76 @@ opt_asc_desc:
 set_knob_type:
     ENABLE_NESTLOOP { $$ = EnableNestLoop; }
     |   ENABLE_SORTMERGE { $$ = EnableSortMerge; }
+    ;
+
+// 添加聚合函数相关的语法规则
+agg_func_list:
+    agg_func
+    {
+        $$ = std::vector<std::shared_ptr<AggFunc>>{$1};
+    }
+    |   agg_func_list ',' agg_func
+    {
+        $$.push_back($3);
+    }
+    ;
+
+agg_func:
+    COUNT '(' '*' ')'
+    {
+        $$ = std::make_shared<AggFunc>(AGG_COUNT, nullptr, "");
+    }
+    |   COUNT '(' '*' ')' AS IDENTIFIER
+    {
+        $$ = std::make_shared<AggFunc>(AGG_COUNT, nullptr, $6);
+    }
+    |   COUNT '(' col ')'
+    {
+        $$ = std::make_shared<AggFunc>(AGG_COUNT, $3, "");
+    }
+    |   COUNT '(' col ')' AS IDENTIFIER
+    {
+        $$ = std::make_shared<AggFunc>(AGG_COUNT, $3, $6);
+    }
+    |   agg_func_type '(' col ')'
+    {
+        $$ = std::make_shared<AggFunc>($1, $3, "");
+    }
+    |   agg_func_type '(' col ')' AS IDENTIFIER
+    {
+        $$ = std::make_shared<AggFunc>($1, $3, $6);
+    }
+    ;
+
+agg_func_type:
+    MAX { $$ = AGG_MAX; }
+    |   MIN { $$ = AGG_MIN; }
+    |   SUM { $$ = AGG_SUM; }
+    |   AVG { $$ = AGG_AVG; }
+    ;
+
+opt_group_by_clause:
+    /* epsilon */ { /* ignore*/ }
+    |   GROUP BY colList
+    {
+        $$ = std::make_shared<GroupBy>($3);
+    }
+    ;
+
+opt_having_clause:
+    /* epsilon */ { /* ignore*/ }
+    |   HAVING whereClause
+    {
+        $$ = std::make_shared<Having>($2);
+    }
+    ;
+
+opt_limit_clause:
+    /* epsilon */ { /* ignore*/ }
+    |   LIMIT VALUE_INT
+    {
+        $$ = std::make_shared<Limit>($2);
+    }
     ;
 
 tbName: IDENTIFIER;

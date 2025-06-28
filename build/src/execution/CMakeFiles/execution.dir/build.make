@@ -83,17 +83,33 @@ src/execution/CMakeFiles/execution.dir/execution_manager.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/execution.dir/execution_manager.cpp.s"
 	cd /home/code/db2025/build/src/execution && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/code/db2025/src/execution/execution_manager.cpp -o CMakeFiles/execution.dir/execution_manager.cpp.s
 
+src/execution/CMakeFiles/execution.dir/executor_aggregation.cpp.o: src/execution/CMakeFiles/execution.dir/flags.make
+src/execution/CMakeFiles/execution.dir/executor_aggregation.cpp.o: ../src/execution/executor_aggregation.cpp
+src/execution/CMakeFiles/execution.dir/executor_aggregation.cpp.o: src/execution/CMakeFiles/execution.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/code/db2025/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Building CXX object src/execution/CMakeFiles/execution.dir/executor_aggregation.cpp.o"
+	cd /home/code/db2025/build/src/execution && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT src/execution/CMakeFiles/execution.dir/executor_aggregation.cpp.o -MF CMakeFiles/execution.dir/executor_aggregation.cpp.o.d -o CMakeFiles/execution.dir/executor_aggregation.cpp.o -c /home/code/db2025/src/execution/executor_aggregation.cpp
+
+src/execution/CMakeFiles/execution.dir/executor_aggregation.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/execution.dir/executor_aggregation.cpp.i"
+	cd /home/code/db2025/build/src/execution && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/code/db2025/src/execution/executor_aggregation.cpp > CMakeFiles/execution.dir/executor_aggregation.cpp.i
+
+src/execution/CMakeFiles/execution.dir/executor_aggregation.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/execution.dir/executor_aggregation.cpp.s"
+	cd /home/code/db2025/build/src/execution && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/code/db2025/src/execution/executor_aggregation.cpp -o CMakeFiles/execution.dir/executor_aggregation.cpp.s
+
 # Object files for target execution
 execution_OBJECTS = \
-"CMakeFiles/execution.dir/execution_manager.cpp.o"
+"CMakeFiles/execution.dir/execution_manager.cpp.o" \
+"CMakeFiles/execution.dir/executor_aggregation.cpp.o"
 
 # External object files for target execution
 execution_EXTERNAL_OBJECTS =
 
 lib/libexecution.a: src/execution/CMakeFiles/execution.dir/execution_manager.cpp.o
+lib/libexecution.a: src/execution/CMakeFiles/execution.dir/executor_aggregation.cpp.o
 lib/libexecution.a: src/execution/CMakeFiles/execution.dir/build.make
 lib/libexecution.a: src/execution/CMakeFiles/execution.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/code/db2025/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Linking CXX static library ../../lib/libexecution.a"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/code/db2025/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Linking CXX static library ../../lib/libexecution.a"
 	cd /home/code/db2025/build/src/execution && $(CMAKE_COMMAND) -P CMakeFiles/execution.dir/cmake_clean_target.cmake
 	cd /home/code/db2025/build/src/execution && $(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/execution.dir/link.txt --verbose=$(VERBOSE)
 

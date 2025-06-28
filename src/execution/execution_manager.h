@@ -27,6 +27,7 @@ See the Mulan PSL v2 for more details. */
 #include "optimizer/planner.h"
 
 class Planner;
+class AggPlan; // 前向声明
 
 class QlManager {
    private:
@@ -44,4 +45,17 @@ class QlManager {
                         Context *context);
 
     void run_dml(std::unique_ptr<AbstractExecutor> exec);
+    
+    // 创建聚合执行器
+    std::unique_ptr<AbstractExecutor> create_aggregation_executor(
+        std::unique_ptr<AbstractExecutor> prev,
+        const std::vector<AggFunc>& agg_funcs,
+        const std::vector<TabCol>& group_by_cols,
+        const std::vector<Condition>& having_conds,
+        int limit_val);
+    
+    // 从AggPlan创建聚合执行器
+    std::unique_ptr<AbstractExecutor> create_executor_from_agg_plan(
+        std::shared_ptr<AggPlan> agg_plan,
+        std::unique_ptr<AbstractExecutor> sub_executor);
 };

@@ -9,6 +9,7 @@ set(CMAKE_DEPENDS_LANGUAGES
 # The set of dependency files which are needed:
 set(CMAKE_DEPENDS_DEPENDENCY_FILES
   "/home/code/db2025/src/execution/execution_manager.cpp" "src/execution/CMakeFiles/execution.dir/execution_manager.cpp.o" "gcc" "src/execution/CMakeFiles/execution.dir/execution_manager.cpp.o.d"
+  "/home/code/db2025/src/execution/executor_aggregation.cpp" "src/execution/CMakeFiles/execution.dir/executor_aggregation.cpp.o" "gcc" "src/execution/CMakeFiles/execution.dir/executor_aggregation.cpp.o.d"
   )
 
 # Targets to which this target links.

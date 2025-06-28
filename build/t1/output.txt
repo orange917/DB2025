@@ -1,10 +1,47 @@
-| id | name | value | category |
-| 1 | ICyOi | 307.179993 | cat1 |
-| id | name | value | category |
-| id | name | value | category |
-| 1 | ICyOi | 307.179993 | cat1 |
-| 2 | jcAFx | 677.909973 | cat2 |
-| 3 | SPbEa | 371.700012 | cat3 |
-| 4 | tGpuW | 355.750000 | cat4 |
-| id | name | value | category |
-| 2 | jcAFx | 677.909973 | cat2 |
+failure
+failure
+|
+|
+failure
+| max_id |
+| 4 |
+| min_score |
+| 0.000000 |
+| avg_score |
+| 0.000000 |
+| avg_score |
+| 0.000000 |
+| row_num |
+| 8 |
+| sum_score |
+| 0.000000 |
+| max_id |
+| 4 |
+| min_score |
+| 74.500000 |
+| avg_score |
+| 90.125000 |
+| row_num |
+| 8 |
+| row_num |
+| sum_score |
+| 189.000000 |
+| row_num |
+| 8 |
+| row_num |
+| row_num |
+| row_num |
+| row_num |
+| row_num |
+| row_num |
+| row_num |
+| row_num |
+| course_num |
+| row_num |
+| row_num |
+| course_num |
+| 8 |
+| row_num |
+| 0 |
+| row_num |
+| 8 |

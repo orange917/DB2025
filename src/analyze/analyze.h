@@ -34,8 +34,24 @@ class Query{
     std::vector<SetClause> set_clauses;
     //insert 的values值
     std::vector<Value> values;
+    
+    // 添加聚合函数和分组支持
+    std::vector<AggFunc> agg_funcs;  // 聚合函数列表
+    std::vector<TabCol> group_by_cols;  // GROUP BY 列
+    std::vector<Condition> having_conds;  // HAVING 条件
+    int limit_val;  // LIMIT 值
+    bool has_agg;  // 是否有聚合函数
+    bool has_group_by;  // 是否有GROUP BY
+    bool has_having;  // 是否有HAVING
+    bool has_limit;  // 是否有LIMIT
 
-    Query(){}
+    Query(){
+        has_agg = false;
+        has_group_by = false;
+        has_having = false;
+        has_limit = false;
+        limit_val = -1;
+    }
 
 };
 
@@ -56,5 +72,6 @@ private:
     void check_clause(const std::vector<std::string> &tab_names, std::vector<Condition> &conds);
     Value convert_sv_value(const std::shared_ptr<ast::Value> &sv_val);
     CompOp convert_sv_comp_op(ast::SvCompOp op);
+    AggFuncType convert_agg_func_type(ast::AggFuncType sv_agg_func_type);
 };
 

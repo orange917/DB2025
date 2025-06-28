@@ -87,15 +87,24 @@ extern int yydebug;
     ORDER_BY = 288,                /* ORDER_BY  */
     ENABLE_NESTLOOP = 289,         /* ENABLE_NESTLOOP  */
     ENABLE_SORTMERGE = 290,        /* ENABLE_SORTMERGE  */
-    LEQ = 291,                     /* LEQ  */
-    NEQ = 292,                     /* NEQ  */
-    GEQ = 293,                     /* GEQ  */
-    T_EOF = 294,                   /* T_EOF  */
-    IDENTIFIER = 295,              /* IDENTIFIER  */
-    VALUE_STRING = 296,            /* VALUE_STRING  */
-    VALUE_INT = 297,               /* VALUE_INT  */
-    VALUE_FLOAT = 298,             /* VALUE_FLOAT  */
-    VALUE_BOOL = 299               /* VALUE_BOOL  */
+    COUNT = 291,                   /* COUNT  */
+    MAX = 292,                     /* MAX  */
+    MIN = 293,                     /* MIN  */
+    SUM = 294,                     /* SUM  */
+    AVG = 295,                     /* AVG  */
+    GROUP = 296,                   /* GROUP  */
+    HAVING = 297,                  /* HAVING  */
+    LIMIT = 298,                   /* LIMIT  */
+    AS = 299,                      /* AS  */
+    LEQ = 300,                     /* LEQ  */
+    NEQ = 301,                     /* NEQ  */
+    GEQ = 302,                     /* GEQ  */
+    T_EOF = 303,                   /* T_EOF  */
+    IDENTIFIER = 304,              /* IDENTIFIER  */
+    VALUE_STRING = 305,            /* VALUE_STRING  */
+    VALUE_INT = 306,               /* VALUE_INT  */
+    VALUE_FLOAT = 307,             /* VALUE_FLOAT  */
+    VALUE_BOOL = 308               /* VALUE_BOOL  */
   };
   typedef enum yytokentype yytoken_kind_t;
 #endif
