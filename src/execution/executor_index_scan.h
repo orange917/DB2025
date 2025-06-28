@@ -197,10 +197,10 @@ class IndexScanExecutor : public AbstractExecutor {
                     lower_inclusive = it->second.lower_inclusive;
                 }
 
-                if (it != col_ranges.find(index_col_name)) {
+                if (it != col_ranges.end()) {
                     // 如果对前面的列有限制，但对这一列没有，后续列就不能用于范围查询了
                     // 但如果前面列是等值条件，此列是范围条件，依然可以用索引
-                    if (has_lower && !has_upper && it != col_ranges.end() && it->second.has_upper) {
+                    if (has_lower && !has_upper && it->second.has_upper) {
                         memcpy(upper_key + offset, it->second.upper_key, col_meta->len);
                         has_upper = true;
                         upper_inclusive = it->second.upper_inclusive;

@@ -110,8 +110,11 @@ void DiskManager::create_file(const std::string &path) {
     // 注意不能重复创建相同文件
     if(is_file(path))
         throw FileExistsError(path);
-    open(path.c_str(),O_CREAT,0777);
-
+    int fd = open(path.c_str(), O_CREAT, 0777);
+    if (fd < 0) {
+        throw UnixError();
+    }
+    close(fd);  // 创建后立即关闭，因为这里只是创建文件
 }
 
 /**

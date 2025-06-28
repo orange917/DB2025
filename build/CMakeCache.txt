@@ -555,7 +555,7 @@ FIND_PACKAGE_MESSAGE_DETAILS_BISON:INTERNAL=[/usr/bin/bison][v3.8.2()]
 //Details about finding FLEX
 FIND_PACKAGE_MESSAGE_DETAILS_FLEX:INTERNAL=[/usr/bin/flex][v2.6.4()]
 //Details about finding Python
-FIND_PACKAGE_MESSAGE_DETAILS_Python:INTERNAL=[/usr/bin/python3.10][cfound components: Interpreter ][v3.10.6()]
+FIND_PACKAGE_MESSAGE_DETAILS_Python:INTERNAL=[/usr/bin/python3.10][cfound components: Interpreter ][v3.10.12()]
 //Details about finding Threads
 FIND_PACKAGE_MESSAGE_DETAILS_Threads:INTERNAL=[TRUE][v()]
 //ADVANCED property for variable: FLEX_EXECUTABLE

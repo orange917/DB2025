@@ -1,11 +1,10 @@
 t1
 1
-warehouse
-2
-warehouse w_id 0 4 0 1
-warehouse name 2 8 4 1
-1
-warehouse 12 2 1
-warehouse w_id 0 4 0 0
-warehouse name 2 8 4 0
+compositetest
+4
+compositetest id 0 4 0 0
+compositetest name 2 10 4 0
+compositetest value 1 4 14 0
+compositetest category 2 5 18 0
+0
 
