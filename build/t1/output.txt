@@ -45,3 +45,667 @@ failure
 | 0 |
 | row_num |
 | 8 |
+| course | id | score |
+| DataStructure | 1 | 95.000000 |
+| DataStructure | 2 | 93.500000 |
+| DataStructure | 4 | 87.000000 |
+| DataStructure | 3 | 85.000000 |
+| DB | 1 | 94.000000 |
+| DB | 2 | 74.500000 |
+| DB | 4 | 83.000000 |
+| DB | 3 | 87.000000 |
+| avg_score |
+| 90.125000 |
+| min_score |
+| 74.500000 |
+| max_id |
+| 4 |
+| max_id |
+| 4 |
+| max_id |
+| 90.125000 |
+| max_id |
+| 84.625000 |
+| course | id | score |
+| DataStructure | 1 | 95.000000 |
+| DataStructure | 2 | 93.500000 |
+| DataStructure | 4 | 87.000000 |
+| DataStructure | 3 | 85.000000 |
+| DB | 1 | 94.000000 |
+| DB | 2 | 74.500000 |
+| DB | 4 | 83.000000 |
+| DB | 3 | 87.000000 |
+| DataStructure | 5 | 100.000000 |
+| max_id |
+| 84.625000 |
+| max_id |
+| 92.099998 |
+failure
+| max_id |
+| 5 |
+| min_score |
+| 74.500000 |
+| avg_score |
+| 91.222221 |
+| course_num |
+| 17 |
+| row_num |
+| 17 |
+| row_num |
+| 0 |
+| sum_score |
+| 378.000000 |
+| total_count |
+| 7 |
+| id_count |
+| 7 |
+| float_count |
+| 7 |
+| int_count |
+| 7 |
+| max_float |
+| 999.999023 |
+| min_float |
+| -999.999023 |
+| agg_0 |
+| 0 |
+| agg_0 |
+| 0.000000 |
+| agg_0 |
+| 0.000000 |
+| agg_0 |
+| 0.000000 |
+| agg_0 |
+| 0.000000 |
+| agg_0 | agg_1 | agg_2 | agg_3 | agg_4 |
+| 1 | 100.500000 | 100.500000 | 100.500000 | 100.500000 |
+| sum_tiny | avg_tiny |
+| 0.000006 | 0.000002 |
+| sum_large | avg_large |
+| 3000000.000000 | 1000000.000000 |
+| name_count |
+| 5 |
+| Tables |
+| course | id |
+| DataStructure | 1 |
+| avg_c | sum_id |
+| 0.000000 | 1 |
+failure
+failure
+failure
+| max_id |
+| 4 |
+| min_score |
+| 74.500000 |
+| avg_score |
+| 90.125000 |
+| course_num |
+| 8 |
+| row_num |
+| 8 |
+| row_num |
+| 0 |
+| sum_score |
+| 189.000000 |
+| total_count |
+| 7 |
+| id_count |
+| 7 |
+| float_count |
+| 7 |
+| int_count |
+| 7 |
+| max_float |
+| 999.999023 |
+| min_float |
+| -999.999023 |
+| agg_0 |
+| 0 |
+| agg_0 |
+| 0.000000 |
+| agg_0 |
+| 0.000000 |
+| agg_0 |
+| 0.000000 |
+| agg_0 |
+| 0.000000 |
+| agg_0 | agg_1 | agg_2 | agg_3 | agg_4 |
+| 1 | 100.500000 | 100.500000 | 100.500000 | 100.500000 |
+| sum_tiny | avg_tiny |
+| 0.000006 | 0.000002 |
+| sum_large | avg_large |
+| 3000000.000000 | 1000000.000000 |
+| name_count |
+| 5 |
+failure
+failure
+failure
+| max_id |
+| 4 |
+| min_score |
+| 74.500000 |
+| avg_score |
+| 90.125000 |
+| course_num |
+| 8 |
+| row_num |
+| 8 |
+| row_num |
+| 0 |
+| sum_score |
+| 189.000000 |
+| total_count |
+| 7 |
+| id_count |
+| 7 |
+| float_count |
+| 7 |
+| int_count |
+| 7 |
+| sum_float |
+| 6.859870 |
+| avg_float |
+| 0.979981 |
+| max_float |
+| 999.999023 |
+| min_float |
+| -999.999023 |
+| total_sales | total_amount | avg_amount |
+| 10 | 9084.000000 | 908.400024 |
+| max_qty | min_qty | avg_qty |
+| 15 | 3 | 0.900000 |
+| laptop_count | laptop_total |
+| 4 | 4751.500000 |
+| agg_0 |
+| 0 |
+| agg_0 |
+| 0.000000 |
+| agg_0 |
+| 0.000000 |
+| agg_0 |
+| 0.000000 |
+| agg_0 |
+| 0.000000 |
+| agg_0 | agg_1 | agg_2 | agg_3 | agg_4 |
+| 1 | 100.500000 | 100.500000 | 100.500000 | 100.500000 |
+| total_count | total_value | avg_score |
+| 12 | 78 | 65.400002 |
+| max_score | min_score |
+| 120.199997 | 10.100000 |
+| category_a_count | category_a_avg |
+| 3 | 20.199999 |
+| sum_tiny | avg_tiny |
+| 0.000006 | 0.000002 |
+| sum_large | avg_large |
+| 3000000.000000 | 1000000.000000 |
+| name_count |
+| 5 |
+| total_count |
+| 2 |
+| high_score_count |
+| 3 |
+| high_score_avg |
+| 94.166664 |
+| low_score_count |
+| 1 |
+| low_score_sum |
+| 74.500000 |
+failure
+failure
+failure
+| max_id |
+| 4 |
+| min_score |
+| 74.500000 |
+| avg_score |
+| 90.125000 |
+| course_num |
+| 8 |
+| row_num |
+| 8 |
+| row_num |
+| 0 |
+| sum_score |
+| 189.000000 |
+| total_count |
+| 7 |
+| id_count |
+| 7 |
+| float_count |
+| 7 |
+| int_count |
+| 7 |
+| sum_float |
+| 6.859870 |
+| avg_float |
+| 0.979981 |
+| max_float |
+| 999.999023 |
+| min_float |
+| -999.999023 |
+| total_sales | total_amount | avg_amount |
+| 10 | 9084.000000 | 908.400024 |
+| max_qty | min_qty | avg_qty |
+| 15 | 3 | 0.900000 |
+| laptop_count | laptop_total |
+| 4 | 4751.500000 |
+| agg_0 |
+| 0 |
+| agg_0 |
+| 0.000000 |
+| agg_0 |
+| 0.000000 |
+| agg_0 |
+| 0.000000 |
+| agg_0 |
+| 0.000000 |
+| agg_0 | agg_1 | agg_2 | agg_3 | agg_4 |
+| 1 | 100.500000 | 100.500000 | 100.500000 | 100.500000 |
+| total_count | total_value | avg_score |
+| 12 | 78 | 65.400002 |
+| max_score | min_score |
+| 120.199997 | 10.100000 |
+| category_a_count | category_a_avg |
+| 3 | 20.199999 |
+| sum_tiny | avg_tiny |
+| 0.000006 | 0.000002 |
+| sum_large | avg_large |
+| 3000000.000000 | 1000000.000000 |
+| name_count |
+| 5 |
+| total_count |
+| 2 |
+| high_score_count |
+| 3 |
+| high_score_avg |
+| 94.166664 |
+| low_score_count |
+| 1 |
+| low_score_sum |
+| 74.500000 |
+failure
+failure
+failure
+| max_id |
+| 4 |
+| min_score |
+| 74.500000 |
+| avg_score |
+| 90.125000 |
+| course_num |
+| 8 |
+| row_num |
+| 8 |
+| row_num |
+| 0 |
+| sum_score |
+| 189.000000 |
+| total_count |
+| 7 |
+| id_count |
+| 7 |
+| float_count |
+| 7 |
+| int_count |
+| 7 |
+| sum_float |
+| 6.859870 |
+| avg_float |
+| 0.979981 |
+| max_float |
+| 999.999023 |
+| min_float |
+| -999.999023 |
+| total_sales | total_amount | avg_amount |
+| 10 | 9084.000000 | 908.400024 |
+| max_qty | min_qty | avg_qty |
+| 15 | 3 | 0.900000 |
+| laptop_count | laptop_total |
+| 4 | 4751.500000 |
+| agg_0 |
+| 0 |
+| agg_0 |
+| 0.000000 |
+| agg_0 |
+| 0.000000 |
+| agg_0 |
+| 0.000000 |
+| agg_0 |
+| 0.000000 |
+| agg_0 | agg_1 | agg_2 | agg_3 | agg_4 |
+| 1 | 100.500000 | 100.500000 | 100.500000 | 100.500000 |
+| total_count | total_value | avg_score |
+| 12 | 78 | 65.400002 |
+| max_score | min_score |
+| 120.199997 | 10.100000 |
+| category_a_count | category_a_avg |
+| 3 | 20.199999 |
+| sum_tiny | avg_tiny |
+| 0.000006 | 0.000002 |
+| sum_large | avg_large |
+| 3000000.000000 | 1000000.000000 |
+| name_count |
+| 5 |
+| total_count |
+| 2 |
+| high_score_count |
+| 3 |
+| high_score_avg |
+| 94.166664 |
+| low_score_count |
+| 1 |
+| low_score_sum |
+| 74.500000 |
+failure
+failure
+failure
+| max_id |
+| 4 |
+| min_score |
+| 74.500000 |
+| avg_score |
+| 90.125000 |
+| course_num |
+| 8 |
+| row_num |
+| 8 |
+| row_num |
+| 0 |
+| sum_score |
+| 189.000000 |
+| total_count |
+| 7 |
+| id_count |
+| 7 |
+| float_count |
+| 7 |
+| int_count |
+| 7 |
+| sum_float |
+| 6.859870 |
+| avg_float |
+| 0.979981 |
+| max_float |
+| 999.999023 |
+| min_float |
+| -999.999023 |
+| total_sales | total_amount | avg_amount |
+| 10 | 9084.000000 | 908.400024 |
+| max_qty | min_qty | avg_qty |
+| 15 | 3 | 0.900000 |
+| laptop_count | laptop_total |
+| 4 | 4751.500000 |
+| agg_0 |
+| 0 |
+| agg_0 |
+| 0.000000 |
+| agg_0 |
+| 0.000000 |
+| agg_0 |
+| 0.000000 |
+| agg_0 |
+| 0.000000 |
+| agg_0 | agg_1 | agg_2 | agg_3 | agg_4 |
+| 1 | 100.500000 | 100.500000 | 100.500000 | 100.500000 |
+| total_count | total_value | avg_score |
+| 12 | 78 | 65.400002 |
+| max_score | min_score |
+| 120.199997 | 10.100000 |
+| category_a_count | category_a_avg |
+| 3 | 20.199999 |
+| sum_tiny | avg_tiny |
+| 0.000006 | 0.000002 |
+| sum_large | avg_large |
+| 3000000.000000 | 1000000.000000 |
+| name_count |
+| 5 |
+| total_count |
+| 2 |
+| high_score_count |
+| 3 |
+| high_score_avg |
+| 94.166664 |
+| low_score_count |
+| 1 |
+| low_score_sum |
+| 74.500000 |
+failure
+failure
+failure
+| max_id |
+| 4 |
+| min_score |
+| 74.500000 |
+| avg_score |
+| 90.125000 |
+| course_num |
+| 8 |
+| row_num |
+| 8 |
+| row_num |
+| 0 |
+| sum_score |
+| 189.000000 |
+| total_count |
+| 7 |
+| id_count |
+| 7 |
+| float_count |
+| 7 |
+| int_count |
+| 7 |
+| sum_float |
+| 6.859870 |
+| avg_float |
+| 0.979981 |
+| max_float |
+| 999.999023 |
+| min_float |
+| -999.999023 |
+| total_sales | total_amount | avg_amount |
+| 10 | 9084.000000 | 908.400024 |
+| max_qty | min_qty | avg_qty |
+| 15 | 3 | 0.900000 |
+| laptop_count | laptop_total |
+| 4 | 4751.500000 |
+| agg_0 |
+| 0 |
+| agg_0 |
+| 0.000000 |
+| agg_0 |
+| 0.000000 |
+| agg_0 |
+| 0.000000 |
+| agg_0 |
+| 0.000000 |
+| agg_0 | agg_1 | agg_2 | agg_3 | agg_4 |
+| 1 | 100.500000 | 100.500000 | 100.500000 | 100.500000 |
+| total_count | total_value | avg_score |
+| 12 | 78 | 65.400002 |
+| max_score | min_score |
+| 120.199997 | 10.100000 |
+| category_a_count | category_a_avg |
+| 3 | 20.200001 |
+| sum_tiny | avg_tiny |
+| 0.000006 | 0.000002 |
+| sum_large | avg_large |
+| 3000000.000000 | 1000000.000000 |
+| name_count |
+| 5 |
+| total_count |
+| 2 |
+| high_score_count |
+| 3 |
+| high_score_avg |
+| 94.166664 |
+| low_score_count |
+| 1 |
+| low_score_sum |
+| 74.500000 |
+| agg_0 |
+| 0 |
+| agg_0 |
+| 0 |
+failure
+| id | tiny_float | large_float |
+| 1 | 0.000001 | 1000000.000000 |
+| 2 | 0.000002 | 1000000.000000 |
+| 3 | 0.000003 | 1000000.000000 |
+| agg_0 |
+| 0 |
+| id | tiny_float | large_float |
+| id | tiny_float | large_float |
+| id | tiny_float | large_float |
+| id | tiny_float | large_float |
+| id | tiny_float | large_float |
+| 1 | 0.000001 | 1000000.000000 |
+| 2 | 0.000002 | 1000000.000000 |
+| 3 | 0.000003 | 1000000.000000 |
+failure
+failure
+failure
+| max_id |
+| 4 |
+| min_score |
+| 74.500000 |
+| avg_score |
+| 90.125000 |
+| course_num |
+| 8 |
+| row_num |
+| 8 |
+| row_num |
+| 0 |
+| sum_score |
+| 189.000000 |
+| total_count |
+| 7 |
+| id_count |
+| 7 |
+| float_count |
+| 7 |
+| int_count |
+| 7 |
+| sum_float |
+| 6.859870 |
+| avg_float |
+| 0.979981 |
+| max_float |
+| 999.999023 |
+| min_float |
+| -999.999023 |
+| total_sales | total_amount | avg_amount |
+| 10 | 9084.000000 | 908.400024 |
+| max_qty | min_qty | avg_qty |
+| 15 | 3 | 0.900000 |
+| laptop_count | laptop_total |
+| 4 | 4751.500000 |
+| agg_0 |
+| 0 |
+| agg_0 |
+| 0.000000 |
+| agg_0 |
+| 0.000000 |
+| agg_0 |
+| 0.000000 |
+| agg_0 |
+| 0.000000 |
+| agg_0 | agg_1 | agg_2 | agg_3 | agg_4 |
+| 1 | 100.500000 | 100.500000 | 100.500000 | 100.500000 |
+| total_count | total_value | avg_score |
+| 12 | 78 | 65.400002 |
+| max_score | min_score |
+| 120.199997 | 10.100000 |
+| category_a_count | category_a_avg |
+| 3 | 20.200001 |
+failure
+| sum_tiny | avg_tiny |
+| 0.000012 | 0.000002 |
+| sum_large | avg_large |
+| 6000000.000000 | 1000000.000000 |
+| name_count |
+| 5 |
+| total_count |
+| 2 |
+| high_score_count |
+| 3 |
+| high_score_avg |
+| 94.166664 |
+| low_score_count |
+| 1 |
+| low_score_sum |
+| 74.500000 |
+failure
+failure
+failure
+| max_id |
+| 4 |
+| min_score |
+| 74.500000 |
+| avg_score |
+| 90.125000 |
+| course_num |
+| 8 |
+| row_num |
+| 8 |
+| row_num |
+| 0 |
+| sum_score |
+| 189.000000 |
+| total_count |
+| 7 |
+| id_count |
+| 7 |
+| float_count |
+| 7 |
+| int_count |
+| 7 |
+| sum_float |
+| 6.859870 |
+| avg_float |
+| 0.979981 |
+| max_float |
+| 999.999023 |
+| min_float |
+| -999.999023 |
+| total_sales | total_amount | avg_amount |
+| 10 | 9084.000000 | 908.400024 |
+| max_qty | min_qty | avg_qty |
+| 15 | 3 | 7.900000 |
+| laptop_count | laptop_total |
+| 4 | 4751.500000 |
+| agg_0 |
+| 0 |
+| agg_0 |
+| 0.000000 |
+| agg_0 |
+| 0.000000 |
+| agg_0 |
+| 0.000000 |
+| agg_0 |
+| 0.000000 |
+| agg_0 | agg_1 | agg_2 | agg_3 | agg_4 |
+| 1 | 100.500000 | 100.500000 | 100.500000 | 100.500000 |
+| total_count | total_value | avg_score |
+| 12 | 78 | 65.400002 |
+| max_score | min_score |
+| 120.199997 | 10.100000 |
+| category_a_count | category_a_avg |
+| 3 | 20.200001 |
+failure
+| sum_tiny | avg_tiny |
+| 0.000006 | 0.000002 |
+| sum_large | avg_large |
+| 3000000.000000 | 1000000.000000 |
+| name_count |
+| 5 |
+| total_count |
+| 2 |
+| high_score_count |
+| 3 |
+| high_score_avg |
+| 94.166664 |
+| low_score_count |
+| 1 |
+| low_score_sum |
+| 74.500000 |

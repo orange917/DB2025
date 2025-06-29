@@ -282,8 +282,6 @@ src/execution/CMakeFiles/execution.dir/execution_manager.cpp.o: \
  /home/code/db2025/src/execution/executor_index_scan.h \
  /home/code/db2025/src/execution/executor_insert.h \
  /home/code/db2025/src/execution/executor_nestedloop_join.h \
- /home/code/db2025/src/execution/executor_projection.h \
- /home/code/db2025/src/execution/executor_seq_scan.h \
  /usr/include/c++/11/cmath /usr/include/math.h \
  /usr/include/x86_64-linux-gnu/bits/math-vector.h \
  /usr/include/x86_64-linux-gnu/bits/libm-simd-decl-stubs.h \
@@ -306,6 +304,8 @@ src/execution/CMakeFiles/execution.dir/execution_manager.cpp.o: \
  /usr/include/c++/11/tr1/poly_hermite.tcc \
  /usr/include/c++/11/tr1/poly_laguerre.tcc \
  /usr/include/c++/11/tr1/riemann_zeta.tcc \
+ /home/code/db2025/src/execution/executor_projection.h \
+ /home/code/db2025/src/execution/executor_seq_scan.h \
  /home/code/db2025/src/execution/executor_update.h \
  /home/code/db2025/src/execution/executor_aggregation.h \
  /home/code/db2025/src/record_printer.h /usr/include/c++/11/iomanip \

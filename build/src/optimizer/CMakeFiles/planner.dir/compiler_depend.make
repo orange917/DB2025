@@ -353,8 +353,6 @@ src/optimizer/CMakeFiles/planner.dir/planner.cpp.o: ../src/optimizer/planner.cpp
   ../src/execution/executor_index_scan.h \
   ../src/execution/executor_insert.h \
   ../src/execution/executor_nestedloop_join.h \
-  ../src/execution/executor_projection.h \
-  ../src/execution/executor_seq_scan.h \
   /usr/include/c++/11/cmath \
   /usr/include/math.h \
   /usr/include/x86_64-linux-gnu/bits/math-vector.h \
@@ -379,6 +377,8 @@ src/optimizer/CMakeFiles/planner.dir/planner.cpp.o: ../src/optimizer/planner.cpp
   /usr/include/c++/11/tr1/poly_hermite.tcc \
   /usr/include/c++/11/tr1/poly_laguerre.tcc \
   /usr/include/c++/11/tr1/riemann_zeta.tcc \
+  ../src/execution/executor_projection.h \
+  ../src/execution/executor_seq_scan.h \
   ../src/execution/executor_update.h \
   ../src/record_printer.h \
   /usr/include/c++/11/iomanip \

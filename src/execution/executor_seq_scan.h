@@ -152,6 +152,19 @@ class SeqScanExecutor : public AbstractExecutor {
                     default: return false;
                 }
             }
+            case TYPE_FLOAT: {
+                float lhs_val = *(float*)lhs;
+                float rhs_val = *(float*)rhs;
+                switch (op) {
+                    case OP_EQ: return std::fabs(lhs_val - rhs_val) <= FLT_EPSILON;
+                    case OP_NE: return std::fabs(lhs_val - rhs_val) > FLT_EPSILON;
+                    case OP_LT: return rhs_val - lhs_val > FLT_EPSILON;
+                    case OP_GT: return lhs_val - rhs_val > FLT_EPSILON;
+                    case OP_LE: return lhs_val - rhs_val <= FLT_EPSILON;
+                    case OP_GE: return rhs_val - lhs_val <= FLT_EPSILON;
+                    default: return false;
+                }
+            }
             case TYPE_STRING: {
                 int cmp_result = memcmp(lhs, rhs, len);
                 switch (op) {

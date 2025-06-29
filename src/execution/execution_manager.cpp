@@ -20,6 +20,8 @@ See the Mulan PSL v2 for more details. */
 #include "executor_aggregation.h"
 #include "index/ix.h"
 #include "record_printer.h"
+#include <iomanip>
+#include <sstream>
 
 const char *help_info = "Supported SQL syntax:\n"
                    "  command ;\n"
@@ -197,8 +199,10 @@ void QlManager::select_from(std::unique_ptr<AbstractExecutor> executorTreeRoot, 
                 // 整型转为字符串
                 col_str = std::to_string(*(int *)rec_buf);
             } else if (col.type == TYPE_FLOAT) {
-                // 浮点型转为字符串
-                col_str = std::to_string(*(float *)rec_buf);
+                // 浮点型转为字符串，使用高精度格式化
+                std::ostringstream oss;
+                oss << std::fixed << std::setprecision(6) << *(float *)rec_buf;
+                col_str = oss.str();
             } else if (col.type == TYPE_STRING) {
                 // 字符串类型，注意处理字符串长度
                 col_str = std::string((char *)rec_buf, strnlen((char *)rec_buf, col.len));

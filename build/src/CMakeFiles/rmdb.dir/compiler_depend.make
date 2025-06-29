@@ -398,8 +398,6 @@ src/CMakeFiles/rmdb.dir/rmdb.cpp.o: ../src/rmdb.cpp \
   ../src/recovery/log_recovery.h \
   ../src/portal.h \
   ../src/execution/executor_nestedloop_join.h \
-  ../src/execution/executor_projection.h \
-  ../src/execution/executor_seq_scan.h \
   /usr/include/c++/11/cmath \
   /usr/include/math.h \
   /usr/include/x86_64-linux-gnu/bits/math-vector.h \
@@ -424,6 +422,8 @@ src/CMakeFiles/rmdb.dir/rmdb.cpp.o: ../src/rmdb.cpp \
   /usr/include/c++/11/tr1/poly_hermite.tcc \
   /usr/include/c++/11/tr1/poly_laguerre.tcc \
   /usr/include/c++/11/tr1/riemann_zeta.tcc \
+  ../src/execution/executor_projection.h \
+  ../src/execution/executor_seq_scan.h \
   ../src/execution/executor_index_scan.h \
   ../src/execution/executor_update.h \
   ../src/execution/executor_insert.h \

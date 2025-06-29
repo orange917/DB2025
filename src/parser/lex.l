@@ -121,7 +121,7 @@ single_op ";"|"("|")"|","|"="|">"|"<"|"."
     return VALUE_INT;
 }
 {value_float} {
-    yylval->sv_float = atof(yytext);
+    yylval->sv_float = strtof(yytext, nullptr);
     return VALUE_FLOAT;
 }
 {value_string} {
