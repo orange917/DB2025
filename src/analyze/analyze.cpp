@@ -11,6 +11,7 @@ See the Mulan PSL v2 for more details. */
 #include "analyze.h"
 #include "defs.h"
 #include "optimizer/planner.h"  // 包含 OrderByCol 的完整定义
+#include <fstream>
 
 /**
  * @description: 分析器，进行语义分析和查询重写，需要检查不符合语义规定的部分
@@ -55,7 +56,7 @@ std::shared_ptr<Query> Analyze::do_analyze(std::shared_ptr<ast::TreeNode> parse)
         
         // 处理target list，再target list中添加上表名，例如 a.id
         for (auto &sv_sel_col : x->cols) {
-            TabCol sel_col = {.tab_name = sv_sel_col->tab_name, .col_name = sv_sel_col->col_name};
+            TabCol sel_col = {.tab_name = sv_sel_col->tab_name, .col_name = sv_sel_col->col_name, .alias = sv_sel_col->alias};
             query->cols.push_back(sel_col);
         }
         
@@ -181,6 +182,31 @@ std::shared_ptr<Query> Analyze::do_analyze(std::shared_ptr<ast::TreeNode> parse)
                 if (!found_in_group_by) {
                     std::cout << "failure" << std::endl;
                     throw InternalError("Column '" + sel_col.col_name + "' must appear in GROUP BY clause or be used in an aggregate function");
+                }
+            }
+            
+            // 检查4：非聚合列不能有别名
+            for (const auto& sel_col : query->cols) {
+                if (!sel_col.alias.empty()) {
+                    // 检查这个列是否是聚合函数
+                    bool is_agg_func = false;
+                    for (const auto& agg_func : query->agg_funcs) {
+                        if (agg_func.col.tab_name == sel_col.tab_name && agg_func.col.col_name == sel_col.col_name) {
+                            is_agg_func = true;
+                            break;
+                        }
+                    }
+                    
+                    if (!is_agg_func) {
+                        // 非聚合列有别名，输出failure
+                        std::ofstream output_file("output.txt", std::ios::app);
+                        if (output_file.is_open()) {
+                            output_file << "failure" << std::endl;
+                            output_file.close();
+                        }
+                        std::cout << "failure" << std::endl;
+                        throw InternalError("Non-aggregate columns cannot have aliases in GROUP BY queries");
+                    }
                 }
             }
             
