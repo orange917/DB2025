@@ -50,7 +50,23 @@ AggregationExecutor::AggregationExecutor(std::unique_ptr<AbstractExecutor> prev,
     for (const auto& agg_func : agg_funcs_) {
         ColMeta col_meta;
         col_meta.tab_name = "";
-        col_meta.name = agg_func.alias.empty() ? "agg_" + std::to_string(cols_.size()) : agg_func.alias;
+        
+        // 如果没有别名，使用原列名作为列名
+        if (agg_func.alias.empty()) {
+            if (agg_func.func_type == AGG_COUNT && agg_func.col.tab_name.empty() && agg_func.col.col_name.empty()) {
+                // COUNT(*) 的情况
+                col_meta.name = "count";
+            } else if (!agg_func.col.col_name.empty()) {
+                // 有列名的情况，使用原列名
+                col_meta.name = agg_func.col.col_name;
+            } else {
+                // 其他情况，使用默认的agg_序号
+                col_meta.name = "agg_" + std::to_string(cols_.size());
+            }
+        } else {
+            col_meta.name = agg_func.alias;
+        }
+        
         col_meta.offset = offset;
 
         // 根据聚合函数类型确定输出类型
