@@ -1,3 +1,0 @@
-/home/code/db2025/rmdb_client/build/CMakeFiles/rmdb_client.dir
-/home/code/db2025/rmdb_client/build/CMakeFiles/edit_cache.dir
-/home/code/db2025/rmdb_client/build/CMakeFiles/rebuild_cache.dir
