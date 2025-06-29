@@ -63,6 +63,8 @@ using namespace ast;
     SetKnobType sv_setKnobType;
     
     std::pair<std::vector<std::shared_ptr<Col>>, std::vector<std::shared_ptr<AggFunc>>> sv_mixed_selector;
+    std::pair<std::shared_ptr<Col>, OrderByDir> sv_order_col_with_dir;
+    std::vector<std::pair<std::shared_ptr<Col>, OrderByDir>> sv_order_col_list;
 }
 
 // keywords
@@ -108,6 +110,8 @@ COUNT MAX MIN SUM AVG GROUP HAVING LIMIT AS
 %type <sv_limit> opt_limit_clause
 %type <sv_agg_funcs> agg_func_list
 %type <sv_mixed_selector> mixed_selector
+%type <sv_order_col_list> order_col_list
+%type <sv_order_col_with_dir> order_col_with_dir
 
 %%
 start:
@@ -448,11 +452,36 @@ opt_order_clause:
     ;
 
 order_clause:
-      col  opt_asc_desc 
+      order_col_list
     { 
-        $$ = std::make_shared<OrderBy>($1, $2);
+        // 从order_col_list中提取列和方向
+        std::vector<std::shared_ptr<Col>> cols;
+        std::vector<OrderByDir> dirs;
+        for (const auto& col_with_dir : $1) {
+            cols.push_back(col_with_dir.first);
+            dirs.push_back(col_with_dir.second);
+        }
+        $$ = std::make_shared<OrderBy>(cols, dirs);
     }
     ;   
+
+order_col_list:
+    order_col_with_dir
+    {
+        $$ = std::vector<std::pair<std::shared_ptr<Col>, OrderByDir>>{$1};
+    }
+    |   order_col_list ',' order_col_with_dir
+    {
+        $$.push_back($3);
+    }
+    ;
+
+order_col_with_dir:
+    col opt_asc_desc
+    {
+        $$ = std::make_pair($1, $2);
+    }
+    ;
 
 opt_asc_desc:
     ASC          { $$ = OrderBy_ASC;     }
@@ -548,6 +577,10 @@ mixed_selector:
     |   col ',' col
     {
         $$ = std::make_pair(std::vector<std::shared_ptr<Col>>{$1, $3}, std::vector<std::shared_ptr<AggFunc>>());
+    }
+    |   agg_func ',' agg_func
+    {
+        $$ = std::make_pair(std::vector<std::shared_ptr<Col>>(), std::vector<std::shared_ptr<AggFunc>>{$1, $3});
     }
     |   mixed_selector ',' col
     {

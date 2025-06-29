@@ -460,26 +460,37 @@ std::shared_ptr<Plan> Planner::generate_sort_plan(std::shared_ptr<Query> query, 
     if(!x->has_sort) {
         return plan;
     }
-    std::vector<std::string> tables = query->tables;
-    std::vector<ColMeta> all_cols;
-    for (auto &sel_tab_name : tables) {
-        // 这里db_不能写成get_db(), 注意要传指针
-        const auto &sel_tab_cols = sm_manager_->db_.get_table(sel_tab_name).cols;
-        all_cols.insert(all_cols.end(), sel_tab_cols.begin(), sel_tab_cols.end());
-    }
-    TabCol sel_col;
-    for (auto &col : all_cols) {
-        if(col.name.compare(x->order->cols->col_name) == 0 )
-        sel_col = {.tab_name = col.tab_name, .col_name = col.name};
+    
+    // 对于多列排序，我们需要创建多个SortPlan
+    std::shared_ptr<Plan> current_plan = plan;
+    
+    // 从后往前处理，这样第一个排序列会成为最外层的排序
+    for (int i = x->order->cols.size() - 1; i >= 0; i--) {
+        std::vector<std::string> tables = query->tables;
+        std::vector<ColMeta> all_cols;
+        for (auto &sel_tab_name : tables) {
+            const auto &sel_tab_cols = sm_manager_->db_.get_table(sel_tab_name).cols;
+            all_cols.insert(all_cols.end(), sel_tab_cols.begin(), sel_tab_cols.end());
+        }
+        
+        TabCol sel_col;
+        for (auto &col : all_cols) {
+            if(col.name.compare(x->order->cols[i]->col_name) == 0) {
+                sel_col = {.tab_name = col.tab_name, .col_name = col.name};
+                break;
+            }
+        }
+        
+        // 添加调试信息
+        std::cout << "SortPlan: Ordering by column '" << x->order->cols[i]->col_name << "'" << std::endl;
+        std::cout << "SortPlan: Selected column: " << sel_col.tab_name << "." << sel_col.col_name << std::endl;
+        std::cout << "SortPlan: Sort direction: " << (x->order->orderby_dirs[i] == ast::OrderBy_DESC ? "DESC" : "ASC") << std::endl;
+        
+        current_plan = std::make_shared<SortPlan>(T_Sort, current_plan, sel_col, 
+                                                x->order->orderby_dirs[i] == ast::OrderBy_DESC);
     }
     
-    // 添加调试信息
-    std::cout << "SortPlan: Ordering by column '" << x->order->cols->col_name << "'" << std::endl;
-    std::cout << "SortPlan: Selected column: " << sel_col.tab_name << "." << sel_col.col_name << std::endl;
-    std::cout << "SortPlan: Sort direction: " << (x->order->orderby_dir == ast::OrderBy_DESC ? "DESC" : "ASC") << std::endl;
-    
-    return std::make_shared<SortPlan>(T_Sort, std::move(plan), sel_col, 
-                                    x->order->orderby_dir == ast::OrderBy_DESC);
+    return current_plan;
 }
 
 
@@ -529,7 +540,9 @@ std::shared_ptr<Plan> Planner::generate_select_plan(std::shared_ptr<Query> query
         plannerRoot = generate_sort_plan(query, std::move(plannerRoot));
     }
 
-    plannerRoot = std::make_shared<ProjectionPlan>(T_Projection, std::move(plannerRoot), std::move(sel_cols));
+    // 创建ProjectionPlan，传递limit值
+    plannerRoot = std::make_shared<ProjectionPlan>(T_Projection, std::move(plannerRoot), std::move(sel_cols), query->limit_val);
+    
     return plannerRoot;
 }
 

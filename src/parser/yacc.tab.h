@@ -156,8 +156,10 @@ union YYSTYPE
     SetKnobType sv_setKnobType;
     
     std::pair<std::vector<std::shared_ptr<Col>>, std::vector<std::shared_ptr<AggFunc>>> sv_mixed_selector;
+    std::pair<std::shared_ptr<Col>, OrderByDir> sv_order_col_with_dir;
+    std::vector<std::pair<std::shared_ptr<Col>, OrderByDir>> sv_order_col_list;
 
-#line 161 "/home/code/db2025/src/parser/yacc.tab.h"
+#line 163 "/home/code/db2025/src/parser/yacc.tab.h"
 
 };
 typedef union YYSTYPE YYSTYPE;
