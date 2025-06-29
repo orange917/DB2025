@@ -348,6 +348,18 @@ col:
     {
         $$ = std::make_shared<Col>("", $1);
     }
+    |   tbName '.' colName AS IDENTIFIER
+    {
+        $$ = std::make_shared<Col>($1, $3);
+        // 注意：这里我们暂时忽略别名，因为Col结构中没有alias字段
+        // 在实际实现中，需要扩展Col结构以支持别名
+    }
+    |   colName AS IDENTIFIER
+    {
+        $$ = std::make_shared<Col>("", $1);
+        // 注意：这里我们暂时忽略别名，因为Col结构中没有alias字段
+        // 在实际实现中，需要扩展Col结构以支持别名
+    }
     ;
 
 colList:
