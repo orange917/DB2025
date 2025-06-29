@@ -143,81 +143,140 @@ private:
                 }
             }
 
-            // 查找右操作数（rhs_col）的元数据和数据来源
-            for (const auto& col : left_->cols()) {
-                if (col.tab_name == cond.rhs_col.tab_name && col.name == cond.rhs_col.col_name) {
-                    rhs_col_meta = &col;
-                    rhs_tuple_data = left_tuple_->data;
-                    break;
-                }
-            }
-            if (rhs_col_meta == nullptr) {
-                for (const auto& col : right_->cols()) {
-                    if (col.tab_name == cond.rhs_col.tab_name && col.name == cond.rhs_col.col_name) {
-                        rhs_col_meta = &col;
-                        rhs_tuple_data = right_tuple_->data;
-                        break;
-                    }
-                }
-            }
-
-            // 如果找不到对应列，继续检查下一个条件
-            if (lhs_col_meta == nullptr || rhs_col_meta == nullptr) {
+            // 如果找不到左操作数，继续检查下一个条件
+            if (lhs_col_meta == nullptr) {
                 continue;
             }
 
-            // 获取两列的值进行比较
-            char* left_val = lhs_tuple_data + lhs_col_meta->offset;
-            char* right_val = rhs_tuple_data + rhs_col_meta->offset;
-            ColType type = lhs_col_meta->type; // 假设 equi-join 的类型相同
+            // 根据右操作数是值还是列，进行处理
+            if (cond.is_rhs_val) {
+                // 右操作数是字面值
+                char* lhs_val = lhs_tuple_data + lhs_col_meta->offset;
+                bool result = false;
 
-            // 根据类型比较值
-            bool result = false;
+                if (lhs_col_meta->type == TYPE_INT) {
+                    int lhs_int = *(int*)lhs_val;
+                    int rhs_int = cond.rhs_val.int_val;
 
-            if (type == TYPE_INT) {
-                int left_int = *(int*)left_val;
-                int right_int = *(int*)right_val;
+                    switch (cond.op) {
+                        case OP_EQ: result = (lhs_int == rhs_int); break;
+                        case OP_NE: result = (lhs_int != rhs_int); break;
+                        case OP_LT: result = (lhs_int < rhs_int); break;
+                        case OP_GT: result = (lhs_int > rhs_int); break;
+                        case OP_LE: result = (lhs_int <= rhs_int); break;
+                        case OP_GE: result = (lhs_int >= rhs_int); break;
+                        default: result = false;
+                    }
+                } else if (lhs_col_meta->type == TYPE_FLOAT) {
+                    float lhs_float = *(float*)lhs_val;
+                    float rhs_float = cond.rhs_val.float_val;
 
-                switch (cond.op) {
-                    case OP_EQ: result = (left_int == right_int); break;
-                    case OP_NE: result = (left_int != right_int); break;
-                    case OP_LT: result = (left_int < right_int); break;
-                    case OP_GT: result = (left_int > right_int); break;
-                    case OP_LE: result = (left_int <= right_int); break;
-                    case OP_GE: result = (left_int >= right_int); break;
-                    default: result = false;
+                    switch (cond.op) {
+                        case OP_EQ: result = std::fabs(lhs_float - rhs_float) <= FLT_EPSILON; break;
+                        case OP_NE: result = std::fabs(lhs_float - rhs_float) > FLT_EPSILON; break;
+                        case OP_LT: result = lhs_float - rhs_float < -FLT_EPSILON; break;
+                        case OP_GT: result = lhs_float - rhs_float > FLT_EPSILON; break;
+                        case OP_LE: result = lhs_float - rhs_float <= FLT_EPSILON; break;
+                        case OP_GE: result = lhs_float - rhs_float >= -FLT_EPSILON; break;
+                        default: result = false;
+                    }
+                } else if (lhs_col_meta->type == TYPE_STRING) {
+                    std::string lhs_str(lhs_val, strnlen(lhs_val, lhs_col_meta->len));
+                    std::string rhs_str = cond.rhs_val.str_val;
+
+                    switch (cond.op) {
+                        case OP_EQ: result = (lhs_str == rhs_str); break;
+                        case OP_NE: result = (lhs_str != rhs_str); break;
+                        case OP_LT: result = (lhs_str < rhs_str); break;
+                        case OP_GT: result = (lhs_str > rhs_str); break;
+                        case OP_LE: result = (lhs_str <= rhs_str); break;
+                        case OP_GE: result = (lhs_str >= rhs_str); break;
+                        default: result = false;
+                    }
                 }
-            } else if (type == TYPE_FLOAT) {
-                float left_float = *(float*)left_val;
-                float right_float = *(float*)right_val;
 
-                switch (cond.op) {
-                    case OP_EQ: result = std::fabs(left_float - right_float) <= FLT_EPSILON; break;
-                    case OP_NE: result = std::fabs(left_float - right_float) > FLT_EPSILON; break;
-                    case OP_LT: result = left_float - right_float < -FLT_EPSILON; break;
-                    case OP_GT: result = left_float - right_float > FLT_EPSILON; break;
-                    case OP_LE: result = left_float - right_float <= FLT_EPSILON; break;
-                    case OP_GE: result = left_float - right_float >= -FLT_EPSILON; break;
-                    default: result = false;
+                // 如果有一个条件不满足，则返回false
+                if (!result) {
+                    return false;
                 }
-            } else if (type == TYPE_STRING) {
-                std::string left_str(left_val, strnlen(left_val, lhs_col_meta->len));
-                std::string right_str(right_val, strnlen(right_val, rhs_col_meta->len));
-
-                switch (cond.op) {
-                    case OP_EQ: result = (left_str == right_str); break;
-                    case OP_NE: result = (left_str != right_str); break;
-                    case OP_LT: result = (left_str < right_str); break;
-                    case OP_GT: result = (left_str > right_str); break;
-                    case OP_LE: result = (left_str <= right_str); break;
-                    case OP_GE: result = (left_str >= right_str); break;
-                    default: result = false;
+            } else {
+                // 右操作数也是列
+                // 查找右操作数（rhs_col）的元数据和数据来源
+                for (const auto& col : left_->cols()) {
+                    if (col.tab_name == cond.rhs_col.tab_name && col.name == cond.rhs_col.col_name) {
+                        rhs_col_meta = &col;
+                        rhs_tuple_data = left_tuple_->data;
+                        break;
+                    }
                 }
-            }
+                if (rhs_col_meta == nullptr) {
+                    for (const auto& col : right_->cols()) {
+                        if (col.tab_name == cond.rhs_col.tab_name && col.name == cond.rhs_col.col_name) {
+                            rhs_col_meta = &col;
+                            rhs_tuple_data = right_tuple_->data;
+                            break;
+                        }
+                    }
+                }
 
-            // 如果有一个条件不满足，则返回false
-            if (!result) {
-                return false;
+                // 如果找不到对应列，继续检查下一个条件
+                if (rhs_col_meta == nullptr) {
+                    continue;
+                }
+
+                // 获取两列的值进行比较
+                char* left_val = lhs_tuple_data + lhs_col_meta->offset;
+                char* right_val = rhs_tuple_data + rhs_col_meta->offset;
+                ColType type = lhs_col_meta->type; // 假设 equi-join 的类型相同
+
+                // 根据类型比较值
+                bool result = false;
+
+                if (type == TYPE_INT) {
+                    int left_int = *(int*)left_val;
+                    int right_int = *(int*)right_val;
+
+                    switch (cond.op) {
+                        case OP_EQ: result = (left_int == right_int); break;
+                        case OP_NE: result = (left_int != right_int); break;
+                        case OP_LT: result = (left_int < right_int); break;
+                        case OP_GT: result = (left_int > right_int); break;
+                        case OP_LE: result = (left_int <= right_int); break;
+                        case OP_GE: result = (left_int >= right_int); break;
+                        default: result = false;
+                    }
+                } else if (type == TYPE_FLOAT) {
+                    float left_float = *(float*)left_val;
+                    float right_float = *(float*)right_val;
+
+                    switch (cond.op) {
+                        case OP_EQ: result = std::fabs(left_float - right_float) <= FLT_EPSILON; break;
+                        case OP_NE: result = std::fabs(left_float - right_float) > FLT_EPSILON; break;
+                        case OP_LT: result = left_float - right_float < -FLT_EPSILON; break;
+                        case OP_GT: result = left_float - right_float > FLT_EPSILON; break;
+                        case OP_LE: result = left_float - right_float <= FLT_EPSILON; break;
+                        case OP_GE: result = left_float - right_float >= -FLT_EPSILON; break;
+                        default: result = false;
+                    }
+                } else if (type == TYPE_STRING) {
+                    std::string left_str(left_val, strnlen(left_val, lhs_col_meta->len));
+                    std::string right_str(right_val, strnlen(right_val, rhs_col_meta->len));
+
+                    switch (cond.op) {
+                        case OP_EQ: result = (left_str == right_str); break;
+                        case OP_NE: result = (left_str != right_str); break;
+                        case OP_LT: result = (left_str < right_str); break;
+                        case OP_GT: result = (left_str > right_str); break;
+                        case OP_LE: result = (left_str <= right_str); break;
+                        case OP_GE: result = (left_str >= right_str); break;
+                        default: result = false;
+                    }
+                }
+
+                // 如果有一个条件不满足，则返回false
+                if (!result) {
+                    return false;
+                }
             }
         }
 
