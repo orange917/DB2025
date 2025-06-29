@@ -66,13 +66,16 @@ using namespace ast;
     std::pair<std::vector<std::shared_ptr<Col>>, std::vector<std::shared_ptr<AggFunc>>> sv_mixed_selector;
     std::pair<std::shared_ptr<Col>, OrderByDir> sv_order_col_with_dir;
     std::vector<std::pair<std::shared_ptr<Col>, OrderByDir>> sv_order_col_list;
+
+    std::shared_ptr<JoinExpr> sv_joinexpr;
+    std::vector<std::shared_ptr<JoinExpr>> sv_joinexprs;
 }
 
 // keywords
 %token SHOW TABLES CREATE TABLE DROP DESC INSERT INTO VALUES DELETE FROM ASC
-WHERE UPDATE SET SELECT INT CHAR FLOAT INDEX AND JOIN EXIT HELP TXN_BEGIN TXN_COMMIT TXN_ABORT TXN_ROLLBACK ENABLE_NESTLOOP ENABLE_SORTMERGE
+WHERE UPDATE SET SELECT INT CHAR FLOAT INDEX AND JOIN SEMI EXIT HELP TXN_BEGIN TXN_COMMIT TXN_ABORT TXN_ROLLBACK ENABLE_NESTLOOP ENABLE_SORTMERGE
 // 添加聚合函数和分组关键字
-COUNT MAX MIN SUM AVG GROUP HAVING LIMIT AS ORDER BY
+COUNT MAX MIN SUM AVG GROUP HAVING LIMIT AS ORDER BY ON
 // non-keywords
 %token LEQ NEQ GEQ T_EOF
 
@@ -113,6 +116,14 @@ COUNT MAX MIN SUM AVG GROUP HAVING LIMIT AS ORDER BY
 %type <sv_mixed_selector> mixed_selector
 %type <sv_order_col_list> order_col_list
 %type <sv_order_col_with_dir> order_col_with_dir
+%type <sv_joinexpr> join_clause
+
+// 添加新的非终结符来处理连接表达式
+%type <sv_strs> tableListWithJoin
+%type <sv_joinexprs> join_expr_list
+
+// 为终结符添加类型声明
+%type <sv_str> indexName
 
 %%
 start:
@@ -140,10 +151,25 @@ start:
 
 stmt:
         dbStmt
+    {
+        $$ = $1;
+    }
     |   ddl
+    {
+        $$ = $1;
+    }
     |   dml
+    {
+        $$ = $1;
+    }
     |   txnStmt
+    {
+        $$ = $1;
+    }
     |   setStmt
+    {
+        $$ = $1;
+    }
     ;
 
 txnStmt:
@@ -169,6 +195,30 @@ dbStmt:
         SHOW TABLES
     {
         $$ = std::make_shared<ShowTables>();
+    }
+    |   CREATE TABLE tbName '(' fieldList ')'
+    {
+        $$ = std::make_shared<CreateTable>($3, $5);
+    }
+    |   DROP TABLE tbName
+    {
+        $$ = std::make_shared<DropTable>($3);
+    }
+    |   DESC tbName
+    {
+        $$ = std::make_shared<DescTable>($2);
+    }
+    |   CREATE INDEX indexName ON tbName '(' colNameList ')'
+    {
+        $$ = std::make_shared<CreateIndex>($5, $7);
+    }
+    |   DROP INDEX indexName ON tbName
+    {
+        $$ = std::make_shared<DropIndex>($5, std::vector<std::string>{});
+    }
+    |   SHOW INDEX tbName
+    {
+        $$ = std::make_shared<ShowIndex>($3);
     }
     ;
 
@@ -219,17 +269,17 @@ dml:
     {
         $$ = std::make_shared<UpdateStmt>($2, $4, $5);
     }
-    |   SELECT selector FROM tableList optWhereClause opt_group_by_clause opt_having_clause opt_order_clause opt_limit_clause
+    |   SELECT selector FROM tableListWithJoin join_expr_list optWhereClause opt_group_by_clause opt_having_clause opt_order_clause opt_limit_clause
     {
-        $$ = std::make_shared<SelectStmt>($2, std::vector<std::shared_ptr<AggFunc>>(), $4, $5, $8, $6, $7, $9);
+        $$ = std::make_shared<SelectStmt>($2, std::vector<std::shared_ptr<AggFunc>>(), $4, $6, $9, $7, $8, $10, $5);
     }
-    |   SELECT agg_func_list FROM tableList optWhereClause opt_group_by_clause opt_having_clause opt_order_clause opt_limit_clause
+    |   SELECT agg_func_list FROM tableListWithJoin join_expr_list optWhereClause opt_group_by_clause opt_having_clause opt_order_clause opt_limit_clause
     {
-        $$ = std::make_shared<SelectStmt>(std::vector<std::shared_ptr<Col>>(), $2, $4, $5, $8, $6, $7, $9);
+        $$ = std::make_shared<SelectStmt>(std::vector<std::shared_ptr<Col>>(), $2, $4, $6, $9, $7, $8, $10, $5);
     }
-    |   SELECT mixed_selector FROM tableList optWhereClause opt_group_by_clause opt_having_clause opt_order_clause opt_limit_clause
+    |   SELECT mixed_selector FROM tableListWithJoin join_expr_list optWhereClause opt_group_by_clause opt_having_clause opt_order_clause opt_limit_clause
     {
-        $$ = std::make_shared<SelectStmt>($2.first, $2.second, $4, $5, $8, $6, $7, $9);
+        $$ = std::make_shared<SelectStmt>($2.first, $2.second, $4, $6, $9, $7, $8, $10, $5);
     }
     ;
 
@@ -450,9 +500,35 @@ tableList:
     {
         $$.push_back($3);
     }
-    |   tableList JOIN tbName
+    ;
+
+tableListWithJoin:
+        tableList
     {
-        $$.push_back($3);
+        $$ = $1;
+    }
+    ;
+
+join_expr_list:
+        /* epsilon */
+    {
+        $$ = std::vector<std::shared_ptr<JoinExpr>>();
+    }
+    |   join_expr_list join_clause
+    {
+        $$ = $1;
+        $$.push_back($2);
+    }
+    ;
+
+join_clause:
+    JOIN tbName ON condition
+    {
+        $$ = std::make_shared<JoinExpr>("", $2, std::vector<std::shared_ptr<BinaryExpr>>{$4}, ::INNER_JOIN);
+    }
+    | SEMI JOIN tbName ON condition
+    {
+        $$ = std::make_shared<JoinExpr>("", $3, std::vector<std::shared_ptr<BinaryExpr>>{$5}, ::SEMI_JOIN);
     }
     ;
 
@@ -608,4 +684,6 @@ mixed_selector:
 tbName: IDENTIFIER;
 
 colName: IDENTIFIER;
+
+indexName: IDENTIFIER;
 %%

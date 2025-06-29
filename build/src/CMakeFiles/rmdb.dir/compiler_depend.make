@@ -428,7 +428,8 @@ src/CMakeFiles/rmdb.dir/rmdb.cpp.o: ../src/rmdb.cpp \
   ../src/execution/executor_update.h \
   ../src/execution/executor_insert.h \
   ../src/execution/executor_delete.h \
-  ../src/execution/execution_sort.h
+  ../src/execution/execution_sort.h \
+  ../src/execution/executor_semi_join.h
 
 
 ../src/execution/executor_update.h:
@@ -468,6 +469,8 @@ src/CMakeFiles/rmdb.dir/rmdb.cpp.o: ../src/rmdb.cpp \
 ../src/execution/executor_abstract.h:
 
 ../src/parser/parser_defs.h:
+
+../src/execution/executor_semi_join.h:
 
 ../src/parser/ast_printer.h:
 

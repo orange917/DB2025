@@ -76,34 +76,36 @@ extern int yydebug;
     INDEX = 277,                   /* INDEX  */
     AND = 278,                     /* AND  */
     JOIN = 279,                    /* JOIN  */
-    EXIT = 280,                    /* EXIT  */
-    HELP = 281,                    /* HELP  */
-    TXN_BEGIN = 282,               /* TXN_BEGIN  */
-    TXN_COMMIT = 283,              /* TXN_COMMIT  */
-    TXN_ABORT = 284,               /* TXN_ABORT  */
-    TXN_ROLLBACK = 285,            /* TXN_ROLLBACK  */
-    ENABLE_NESTLOOP = 286,         /* ENABLE_NESTLOOP  */
-    ENABLE_SORTMERGE = 287,        /* ENABLE_SORTMERGE  */
-    COUNT = 288,                   /* COUNT  */
-    MAX = 289,                     /* MAX  */
-    MIN = 290,                     /* MIN  */
-    SUM = 291,                     /* SUM  */
-    AVG = 292,                     /* AVG  */
-    GROUP = 293,                   /* GROUP  */
-    HAVING = 294,                  /* HAVING  */
-    LIMIT = 295,                   /* LIMIT  */
-    AS = 296,                      /* AS  */
-    ORDER = 297,                   /* ORDER  */
-    BY = 298,                      /* BY  */
-    LEQ = 299,                     /* LEQ  */
-    NEQ = 300,                     /* NEQ  */
-    GEQ = 301,                     /* GEQ  */
-    T_EOF = 302,                   /* T_EOF  */
-    IDENTIFIER = 303,              /* IDENTIFIER  */
-    VALUE_STRING = 304,            /* VALUE_STRING  */
-    VALUE_INT = 305,               /* VALUE_INT  */
-    VALUE_FLOAT = 306,             /* VALUE_FLOAT  */
-    VALUE_BOOL = 307               /* VALUE_BOOL  */
+    SEMI = 280,                    /* SEMI  */
+    EXIT = 281,                    /* EXIT  */
+    HELP = 282,                    /* HELP  */
+    TXN_BEGIN = 283,               /* TXN_BEGIN  */
+    TXN_COMMIT = 284,              /* TXN_COMMIT  */
+    TXN_ABORT = 285,               /* TXN_ABORT  */
+    TXN_ROLLBACK = 286,            /* TXN_ROLLBACK  */
+    ENABLE_NESTLOOP = 287,         /* ENABLE_NESTLOOP  */
+    ENABLE_SORTMERGE = 288,        /* ENABLE_SORTMERGE  */
+    COUNT = 289,                   /* COUNT  */
+    MAX = 290,                     /* MAX  */
+    MIN = 291,                     /* MIN  */
+    SUM = 292,                     /* SUM  */
+    AVG = 293,                     /* AVG  */
+    GROUP = 294,                   /* GROUP  */
+    HAVING = 295,                  /* HAVING  */
+    LIMIT = 296,                   /* LIMIT  */
+    AS = 297,                      /* AS  */
+    ORDER = 298,                   /* ORDER  */
+    BY = 299,                      /* BY  */
+    ON = 300,                      /* ON  */
+    LEQ = 301,                     /* LEQ  */
+    NEQ = 302,                     /* NEQ  */
+    GEQ = 303,                     /* GEQ  */
+    T_EOF = 304,                   /* T_EOF  */
+    IDENTIFIER = 305,              /* IDENTIFIER  */
+    VALUE_STRING = 306,            /* VALUE_STRING  */
+    VALUE_INT = 307,               /* VALUE_INT  */
+    VALUE_FLOAT = 308,             /* VALUE_FLOAT  */
+    VALUE_BOOL = 309               /* VALUE_BOOL  */
   };
   typedef enum yytokentype yytoken_kind_t;
 #endif
@@ -158,7 +160,10 @@ union YYSTYPE
     std::pair<std::shared_ptr<Col>, OrderByDir> sv_order_col_with_dir;
     std::vector<std::pair<std::shared_ptr<Col>, OrderByDir>> sv_order_col_list;
 
-#line 162 "/home/code/db2025/src/parser/yacc.tab.h"
+    std::shared_ptr<JoinExpr> sv_joinexpr;
+    std::vector<std::shared_ptr<JoinExpr>> sv_joinexprs;
+
+#line 167 "/home/code/db2025/src/parser/yacc.tab.h"
 
 };
 typedef union YYSTYPE YYSTYPE;

@@ -48,6 +48,7 @@ class Planner {
     std::shared_ptr<Plan> physical_optimization(std::shared_ptr<Query> query, Context *context);
 
     std::shared_ptr<Plan> make_one_rel(std::shared_ptr<Query> query);
+    std::shared_ptr<Plan> build_join_plan(std::shared_ptr<Query> query, const std::vector<std::string>& tables);
 
     std::shared_ptr<Plan> generate_sort_plan(std::shared_ptr<Query> query, std::shared_ptr<Plan> plan);
 
@@ -62,6 +63,8 @@ class Planner {
             {ast::SV_TYPE_INT, TYPE_INT}, {ast::SV_TYPE_FLOAT, TYPE_FLOAT}, {ast::SV_TYPE_STRING, TYPE_STRING}};
         return m.at(sv_type);
     }
+    
+    CompOp convert_sv_comp_op(ast::SvCompOp op);
 };
 
 struct OrderByCol {
