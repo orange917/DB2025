@@ -183,6 +183,39 @@ std::shared_ptr<Query> Analyze::do_analyze(std::shared_ptr<ast::TreeNode> parse)
                     throw InternalError("Column '" + sel_col.col_name + "' must appear in GROUP BY clause or be used in an aggregate function");
                 }
             }
+            
+            // 检查3：HAVING 子句中的非聚合列必须出现在 GROUP BY 子句中
+            for (const auto& cond : query->having_conds) {
+                // 检查左侧非聚合列
+                if (!cond.is_lhs_agg && !cond.lhs_col.tab_name.empty() && !cond.lhs_col.col_name.empty()) {
+                    bool found_in_group_by = false;
+                    for (const auto& group_col : query->group_by_cols) {
+                        if (cond.lhs_col.tab_name == group_col.tab_name && cond.lhs_col.col_name == group_col.col_name) {
+                            found_in_group_by = true;
+                            break;
+                        }
+                    }
+                    if (!found_in_group_by) {
+                        std::cout << "failure" << std::endl;
+                        throw InternalError("Column '" + cond.lhs_col.col_name + "' in HAVING clause must appear in GROUP BY clause or be used in an aggregate function");
+                    }
+                }
+                
+                // 检查右侧非聚合列
+                if (!cond.is_rhs_agg && !cond.rhs_col.tab_name.empty() && !cond.rhs_col.col_name.empty()) {
+                    bool found_in_group_by = false;
+                    for (const auto& group_col : query->group_by_cols) {
+                        if (cond.rhs_col.tab_name == group_col.tab_name && cond.rhs_col.col_name == group_col.col_name) {
+                            found_in_group_by = true;
+                            break;
+                        }
+                    }
+                    if (!found_in_group_by) {
+                        std::cout << "failure" << std::endl;
+                        throw InternalError("Column '" + cond.rhs_col.col_name + "' in HAVING clause must appear in GROUP BY clause or be used in an aggregate function");
+                    }
+                }
+            }
         }
         
         // 检查2：WHERE 子句中不能用聚集函数作为条件表达式
