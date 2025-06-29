@@ -620,7 +620,23 @@ std::shared_ptr<Plan> Planner::generate_select_plan(std::shared_ptr<Query> query
         for (const auto& agg_func : query->agg_funcs) {
             TabCol agg_col;
             agg_col.tab_name = "";
-            agg_col.col_name = agg_func.alias.empty() ? "agg_" + std::to_string(agg_sel_cols.size()) : agg_func.alias;
+            
+            // 如果没有别名，使用原列名作为列名
+            if (agg_func.alias.empty()) {
+                if (agg_func.func_type == AGG_COUNT && agg_func.col.tab_name.empty() && agg_func.col.col_name.empty()) {
+                    // COUNT(*) 的情况
+                    agg_col.col_name = "count";
+                } else if (!agg_func.col.col_name.empty()) {
+                    // 有列名的情况，使用原列名
+                    agg_col.col_name = agg_func.col.col_name;
+                } else {
+                    // 其他情况，使用默认的agg_序号
+                    agg_col.col_name = "agg_" + std::to_string(agg_sel_cols.size());
+                }
+            } else {
+                agg_col.col_name = agg_func.alias;
+            }
+            
             agg_sel_cols.push_back(agg_col);
         }
         
