@@ -94,15 +94,17 @@ std::shared_ptr<Query> Analyze::do_analyze(std::shared_ptr<ast::TreeNode> parse)
         // 处理ORDER BY
         if (x->has_sort && x->order) {
             query->has_order_by = true;
-            OrderByCol order_col;
-            order_col.col = {.tab_name = x->order->cols->tab_name, .col_name = x->order->cols->col_name};
-            order_col.is_agg = false;  // 暂时只支持普通列排序
-            order_col.col = check_column(all_cols, order_col.col);
-            query->order_by_cols.push_back(order_col);
-            
-            // 设置排序方向
-            bool is_asc = (x->order->orderby_dir == ast::OrderBy_ASC || x->order->orderby_dir == ast::OrderBy_DEFAULT);
-            query->order_by_directions.push_back(is_asc);
+            for (size_t i = 0; i < x->order->cols.size(); i++) {
+                OrderByCol order_col;
+                order_col.col = {.tab_name = x->order->cols[i]->tab_name, .col_name = x->order->cols[i]->col_name};
+                order_col.is_agg = false;  // 暂时只支持普通列排序
+                order_col.col = check_column(all_cols, order_col.col);
+                query->order_by_cols.push_back(order_col);
+                
+                // 设置排序方向
+                bool is_asc = (x->order->orderby_dirs[i] == ast::OrderBy_ASC || x->order->orderby_dirs[i] == ast::OrderBy_DEFAULT);
+                query->order_by_directions.push_back(is_asc);
+            }
         }
         
         // 处理LIMIT

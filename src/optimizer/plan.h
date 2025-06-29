@@ -44,7 +44,7 @@ typedef enum PlanTag{
     T_SortMerge,    // sort merge join
     T_Sort,
     T_Projection,
-    T_Aggregation
+    T_Aggregation,
 } PlanTag;
 
 // 查询执行计划
@@ -106,16 +106,17 @@ class JoinPlan : public Plan
 class ProjectionPlan : public Plan
 {
     public:
-        ProjectionPlan(PlanTag tag, std::shared_ptr<Plan> subplan, std::vector<TabCol> sel_cols)
+        ProjectionPlan(PlanTag tag, std::shared_ptr<Plan> subplan, std::vector<TabCol> sel_cols, int limit_val = -1)
         {
             Plan::tag = tag;
             subplan_ = std::move(subplan);
             sel_cols_ = std::move(sel_cols);
+            limit_val_ = limit_val;
         }
         ~ProjectionPlan(){}
         std::shared_ptr<Plan> subplan_;
         std::vector<TabCol> sel_cols_;
-        
+        int limit_val_;  // LIMIT值
 };
 
 class SortPlan : public Plan

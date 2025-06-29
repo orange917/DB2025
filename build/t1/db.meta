@@ -1,9 +1,26 @@
 t1
-1
-grade
 3
-grade course 2 20 0 0
-grade id 0 4 20 0
-grade score 1 4 24 0
+employee
+4
+employee emp_id 0 4 0 0
+employee name 2 20 4 0
+employee dept 2 20 24 0
+employee salary 1 4 44 0
+0
+
+orders
+4
+orders order_id 0 4 0 0
+orders emp_id 0 4 4 0
+orders amount 1 4 8 0
+orders date 2 10 12 0
+0
+
+products
+4
+products prod_id 0 4 0 0
+products name 2 20 4 0
+products price 1 4 24 0
+products category 2 20 28 0
 0
 

@@ -185,10 +185,10 @@ struct BinaryExpr : public TreeNode {
 
 struct OrderBy : public TreeNode
 {
-    std::shared_ptr<Col> cols;
-    OrderByDir orderby_dir;
-    OrderBy( std::shared_ptr<Col> cols_, OrderByDir orderby_dir_) :
-       cols(std::move(cols_)), orderby_dir(std::move(orderby_dir_)) {}
+    std::vector<std::shared_ptr<Col>> cols;
+    std::vector<OrderByDir> orderby_dirs;
+    OrderBy( std::vector<std::shared_ptr<Col>> cols_, std::vector<OrderByDir> orderby_dirs_) :
+       cols(std::move(cols_)), orderby_dirs(std::move(orderby_dirs_)) {}
 };
 
 struct InsertStmt : public TreeNode {
@@ -339,6 +339,8 @@ struct SemValue {
     
     // 添加混合选择器类型，用于存储普通列和聚合函数的组合
     std::pair<std::vector<std::shared_ptr<Col>>, std::vector<std::shared_ptr<AggFunc>>> sv_mixed_selector;
+    std::pair<std::shared_ptr<Col>, OrderByDir> sv_order_col_with_dir;
+    std::vector<std::pair<std::shared_ptr<Col>, OrderByDir>> sv_order_col_list;
 };
 
 extern std::shared_ptr<ast::TreeNode> parse_tree;

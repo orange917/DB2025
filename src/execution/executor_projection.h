@@ -21,13 +21,17 @@ class ProjectionExecutor : public AbstractExecutor {
     std::vector<ColMeta> cols_;                     // 需要投影的字段
     size_t len_;                                    // 字段总长度
     std::vector<size_t> sel_idxs_;
+    int limit_val_;                                 // LIMIT值
+    int current_count_;                             // 当前已返回的记录数
 
    public:
-   ProjectionExecutor(std::unique_ptr<AbstractExecutor> prev, const std::vector<TabCol> &sel_cols) {
+   ProjectionExecutor(std::unique_ptr<AbstractExecutor> prev, const std::vector<TabCol>& sel_cols, int limit_val = -1) {
         if (!prev) {
             throw InternalError("ProjectionExecutor: prev is null");
         }
         prev_ = std::move(prev);
+        limit_val_ = limit_val;
+        current_count_ = 0;
 
         auto &prev_cols = prev_->cols();
         if (prev_cols.empty()) {
@@ -49,6 +53,7 @@ class ProjectionExecutor : public AbstractExecutor {
     void beginTuple() override {
         // 初始化前一个执行器
         prev_->beginTuple();
+        current_count_ = 0;
     }
     
     void nextTuple() override {
@@ -57,13 +62,18 @@ class ProjectionExecutor : public AbstractExecutor {
     }
     
     bool is_end() const override {
-        // 检查前一个执行器是否结束
-        return prev_->is_end();
+        // 检查前一个执行器是否结束，或者是否达到limit限制
+        return prev_->is_end() || (limit_val_ > 0 && current_count_ >= limit_val_);
     }
     
     std::unique_ptr<RmRecord> Next() override {
         // 如果前一个执行器已经结束，返回空
         if (prev_->is_end()) {
+            return nullptr;
+        }
+        
+        // 检查是否达到limit限制
+        if (limit_val_ > 0 && current_count_ >= limit_val_) {
             return nullptr;
         }
         
@@ -88,6 +98,9 @@ class ProjectionExecutor : public AbstractExecutor {
                    prev_record->data + prev_col.offset,
                    prev_col.len);
         }
+        
+        // 增加计数
+        current_count_++;
         
         return proj_record;
     }
