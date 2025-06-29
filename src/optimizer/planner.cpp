@@ -472,6 +472,12 @@ std::shared_ptr<Plan> Planner::generate_sort_plan(std::shared_ptr<Query> query, 
         if(col.name.compare(x->order->cols->col_name) == 0 )
         sel_col = {.tab_name = col.tab_name, .col_name = col.name};
     }
+    
+    // 添加调试信息
+    std::cout << "SortPlan: Ordering by column '" << x->order->cols->col_name << "'" << std::endl;
+    std::cout << "SortPlan: Selected column: " << sel_col.tab_name << "." << sel_col.col_name << std::endl;
+    std::cout << "SortPlan: Sort direction: " << (x->order->orderby_dir == ast::OrderBy_DESC ? "DESC" : "ASC") << std::endl;
+    
     return std::make_shared<SortPlan>(T_Sort, std::move(plan), sel_col, 
                                     x->order->orderby_dir == ast::OrderBy_DESC);
 }
@@ -495,7 +501,8 @@ std::shared_ptr<Plan> Planner::generate_select_plan(std::shared_ptr<Query> query
     // 新增：如果有聚合或分组，插入AggPlan
     if (query->has_agg || query->has_group_by) {
         plannerRoot = std::make_shared<AggPlan>(
-            T_Aggregation, plannerRoot, query->agg_funcs, query->group_by_cols, query->having_conds, query->limit_val
+            plannerRoot, query->agg_funcs, query->group_by_cols, query->having_conds, 
+            std::vector<OrderByCol>(), std::vector<bool>(), query->limit_val
         );
         
         // 为聚合查询创建正确的投影列
@@ -515,6 +522,11 @@ std::shared_ptr<Plan> Planner::generate_select_plan(std::shared_ptr<Query> query
         }
         
         sel_cols = std::move(agg_sel_cols);
+    }
+
+    // 处理ORDER BY子句
+    if (query->has_order_by) {
+        plannerRoot = generate_sort_plan(query, std::move(plannerRoot));
     }
 
     plannerRoot = std::make_shared<ProjectionPlan>(T_Projection, std::move(plannerRoot), std::move(sel_cols));

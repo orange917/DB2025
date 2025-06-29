@@ -14,6 +14,7 @@ See the Mulan PSL v2 for more details. */
 #include "executor_abstract.h"
 #include "common/common.h"
 #include "system/sm.h"
+#include "optimizer/planner.h"  // 包含OrderByCol定义
 #include <unordered_map>
 #include <vector>
 #include <memory>
@@ -22,10 +23,11 @@ See the Mulan PSL v2 for more details. */
 struct AggResult {
     std::vector<Value> group_key;  // 分组键
     std::vector<Value> agg_values; // 聚合函数结果
+    int count;                     // 分组计数（用于COUNT(*)）
     
-    AggResult() = default;
-    AggResult(std::vector<Value> group_key, std::vector<Value> agg_values) 
-        : group_key(std::move(group_key)), agg_values(std::move(agg_values)) {}
+    AggResult() : count(0) {}
+    AggResult(std::vector<Value> group_key, std::vector<Value> agg_values, int count = 0) 
+        : group_key(std::move(group_key)), agg_values(std::move(agg_values)), count(count) {}
 };
 
 // 聚合状态结构
@@ -39,6 +41,8 @@ struct AggState {
 
 class AggregationExecutor : public AbstractExecutor {
 private:
+    std::vector<OrderByCol> order_by_cols_; // ORDER BY列
+    std::vector<bool> order_by_directions_; // 排序方向，true为ASC，false为DESC
     std::unique_ptr<AbstractExecutor> prev_;           // 子执行器
     std::vector<AggFunc> agg_funcs_;                   // 聚合函数列表
     std::vector<TabCol> group_by_cols_;                // GROUP BY列
@@ -63,13 +67,15 @@ private:
 
 public:
     AggregationExecutor(std::unique_ptr<AbstractExecutor> prev,
-                       const std::vector<AggFunc>& agg_funcs,
-                       const std::vector<TabCol>& group_by_cols,
-                       const std::vector<Condition>& having_conds,
-                       int limit_val);
-    
+            const std::vector<AggFunc>& agg_funcs,
+            const std::vector<TabCol>& group_by_cols,
+            const std::vector<Condition>& having_conds,
+            const std::vector<OrderByCol>& order_by_cols,
+            const std::vector<bool>& order_by_directions,
+            int limit_val);
+
     ~AggregationExecutor() = default;
-    
+
     void beginTuple() override;
     void nextTuple() override;
     bool is_end() const override;
@@ -77,4 +83,4 @@ public:
     const std::vector<ColMeta>& cols() const override;
     size_t tupleLen() const override;
     Rid& rid() override;
-}; 
+};

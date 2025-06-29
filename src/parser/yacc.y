@@ -20,6 +20,51 @@ using namespace ast;
 // enable verbose syntax error message
 %define parse.error verbose
 
+// 添加 %union 声明
+%union {
+    int sv_int;
+    float sv_float;
+    std::string sv_str;
+    bool sv_bool;
+    OrderByDir sv_orderby_dir;
+    std::vector<std::string> sv_strs;
+
+    std::shared_ptr<TreeNode> sv_node;
+
+    SvCompOp sv_comp_op;
+    AggFuncType sv_agg_func_type;
+
+    std::shared_ptr<TypeLen> sv_type_len;
+
+    std::shared_ptr<Field> sv_field;
+    std::vector<std::shared_ptr<Field>> sv_fields;
+
+    std::shared_ptr<Expr> sv_expr;
+    std::shared_ptr<AggFunc> sv_agg_func;
+    std::vector<std::shared_ptr<AggFunc>> sv_agg_funcs;
+
+    std::shared_ptr<Value> sv_val;
+    std::vector<std::shared_ptr<Value>> sv_vals;
+
+    std::shared_ptr<Col> sv_col;
+    std::vector<std::shared_ptr<Col>> sv_cols;
+
+    std::shared_ptr<SetClause> sv_set_clause;
+    std::vector<std::shared_ptr<SetClause>> sv_set_clauses;
+
+    std::shared_ptr<BinaryExpr> sv_cond;
+    std::vector<std::shared_ptr<BinaryExpr>> sv_conds;
+
+    std::shared_ptr<OrderBy> sv_orderby;
+    std::shared_ptr<GroupBy> sv_groupby;
+    std::shared_ptr<Having> sv_having;
+    std::shared_ptr<Limit> sv_limit;
+
+    SetKnobType sv_setKnobType;
+    
+    std::pair<std::vector<std::shared_ptr<Col>>, std::vector<std::shared_ptr<AggFunc>>> sv_mixed_selector;
+}
+
 // keywords
 %token SHOW TABLES CREATE TABLE DROP DESC INSERT INTO VALUES DELETE FROM ASC ORDER BY
 WHERE UPDATE SET SELECT INT CHAR FLOAT INDEX AND JOIN EXIT HELP TXN_BEGIN TXN_COMMIT TXN_ABORT TXN_ROLLBACK ORDER_BY ENABLE_NESTLOOP ENABLE_SORTMERGE
@@ -62,6 +107,7 @@ COUNT MAX MIN SUM AVG GROUP HAVING LIMIT AS
 %type <sv_having> opt_having_clause
 %type <sv_limit> opt_limit_clause
 %type <sv_agg_funcs> agg_func_list
+%type <sv_mixed_selector> mixed_selector
 
 %%
 start:
@@ -176,6 +222,10 @@ dml:
     {
         $$ = std::make_shared<SelectStmt>(std::vector<std::shared_ptr<Col>>(), $2, $4, $5, $6, $7, $8, $9);
     }
+    |   SELECT mixed_selector FROM tableList optWhereClause opt_order_clause opt_group_by_clause opt_having_clause opt_limit_clause
+    {
+        $$ = std::make_shared<SelectStmt>($2.first, $2.second, $4, $5, $6, $7, $8, $9);
+    }
     ;
 
 fieldList:
@@ -257,10 +307,16 @@ condition:
     {
         $$ = std::make_shared<BinaryExpr>($1, $2, $3);
     }
+    |   agg_func op expr
+    {
+        // 创建一个临时的 Col 对象来存储聚合函数信息
+        // 这里需要修改 BinaryExpr 结构以支持聚合函数作为左操作数
+        $$ = std::make_shared<BinaryExpr>($1, $2, $3);
+    }
     ;
 
 optWhereClause:
-        /* epsilon */ { /* ignore*/ }
+        /* epsilon */ { $$ = std::vector<std::shared_ptr<BinaryExpr>>(); }
     |   WHERE whereClause
     {
         $$ = $2;
@@ -336,6 +392,10 @@ expr:
     {
         $$ = std::static_pointer_cast<Expr>($1);
     }
+    |   agg_func
+    {
+        $$ = std::static_pointer_cast<Expr>($1);
+    }
     ;
 
 setClauses:
@@ -359,7 +419,7 @@ setClause:
 selector:
         '*'
     {
-        $$ = {};
+        $$ = std::vector<std::shared_ptr<Col>>();
     }
     |   colList
     ;
@@ -384,7 +444,7 @@ opt_order_clause:
     { 
         $$ = $3; 
     }
-    |   /* epsilon */ { /* ignore*/ }
+    |   /* epsilon */ { $$ = nullptr; }
     ;
 
 order_clause:
@@ -452,7 +512,7 @@ agg_func_type:
     ;
 
 opt_group_by_clause:
-    /* epsilon */ { /* ignore*/ }
+    /* epsilon */ { $$ = nullptr; }
     |   GROUP BY colList
     {
         $$ = std::make_shared<GroupBy>($3);
@@ -460,7 +520,7 @@ opt_group_by_clause:
     ;
 
 opt_having_clause:
-    /* epsilon */ { /* ignore*/ }
+    /* epsilon */ { $$ = nullptr; }
     |   HAVING whereClause
     {
         $$ = std::make_shared<Having>($2);
@@ -468,10 +528,34 @@ opt_having_clause:
     ;
 
 opt_limit_clause:
-    /* epsilon */ { /* ignore*/ }
+    /* epsilon */ { $$ = nullptr; }
     |   LIMIT VALUE_INT
     {
         $$ = std::make_shared<Limit>($2);
+    }
+    ;
+
+// 添加混合选择器规则，支持普通列和聚合函数的组合
+mixed_selector:
+    col ',' agg_func
+    {
+        $$ = std::make_pair(std::vector<std::shared_ptr<Col>>{$1}, std::vector<std::shared_ptr<AggFunc>>{$3});
+    }
+    |   agg_func ',' col
+    {
+        $$ = std::make_pair(std::vector<std::shared_ptr<Col>>{$3}, std::vector<std::shared_ptr<AggFunc>>{$1});
+    }
+    |   col ',' col
+    {
+        $$ = std::make_pair(std::vector<std::shared_ptr<Col>>{$1, $3}, std::vector<std::shared_ptr<AggFunc>>());
+    }
+    |   mixed_selector ',' col
+    {
+        $$.first.push_back($3);
+    }
+    |   mixed_selector ',' agg_func
+    {
+        $$.second.push_back($3);
     }
     ;
 

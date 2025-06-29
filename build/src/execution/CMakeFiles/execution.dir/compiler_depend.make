@@ -728,8 +728,47 @@ src/execution/CMakeFiles/execution.dir/executor_aggregation.cpp.o: ../src/execut
   ../src/recovery/log_manager.h \
   ../src/recovery/log_defs.h \
   ../src/record/rm_scan.h \
+  ../src/optimizer/planner.h \
+  ../src/execution/execution_manager.h \
+  ../src/record/rm.h \
+  ../src/record/rm_manager.h \
+  ../src/optimizer/plan.h \
+  ../src/parser/ast.h \
+  ../src/parser/parser.h \
+  ../src/parser/ast_printer.h \
+  ../src/parser/parser_defs.h \
+  ../src/transaction/transaction_manager.h \
+  /usr/include/c++/11/optional \
+  /usr/include/c++/11/shared_mutex \
+  ../src/transaction/watermark.h \
+  ../src/common/exception.h \
+  ../src/analyze/analyze.h \
   /usr/include/c++/11/sstream \
-  /usr/include/c++/11/bits/sstream.tcc
+  /usr/include/c++/11/bits/sstream.tcc \
+  /usr/include/c++/11/cmath \
+  /usr/include/math.h \
+  /usr/include/x86_64-linux-gnu/bits/math-vector.h \
+  /usr/include/x86_64-linux-gnu/bits/libm-simd-decl-stubs.h \
+  /usr/include/x86_64-linux-gnu/bits/flt-eval-method.h \
+  /usr/include/x86_64-linux-gnu/bits/fp-logb.h \
+  /usr/include/x86_64-linux-gnu/bits/fp-fast.h \
+  /usr/include/x86_64-linux-gnu/bits/mathcalls-helper-functions.h \
+  /usr/include/x86_64-linux-gnu/bits/mathcalls.h \
+  /usr/include/x86_64-linux-gnu/bits/mathcalls-narrow.h \
+  /usr/include/x86_64-linux-gnu/bits/iscanonical.h \
+  /usr/include/c++/11/bits/specfun.h \
+  /usr/include/c++/11/tr1/gamma.tcc \
+  /usr/include/c++/11/tr1/special_function_util.h \
+  /usr/include/c++/11/tr1/bessel_function.tcc \
+  /usr/include/c++/11/tr1/beta_function.tcc \
+  /usr/include/c++/11/tr1/ell_integral.tcc \
+  /usr/include/c++/11/tr1/exp_integral.tcc \
+  /usr/include/c++/11/tr1/hypergeometric.tcc \
+  /usr/include/c++/11/tr1/legendre_function.tcc \
+  /usr/include/c++/11/tr1/modified_bessel_func.tcc \
+  /usr/include/c++/11/tr1/poly_hermite.tcc \
+  /usr/include/c++/11/tr1/poly_laguerre.tcc \
+  /usr/include/c++/11/tr1/riemann_zeta.tcc
 
 
 ../src/execution/executor_aggregation.cpp:

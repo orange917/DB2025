@@ -10,6 +10,7 @@ See the Mulan PSL v2 for more details. */
 #include "errors.h"
 #include "analyze.h"
 #include "defs.h"
+#include "optimizer/planner.h"  // 包含 OrderByCol 的完整定义
 
 /**
  * @description: 分析器，进行语义分析和查询重写，需要检查不符合语义规定的部分
@@ -90,6 +91,20 @@ std::shared_ptr<Query> Analyze::do_analyze(std::shared_ptr<ast::TreeNode> parse)
             check_clause(query->tables, query->having_conds);
         }
         
+        // 处理ORDER BY
+        if (x->has_sort && x->order) {
+            query->has_order_by = true;
+            OrderByCol order_col;
+            order_col.col = {.tab_name = x->order->cols->tab_name, .col_name = x->order->cols->col_name};
+            order_col.is_agg = false;  // 暂时只支持普通列排序
+            order_col.col = check_column(all_cols, order_col.col);
+            query->order_by_cols.push_back(order_col);
+            
+            // 设置排序方向
+            bool is_asc = (x->order->orderby_dir == ast::OrderBy_ASC || x->order->orderby_dir == ast::OrderBy_DEFAULT);
+            query->order_by_directions.push_back(is_asc);
+        }
+        
         // 处理LIMIT
         if (x->has_limit && x->limit) {
             query->has_limit = true;
@@ -99,6 +114,32 @@ std::shared_ptr<Query> Analyze::do_analyze(std::shared_ptr<ast::TreeNode> parse)
         //处理where条件
         get_clause(x->conds, query->conds);
         check_clause(query->tables, query->conds);
+        
+        // 语义检查：检测SELECT列表中的非聚合列和WHERE子句中的聚合函数
+        if (query->has_group_by) {
+            // 检查1：SELECT 列表中不能出现没有在 GROUP BY 子句中的非聚集列
+            for (const auto& sel_col : query->cols) {
+                bool found_in_group_by = false;
+                for (const auto& group_col : query->group_by_cols) {
+                    if (sel_col.tab_name == group_col.tab_name && sel_col.col_name == group_col.col_name) {
+                        found_in_group_by = true;
+                        break;
+                    }
+                }
+                if (!found_in_group_by) {
+                    std::cout << "failure" << std::endl;
+                    throw InternalError("Column '" + sel_col.col_name + "' must appear in GROUP BY clause or be used in an aggregate function");
+                }
+            }
+        }
+        
+        // 检查2：WHERE 子句中不能用聚集函数作为条件表达式
+        for (const auto& cond : query->conds) {
+            if (cond.is_lhs_agg || cond.is_rhs_agg) {
+                std::cout << "failure" << std::endl;
+                throw InternalError("Aggregate functions are not allowed in WHERE clause");
+            }
+        }
     } else if (auto x = std::dynamic_pointer_cast<ast::UpdateStmt>(parse)) {
         /** TODO: */
         query->tables = {x->tab_name};
@@ -172,14 +213,50 @@ void Analyze::get_clause(const std::vector<std::shared_ptr<ast::BinaryExpr>> &sv
     conds.clear();
     for (auto &expr : sv_conds) {
         Condition cond;
-        cond.lhs_col = {.tab_name = expr->lhs->tab_name, .col_name = expr->lhs->col_name};
+        
+        // 处理左操作数，可能是 Col 或 AggFunc
+        if (auto lhs_col = std::dynamic_pointer_cast<ast::Col>(expr->lhs)) {
+            cond.lhs_col = {.tab_name = lhs_col->tab_name, .col_name = lhs_col->col_name};
+            cond.is_lhs_agg = false;
+        } else if (auto lhs_agg = std::dynamic_pointer_cast<ast::AggFunc>(expr->lhs)) {
+            // 处理聚合函数作为左操作数
+            cond.is_lhs_agg = true;
+            cond.lhs_agg.func_type = convert_agg_func_type(lhs_agg->func_type);
+            if (lhs_agg->col) {
+                cond.lhs_agg.col = {.tab_name = lhs_agg->col->tab_name, .col_name = lhs_agg->col->col_name};
+            } else {
+                cond.lhs_agg.col = {.tab_name = "", .col_name = ""}; // COUNT(*)的情况
+            }
+            // 设置空的lhs_col表示这是聚合函数
+            cond.lhs_col = {.tab_name = "", .col_name = ""};
+        } else {
+            throw InternalError("Unexpected lhs type in BinaryExpr");
+        }
+        
         cond.op = convert_sv_comp_op(expr->op);
         if (auto rhs_val = std::dynamic_pointer_cast<ast::Value>(expr->rhs)) {
             cond.is_rhs_val = true;
+            cond.is_rhs_agg = false;
             cond.rhs_val = convert_sv_value(rhs_val);
+            std::cout << "DEBUG: get_clause - RHS value converted, type: " << cond.rhs_val.type 
+                      << ", int_val: " << cond.rhs_val.int_val 
+                      << ", float_val: " << cond.rhs_val.float_val << std::endl;
         } else if (auto rhs_col = std::dynamic_pointer_cast<ast::Col>(expr->rhs)) {
             cond.is_rhs_val = false;
+            cond.is_rhs_agg = false;
             cond.rhs_col = {.tab_name = rhs_col->tab_name, .col_name = rhs_col->col_name};
+        } else if (auto rhs_agg = std::dynamic_pointer_cast<ast::AggFunc>(expr->rhs)) {
+            // 处理聚合函数作为右操作数
+            cond.is_rhs_val = false;
+            cond.is_rhs_agg = true;
+            cond.rhs_agg.func_type = convert_agg_func_type(rhs_agg->func_type);
+            if (rhs_agg->col) {
+                cond.rhs_agg.col = {.tab_name = rhs_agg->col->tab_name, .col_name = rhs_agg->col->col_name};
+            } else {
+                cond.rhs_agg.col = {.tab_name = "", .col_name = ""}; // COUNT(*)的情况
+            }
+            // 设置空的rhs_col表示这是聚合函数
+            cond.rhs_col = {.tab_name = "", .col_name = ""};
         }
         conds.push_back(cond);
     }
@@ -191,6 +268,11 @@ void Analyze::check_clause(const std::vector<std::string> &tab_names, std::vecto
     get_all_cols(tab_names, all_cols);
     // Get raw values in where clause
     for (auto &cond : conds) {
+        // 跳过聚合函数条件的类型检查，因为聚合函数在HAVING阶段才计算
+        if (cond.is_lhs_agg || cond.is_rhs_agg) {
+            continue;
+        }
+        
         // Infer table name from column name
         cond.lhs_col = check_column(all_cols, cond.lhs_col);
         if (!cond.is_rhs_val) {

@@ -336,8 +336,32 @@ src/analyze/CMakeFiles/analyze.dir/analyze.cpp.o: ../src/analyze/analyze.cpp \
   /usr/include/c++/11/condition_variable \
   ../src/recovery/log_manager.h \
   ../src/recovery/log_defs.h \
-  ../src/record/rm_scan.h
+  ../src/record/rm_scan.h \
+  ../src/optimizer/planner.h \
+  ../src/execution/execution_defs.h \
+  ../src/execution/execution_manager.h \
+  ../src/record/rm.h \
+  ../src/record/rm_manager.h \
+  ../src/optimizer/plan.h \
+  ../src/execution/executor_abstract.h \
+  ../src/transaction/transaction_manager.h \
+  /usr/include/c++/11/optional \
+  /usr/include/c++/11/shared_mutex \
+  ../src/transaction/watermark.h \
+  ../src/common/exception.h
 
+
+../src/common/exception.h:
+
+../src/transaction/watermark.h:
+
+/usr/include/c++/11/optional:
+
+../src/transaction/transaction_manager.h:
+
+../src/execution/executor_abstract.h:
+
+../src/execution/execution_defs.h:
 
 ../src/recovery/log_defs.h:
 
@@ -391,6 +415,8 @@ src/analyze/CMakeFiles/analyze.dir/analyze.cpp.o: ../src/analyze/analyze.cpp \
 
 /usr/include/c++/11/atomic:
 
+/usr/include/c++/11/shared_mutex:
+
 /usr/include/x86_64-linux-gnu/bits/types/struct_statx.h:
 
 /usr/include/c++/11/bits/fstream.tcc:
@@ -398,6 +424,8 @@ src/analyze/CMakeFiles/analyze.dir/analyze.cpp.o: ../src/analyze/analyze.cpp \
 /usr/include/asm-generic/posix_types.h:
 
 /usr/include/x86_64-linux-gnu/asm/posix_types.h:
+
+../src/optimizer/plan.h:
 
 /usr/include/linux/posix_types.h:
 
@@ -519,7 +547,11 @@ src/analyze/CMakeFiles/analyze.dir/analyze.cpp.o: ../src/analyze/analyze.cpp \
 
 /usr/include/x86_64-linux-gnu/bits/wchar2.h:
 
+../src/record/rm_manager.h:
+
 /usr/include/x86_64-linux-gnu/bits/types/clock_t.h:
+
+../src/optimizer/planner.h:
 
 /usr/lib/gcc/x86_64-linux-gnu/11/include/stdint.h:
 
@@ -554,6 +586,8 @@ src/analyze/CMakeFiles/analyze.dir/analyze.cpp.o: ../src/analyze/analyze.cpp \
 ../src/index/ix_defs.h:
 
 /usr/include/x86_64-linux-gnu/bits/wchar.h:
+
+../src/record/rm.h:
 
 /usr/include/x86_64-linux-gnu/bits/types/__FILE.h:
 
@@ -974,6 +1008,8 @@ src/analyze/CMakeFiles/analyze.dir/analyze.cpp.o: ../src/analyze/analyze.cpp \
 /usr/include/c++/11/istream:
 
 /usr/include/c++/11/bits/istream.tcc:
+
+../src/execution/execution_manager.h:
 
 /usr/include/c++/11/bits/stl_map.h:
 

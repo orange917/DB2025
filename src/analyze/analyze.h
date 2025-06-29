@@ -20,6 +20,9 @@ See the Mulan PSL v2 for more details. */
 #include "system/sm.h"
 #include "common/common.h"
 
+// 前向声明
+struct OrderByCol;
+
 class Query{
     public:
     std::shared_ptr<ast::TreeNode> parse;
@@ -44,12 +47,18 @@ class Query{
     bool has_group_by;  // 是否有GROUP BY
     bool has_having;  // 是否有HAVING
     bool has_limit;  // 是否有LIMIT
+    
+    // 添加 ORDER BY 支持
+    std::vector<OrderByCol> order_by_cols;  // ORDER BY 列
+    std::vector<bool> order_by_directions;  // ORDER BY 方向 (true=ASC, false=DESC)
+    bool has_order_by;  // 是否有ORDER BY
 
     Query(){
         has_agg = false;
         has_group_by = false;
         has_having = false;
         has_limit = false;
+        has_order_by = false;
         limit_val = -1;
     }
 

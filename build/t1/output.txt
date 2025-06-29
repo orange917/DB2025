@@ -709,3 +709,3489 @@ failure
 | 1 |
 | low_score_sum |
 | 74.500000 |
+failure
+failure
+failure
+| max_id |
+| 4 |
+| min_score |
+| 74.500000 |
+| avg_score |
+| 90.125000 |
+| course_num |
+| 8 |
+| row_num |
+| 8 |
+| row_num |
+| 0 |
+| sum_score |
+| 189.000000 |
+| total_count |
+| 7 |
+| id_count |
+| 7 |
+| float_count |
+| 7 |
+| int_count |
+| 7 |
+| sum_float |
+| 6.859870 |
+| avg_float |
+| 0.979981 |
+| max_float |
+| 999.999023 |
+| min_float |
+| -999.999023 |
+| total_sales | total_amount | avg_amount |
+| 10 | 9084.000000 | 908.400024 |
+| max_qty | min_qty | avg_qty |
+| 15 | 3 | 7.900000 |
+| laptop_count | laptop_total |
+| 4 | 4751.500000 |
+| agg_0 |
+| 0 |
+| agg_0 |
+| 0.000000 |
+| agg_0 |
+| 0.000000 |
+| agg_0 |
+| 0.000000 |
+| agg_0 |
+| 0.000000 |
+| agg_0 | agg_1 | agg_2 | agg_3 | agg_4 |
+| 1 | 100.500000 | 100.500000 | 100.500000 | 100.500000 |
+| total_count | total_value | avg_score |
+| 12 | 78 | 65.400002 |
+| max_score | min_score |
+| 120.199997 | 10.100000 |
+| category_a_count | category_a_avg |
+| 3 | 20.200001 |
+failure
+| sum_tiny | avg_tiny |
+| 0.000006 | 0.000002 |
+| sum_large | avg_large |
+| 3000000.000000 | 1000000.000000 |
+| name_count |
+| 5 |
+| total_count |
+| 2 |
+| high_score_count |
+| 3 |
+| high_score_avg |
+| 94.166664 |
+| low_score_count |
+| 1 |
+| low_score_sum |
+| 74.500000 |
+failure
+failure
+failure
+failure
+| max_id |
+| 4 |
+| min_score |
+| 74.500000 |
+| avg_score |
+| 90.125000 |
+| course_num |
+| 8 |
+| row_num |
+| 8 |
+| row_num |
+| 0 |
+| sum_score |
+| 189.000000 |
+| total_count |
+| 7 |
+| id_count |
+| 7 |
+| float_count |
+| 7 |
+| int_count |
+| 7 |
+| sum_float |
+| 6.859870 |
+| avg_float |
+| 0.979981 |
+| max_float |
+| 999.999023 |
+| min_float |
+| -999.999023 |
+| agg_0 |
+| 0 |
+| agg_0 |
+| 0.000000 |
+| agg_0 |
+| 0.000000 |
+| agg_0 |
+| 0.000000 |
+| agg_0 |
+| 0.000000 |
+failure
+| name_count |
+| 5 |
+| total_count |
+| 2 |
+| high_score_count |
+| 3 |
+| high_score_avg |
+| 94.166664 |
+| low_score_count |
+| 1 |
+| low_score_sum |
+| 74.500000 |
+| id | max_score | min_score | sum_score |
+| 3 | 94.500000 | 89.500000 | 276.500000 |
+| 2 | 93.500000 | 88.500000 | 271.000000 |
+| 1 | 99.000000 | 92.000000 | 286.000000 |
+| course | row_num | student_num | top_score | lowest_score |
+| ParallelCompute | 1 | 1 | 100.000000 | 100.000000 |
+| C++ | 3 | 3 | 92.000000 | 89.000000 |
+| ComputerNetworks | 3 | 3 | 99.000000 | 88.500000 |
+| DataStructure | 3 | 3 | 95.000000 | 93.500000 |
+failure
+failure
+failure
+| max_id |
+| 4 |
+| min_score |
+| 74.500000 |
+| avg_score |
+| 90.125000 |
+| course_num |
+| 8 |
+| row_num |
+| 8 |
+| row_num |
+| 0 |
+| sum_score |
+| 189.000000 |
+| total_count |
+| 7 |
+| id_count |
+| 7 |
+| float_count |
+| 7 |
+| int_count |
+| 7 |
+| sum_float |
+| 6.859870 |
+| avg_float |
+| 0.979981 |
+| max_float |
+| 999.999023 |
+| min_float |
+| -999.999023 |
+| agg_0 |
+| 0 |
+| agg_0 |
+| 0.000000 |
+| agg_0 |
+| 0.000000 |
+| agg_0 |
+| 0.000000 |
+| agg_0 |
+| 0.000000 |
+failure
+| name_count |
+| 5 |
+| total_count |
+| 2 |
+| high_score_count |
+| 3 |
+| high_score_avg |
+| 94.166664 |
+| low_score_count |
+| 1 |
+| low_score_sum |
+| 74.500000 |
+| id | max_score | min_score | sum_score |
+| 3 | 94.500000 | 89.500000 | 276.500000 |
+| 2 | 93.500000 | 88.500000 | 271.000000 |
+| 1 | 99.000000 | 92.000000 | 286.000000 |
+failure
+failure
+failure
+| course | row_num | student_num | top_score | lowest_score |
+| ParallelCompute | 1 | 1 | 100.000000 | 100.000000 |
+| C++ | 3 | 3 | 92.000000 | 89.000000 |
+| ComputerNetworks | 3 | 3 | 99.000000 | 88.500000 |
+| DataStructure | 3 | 3 | 95.000000 | 93.500000 |
+failure
+failure
+failure
+| max_id |
+| 4 |
+| min_score |
+| 74.500000 |
+| avg_score |
+| 90.125000 |
+| course_num |
+| 8 |
+| row_num |
+| 8 |
+| row_num |
+| 0 |
+| sum_score |
+| 189.000000 |
+| total_count |
+| 7 |
+| id_count |
+| 7 |
+| float_count |
+| 7 |
+| int_count |
+| 7 |
+| sum_float |
+| 6.859870 |
+| avg_float |
+| 0.979981 |
+| max_float |
+| 999.999023 |
+| min_float |
+| -999.999023 |
+| agg_0 |
+| 0 |
+| agg_0 |
+| 0.000000 |
+| agg_0 |
+| 0.000000 |
+| agg_0 |
+| 0.000000 |
+| agg_0 |
+| 0.000000 |
+failure
+| name_count |
+| 5 |
+| total_count |
+| 2 |
+| high_score_count |
+| 3 |
+| high_score_avg |
+| 94.166664 |
+| low_score_count |
+| 1 |
+| low_score_sum |
+| 74.500000 |
+| id | max_score | min_score | sum_score |
+| 3 | 94.500000 | 89.500000 | 276.500000 |
+| 2 | 93.500000 | 88.500000 | 271.000000 |
+| 1 | 99.000000 | 92.000000 | 286.000000 |
+failure
+failure
+failure
+| course | row_num | student_num | top_score | lowest_score |
+| ParallelCompute | 1 | 1 | 100.000000 | 100.000000 |
+| C++ | 3 | 3 | 92.000000 | 89.000000 |
+| ComputerNetworks | 3 | 3 | 99.000000 | 88.500000 |
+| DataStructure | 3 | 3 | 95.000000 | 93.500000 |
+failure
+failure
+failure
+| course | id | score |
+| DataStructure | 1 | 95.000000 |
+| DataStructure | 2 | 93.500000 |
+| DataStructure | 4 | 87.000000 |
+| DataStructure | 3 | 85.000000 |
+| DB | 1 | 94.000000 |
+| DB | 2 | 74.500000 |
+| DB | 4 | 83.000000 |
+| DB | 3 | 87.000000 |
+| course | id | score |
+| DB | 1 | 94.000000 |
+| DB | 2 | 74.500000 |
+| DB | 4 | 83.000000 |
+| DB | 3 | 87.000000 |
+| course | id | score |
+| DataStructure | 1 | 95.000000 |
+| DataStructure | 2 | 93.500000 |
+| DataStructure | 4 | 87.000000 |
+| DataStructure | 3 | 85.000000 |
+| course | id | score |
+| DataStructure | 1 | 95.000000 |
+| DataStructure | 2 | 93.500000 |
+| DataStructure | 4 | 87.000000 |
+| DataStructure | 3 | 85.000000 |
+| DB | 1 | 94.000000 |
+| DB | 2 | 74.500000 |
+| DB | 4 | 83.000000 |
+| DB | 3 | 87.000000 |
+| course | id | score |
+| DataStructure | 1 | 95.000000 |
+| DataStructure | 2 | 93.500000 |
+| DataStructure | 4 | 87.000000 |
+| DataStructure | 3 | 85.000000 |
+| DB | 1 | 94.000000 |
+| DB | 2 | 74.500000 |
+| DB | 4 | 83.000000 |
+| DB | 3 | 87.000000 |
+| course | id | score |
+| course | id | score |
+| DataStructure | 1 | 95.000000 |
+| DB | 1 | 94.000000 |
+| id | value_float | value_int | name |
+| 1 | 0.000000 | 0 | zero |
+| 2 | -999.999023 | -999 | negative |
+| 3 | 999.999023 | 999 | positive |
+| 4 | 0.001000 | 1 | small |
+| 5 | 0.999000 | 999 | large |
+| 7 | 3.141590 | 314 | pi |
+| 8 | 2.718280 | 271 | e |
+| id | value_float | value_int | name |
+| 1 | 0.000000 | 0 | zero |
+| 2 | -999.999023 | -999 | negative |
+| 3 | 999.999023 | 999 | positive |
+| 4 | 0.001000 | 1 | small |
+| 5 | 0.999000 | 999 | large |
+| 7 | 3.141590 | 314 | pi |
+| 8 | 2.718280 | 271 | e |
+| id | value_float | value_int | name |
+| 1 | 0.000000 | 0 | zero |
+| 2 | -999.999023 | -999 | negative |
+| 3 | 999.999023 | 999 | positive |
+| 4 | 0.001000 | 1 | small |
+| 5 | 0.999000 | 999 | large |
+| 7 | 3.141590 | 314 | pi |
+| 8 | 2.718280 | 271 | e |
+| id | value_float | value_int | name |
+| 1 | 0.000000 | 0 | zero |
+| 2 | -999.999023 | -999 | negative |
+| 3 | 999.999023 | 999 | positive |
+| 4 | 0.001000 | 1 | small |
+| 5 | 0.999000 | 999 | large |
+| 7 | 3.141590 | 314 | pi |
+| 8 | 2.718280 | 271 | e |
+| id | value_float | value_int | name |
+| 1 | 0.000000 | 0 | zero |
+| 2 | -999.999023 | -999 | negative |
+| 3 | 999.999023 | 999 | positive |
+| 4 | 0.001000 | 1 | small |
+| 5 | 0.999000 | 999 | large |
+| 7 | 3.141590 | 314 | pi |
+| 8 | 2.718280 | 271 | e |
+| id | value_float | value_int | name |
+| 1 | 0.000000 | 0 | zero |
+| 2 | -999.999023 | -999 | negative |
+| 3 | 999.999023 | 999 | positive |
+| 4 | 0.001000 | 1 | small |
+| 5 | 0.999000 | 999 | large |
+| 7 | 3.141590 | 314 | pi |
+| 8 | 2.718280 | 271 | e |
+| id | value_float | value_int | name |
+| 1 | 0.000000 | 0 | zero |
+| 2 | -999.999023 | -999 | negative |
+| 3 | 999.999023 | 999 | positive |
+| 4 | 0.001000 | 1 | small |
+| 5 | 0.999000 | 999 | large |
+| 7 | 3.141590 | 314 | pi |
+| 8 | 2.718280 | 271 | e |
+| id | value_float | value_int | name |
+| 1 | 0.000000 | 0 | zero |
+| 2 | -999.999023 | -999 | negative |
+| 3 | 999.999023 | 999 | positive |
+| 4 | 0.001000 | 1 | small |
+| 5 | 0.999000 | 999 | large |
+| 7 | 3.141590 | 314 | pi |
+| 8 | 2.718280 | 271 | e |
+| id | value |
+| id | value |
+| id | value |
+| id | value |
+| id | value |
+failure
+| id | name | category |
+| 1 | Alice | A |
+| 2 | Bob | A |
+| 3 | Charlie | B |
+| 4 | David | B |
+| 5 | Eve | C |
+| id | name | category |
+| 1 | Alice | A |
+| 2 | Bob | A |
+| course | id | score |
+| DataStructure | 1 | 95.000000 |
+| DataStructure | 2 | 93.500000 |
+| DB | 1 | 94.000000 |
+| course | id | score |
+| DataStructure | 1 | 95.000000 |
+| DataStructure | 2 | 93.500000 |
+| DB | 1 | 94.000000 |
+| course | id | score |
+| DB | 2 | 74.500000 |
+| course | id | score |
+| DB | 2 | 74.500000 |
+| id |
+| 3 |
+| 2 |
+| 1 |
+failure
+failure
+failure
+| course |
+| ParallelCompute |
+| C++ |
+| ComputerNetworks |
+| DataStructure |
+failure
+failure
+failure
+| course | id | score |
+| DataStructure | 1 | 95.000000 |
+| DataStructure | 2 | 93.500000 |
+| DataStructure | 4 | 87.000000 |
+| DataStructure | 3 | 85.000000 |
+| DB | 1 | 94.000000 |
+| DB | 2 | 74.500000 |
+| DB | 4 | 83.000000 |
+| DB | 3 | 87.000000 |
+| course | id | score |
+| DB | 1 | 94.000000 |
+| DB | 2 | 74.500000 |
+| DB | 4 | 83.000000 |
+| DB | 3 | 87.000000 |
+| course | id | score |
+| DataStructure | 1 | 95.000000 |
+| DataStructure | 2 | 93.500000 |
+| DataStructure | 4 | 87.000000 |
+| DataStructure | 3 | 85.000000 |
+| course | id | score |
+| DataStructure | 1 | 95.000000 |
+| DataStructure | 2 | 93.500000 |
+| DataStructure | 4 | 87.000000 |
+| DataStructure | 3 | 85.000000 |
+| DB | 1 | 94.000000 |
+| DB | 2 | 74.500000 |
+| DB | 4 | 83.000000 |
+| DB | 3 | 87.000000 |
+| course | id | score |
+| DataStructure | 1 | 95.000000 |
+| DataStructure | 2 | 93.500000 |
+| DataStructure | 4 | 87.000000 |
+| DataStructure | 3 | 85.000000 |
+| DB | 1 | 94.000000 |
+| DB | 2 | 74.500000 |
+| DB | 4 | 83.000000 |
+| DB | 3 | 87.000000 |
+| course | id | score |
+| course | id | score |
+| DataStructure | 1 | 95.000000 |
+| DB | 1 | 94.000000 |
+| id | value_float | value_int | name |
+| 1 | 0.000000 | 0 | zero |
+| 2 | -999.999023 | -999 | negative |
+| 3 | 999.999023 | 999 | positive |
+| 4 | 0.001000 | 1 | small |
+| 5 | 0.999000 | 999 | large |
+| 7 | 3.141590 | 314 | pi |
+| 8 | 2.718280 | 271 | e |
+| id | value_float | value_int | name |
+| 1 | 0.000000 | 0 | zero |
+| 2 | -999.999023 | -999 | negative |
+| 3 | 999.999023 | 999 | positive |
+| 4 | 0.001000 | 1 | small |
+| 5 | 0.999000 | 999 | large |
+| 7 | 3.141590 | 314 | pi |
+| 8 | 2.718280 | 271 | e |
+| id | value_float | value_int | name |
+| 1 | 0.000000 | 0 | zero |
+| 2 | -999.999023 | -999 | negative |
+| 3 | 999.999023 | 999 | positive |
+| 4 | 0.001000 | 1 | small |
+| 5 | 0.999000 | 999 | large |
+| 7 | 3.141590 | 314 | pi |
+| 8 | 2.718280 | 271 | e |
+| id | value_float | value_int | name |
+| 1 | 0.000000 | 0 | zero |
+| 2 | -999.999023 | -999 | negative |
+| 3 | 999.999023 | 999 | positive |
+| 4 | 0.001000 | 1 | small |
+| 5 | 0.999000 | 999 | large |
+| 7 | 3.141590 | 314 | pi |
+| 8 | 2.718280 | 271 | e |
+| id | value_float | value_int | name |
+| 1 | 0.000000 | 0 | zero |
+| 2 | -999.999023 | -999 | negative |
+| 3 | 999.999023 | 999 | positive |
+| 4 | 0.001000 | 1 | small |
+| 5 | 0.999000 | 999 | large |
+| 7 | 3.141590 | 314 | pi |
+| 8 | 2.718280 | 271 | e |
+| id | value_float | value_int | name |
+| 1 | 0.000000 | 0 | zero |
+| 2 | -999.999023 | -999 | negative |
+| 3 | 999.999023 | 999 | positive |
+| 4 | 0.001000 | 1 | small |
+| 5 | 0.999000 | 999 | large |
+| 7 | 3.141590 | 314 | pi |
+| 8 | 2.718280 | 271 | e |
+| id | value_float | value_int | name |
+| 1 | 0.000000 | 0 | zero |
+| 2 | -999.999023 | -999 | negative |
+| 3 | 999.999023 | 999 | positive |
+| 4 | 0.001000 | 1 | small |
+| 5 | 0.999000 | 999 | large |
+| 7 | 3.141590 | 314 | pi |
+| 8 | 2.718280 | 271 | e |
+| id | value_float | value_int | name |
+| 1 | 0.000000 | 0 | zero |
+| 2 | -999.999023 | -999 | negative |
+| 3 | 999.999023 | 999 | positive |
+| 4 | 0.001000 | 1 | small |
+| 5 | 0.999000 | 999 | large |
+| 7 | 3.141590 | 314 | pi |
+| 8 | 2.718280 | 271 | e |
+| id | value |
+| id | value |
+| id | value |
+| id | value |
+| id | value |
+failure
+| id | name | category |
+| 1 | Alice | A |
+| 2 | Bob | A |
+| 3 | Charlie | B |
+| 4 | David | B |
+| 5 | Eve | C |
+| id | name | category |
+| 1 | Alice | A |
+| 2 | Bob | A |
+| course | id | score |
+| DataStructure | 1 | 95.000000 |
+| DataStructure | 2 | 93.500000 |
+| DB | 1 | 94.000000 |
+| course | id | score |
+| DataStructure | 1 | 95.000000 |
+| DataStructure | 2 | 93.500000 |
+| DB | 1 | 94.000000 |
+| course | id | score |
+| DB | 2 | 74.500000 |
+| course | id | score |
+| DB | 2 | 74.500000 |
+| id |
+| 3 |
+| 2 |
+| 1 |
+failure
+failure
+failure
+| course |
+| ParallelCompute |
+| C++ |
+| ComputerNetworks |
+| DataStructure |
+failure
+failure
+failure
+| course | id | score |
+| DataStructure | 1 | 95.000000 |
+| DataStructure | 2 | 93.500000 |
+| DataStructure | 4 | 87.000000 |
+| DataStructure | 3 | 85.000000 |
+| DB | 1 | 94.000000 |
+| DB | 2 | 74.500000 |
+| DB | 4 | 83.000000 |
+| DB | 3 | 87.000000 |
+| course | id | score |
+| DB | 1 | 94.000000 |
+| DB | 2 | 74.500000 |
+| DB | 4 | 83.000000 |
+| DB | 3 | 87.000000 |
+| course | id | score |
+| DataStructure | 1 | 95.000000 |
+| DataStructure | 2 | 93.500000 |
+| DataStructure | 4 | 87.000000 |
+| DataStructure | 3 | 85.000000 |
+| course | id | score |
+| DataStructure | 1 | 95.000000 |
+| DataStructure | 2 | 93.500000 |
+| DataStructure | 4 | 87.000000 |
+| DataStructure | 3 | 85.000000 |
+| DB | 1 | 94.000000 |
+| DB | 2 | 74.500000 |
+| DB | 4 | 83.000000 |
+| DB | 3 | 87.000000 |
+| course | id | score |
+| DataStructure | 1 | 95.000000 |
+| DataStructure | 2 | 93.500000 |
+| DataStructure | 4 | 87.000000 |
+| DataStructure | 3 | 85.000000 |
+| DB | 1 | 94.000000 |
+| DB | 2 | 74.500000 |
+| DB | 4 | 83.000000 |
+| DB | 3 | 87.000000 |
+| course | id | score |
+| course | id | score |
+| DataStructure | 1 | 95.000000 |
+| DB | 1 | 94.000000 |
+| id | value_float | value_int | name |
+| 1 | 0.000000 | 0 | zero |
+| 2 | -999.999023 | -999 | negative |
+| 3 | 999.999023 | 999 | positive |
+| 4 | 0.001000 | 1 | small |
+| 5 | 0.999000 | 999 | large |
+| 7 | 3.141590 | 314 | pi |
+| 8 | 2.718280 | 271 | e |
+| id | value_float | value_int | name |
+| 1 | 0.000000 | 0 | zero |
+| 2 | -999.999023 | -999 | negative |
+| 3 | 999.999023 | 999 | positive |
+| 4 | 0.001000 | 1 | small |
+| 5 | 0.999000 | 999 | large |
+| 7 | 3.141590 | 314 | pi |
+| 8 | 2.718280 | 271 | e |
+| id | value_float | value_int | name |
+| 1 | 0.000000 | 0 | zero |
+| 2 | -999.999023 | -999 | negative |
+| 3 | 999.999023 | 999 | positive |
+| 4 | 0.001000 | 1 | small |
+| 5 | 0.999000 | 999 | large |
+| 7 | 3.141590 | 314 | pi |
+| 8 | 2.718280 | 271 | e |
+| id | value_float | value_int | name |
+| 1 | 0.000000 | 0 | zero |
+| 2 | -999.999023 | -999 | negative |
+| 3 | 999.999023 | 999 | positive |
+| 4 | 0.001000 | 1 | small |
+| 5 | 0.999000 | 999 | large |
+| 7 | 3.141590 | 314 | pi |
+| 8 | 2.718280 | 271 | e |
+| id | value_float | value_int | name |
+| 1 | 0.000000 | 0 | zero |
+| 2 | -999.999023 | -999 | negative |
+| 3 | 999.999023 | 999 | positive |
+| 4 | 0.001000 | 1 | small |
+| 5 | 0.999000 | 999 | large |
+| 7 | 3.141590 | 314 | pi |
+| 8 | 2.718280 | 271 | e |
+| id | value_float | value_int | name |
+| 1 | 0.000000 | 0 | zero |
+| 2 | -999.999023 | -999 | negative |
+| 3 | 999.999023 | 999 | positive |
+| 4 | 0.001000 | 1 | small |
+| 5 | 0.999000 | 999 | large |
+| 7 | 3.141590 | 314 | pi |
+| 8 | 2.718280 | 271 | e |
+| id | value_float | value_int | name |
+| 1 | 0.000000 | 0 | zero |
+| 2 | -999.999023 | -999 | negative |
+| 3 | 999.999023 | 999 | positive |
+| 4 | 0.001000 | 1 | small |
+| 5 | 0.999000 | 999 | large |
+| 7 | 3.141590 | 314 | pi |
+| 8 | 2.718280 | 271 | e |
+| id | value_float | value_int | name |
+| 1 | 0.000000 | 0 | zero |
+| 2 | -999.999023 | -999 | negative |
+| 3 | 999.999023 | 999 | positive |
+| 4 | 0.001000 | 1 | small |
+| 5 | 0.999000 | 999 | large |
+| 7 | 3.141590 | 314 | pi |
+| 8 | 2.718280 | 271 | e |
+| id | value |
+| id | value |
+| id | value |
+| id | value |
+| id | value |
+failure
+| id | name | category |
+| 1 | Alice | A |
+| 2 | Bob | A |
+| 3 | Charlie | B |
+| 4 | David | B |
+| 5 | Eve | C |
+| id | name | category |
+| 1 | Alice | A |
+| 2 | Bob | A |
+| course | id | score |
+| DataStructure | 1 | 95.000000 |
+| DataStructure | 2 | 93.500000 |
+| DB | 1 | 94.000000 |
+| course | id | score |
+| DataStructure | 1 | 95.000000 |
+| DataStructure | 2 | 93.500000 |
+| DB | 1 | 94.000000 |
+| course | id | score |
+| DB | 2 | 74.500000 |
+| course | id | score |
+| DB | 2 | 74.500000 |
+| id |
+| 3 |
+| 2 |
+| 1 |
+failure
+failure
+failure
+| course |
+| ParallelCompute |
+| C++ |
+| ComputerNetworks |
+| DataStructure |
+failure
+failure
+failure
+| max_id |
+| 4 |
+| min_score |
+| 74.500000 |
+| avg_score |
+| 90.125000 |
+| course_num |
+| 8 |
+| row_num |
+| 8 |
+| row_num |
+| 0 |
+| sum_score |
+| 189.000000 |
+| total_count |
+| 7 |
+| id_count |
+| 7 |
+| float_count |
+| 7 |
+| int_count |
+| 7 |
+| sum_float |
+| 6.859870 |
+| avg_float |
+| 0.979981 |
+| max_float |
+| 999.999023 |
+| min_float |
+| -999.999023 |
+| agg_0 |
+| 0 |
+| agg_0 |
+| 0.000000 |
+| agg_0 |
+| 0.000000 |
+| agg_0 |
+| 0.000000 |
+| agg_0 |
+| 0.000000 |
+failure
+| name_count |
+| 5 |
+| total_count |
+| 2 |
+| high_score_count |
+| 3 |
+| high_score_avg |
+| 94.166664 |
+| low_score_count |
+| 1 |
+| low_score_sum |
+| 74.500000 |
+| id | max_score | min_score | sum_score |
+| 3 | 94.500000 | 89.500000 | 276.500000 |
+| 2 | 93.500000 | 88.500000 | 271.000000 |
+| 1 | 99.000000 | 92.000000 | 286.000000 |
+| course | row_num | student_num | top_score | lowest_score |
+| ParallelCompute | 1 | 1 | 100.000000 | 100.000000 |
+| C++ | 3 | 3 | 92.000000 | 89.000000 |
+| ComputerNetworks | 3 | 3 | 99.000000 | 88.500000 |
+| DataStructure | 3 | 3 | 95.000000 | 93.500000 |
+failure
+failure
+failure
+| max_id |
+| 4 |
+| min_score |
+| 74.500000 |
+| avg_score |
+| 90.125000 |
+| course_num |
+| 8 |
+| row_num |
+| 8 |
+| row_num |
+| 0 |
+| sum_score |
+| 189.000000 |
+| total_count |
+| 7 |
+| id_count |
+| 7 |
+| float_count |
+| 7 |
+| int_count |
+| 7 |
+| sum_float |
+| 6.859870 |
+| avg_float |
+| 0.979981 |
+| max_float |
+| 999.999023 |
+| min_float |
+| -999.999023 |
+| agg_0 |
+| 0 |
+| agg_0 |
+| 0.000000 |
+| agg_0 |
+| 0.000000 |
+| agg_0 |
+| 0.000000 |
+| agg_0 |
+| 0.000000 |
+failure
+| name_count |
+| 5 |
+| total_count |
+| 2 |
+| high_score_count |
+| 3 |
+| high_score_avg |
+| 94.166664 |
+| low_score_count |
+| 1 |
+| low_score_sum |
+| 74.500000 |
+| id | max_score | min_score | sum_score |
+| 3 | 94.500000 | 89.500000 | 276.500000 |
+| 2 | 93.500000 | 88.500000 | 271.000000 |
+| 1 | 99.000000 | 92.000000 | 286.000000 |
+| id | max_score |
+| 3 | 94.500000 |
+| 2 | 93.500000 |
+| 1 | 99.000000 |
+| id | max_score |
+| 3 | 94.500000 |
+| 2 | 93.500000 |
+| 1 | 100.000000 |
+| id | max_score | min_score |
+| 3 | 94.500000 | 89.500000 |
+| 2 | 93.500000 | 88.500000 |
+| 1 | 100.000000 | 92.000000 |
+| course | row_num | student_num | top_score | lowest_score |
+| ParallelCompute | 1 | 1 | 100.000000 | 100.000000 |
+| C++ | 3 | 3 | 92.000000 | 89.000000 |
+| ComputerNetworks | 3 | 3 | 99.000000 | 88.500000 |
+| DataStructure | 3 | 3 | 95.000000 | 93.500000 |
+failure
+failure
+failure
+| max_id |
+| 4 |
+| min_score |
+| 74.500000 |
+| avg_score |
+| 90.125000 |
+| course_num |
+| 8 |
+| row_num |
+| 8 |
+| row_num |
+| 0 |
+| sum_score |
+| 189.000000 |
+| total_count |
+| 7 |
+| id_count |
+| 7 |
+| float_count |
+| 7 |
+| int_count |
+| 7 |
+| sum_float |
+| 6.859870 |
+| avg_float |
+| 0.979981 |
+| max_float |
+| 999.999023 |
+| min_float |
+| -999.999023 |
+| agg_0 |
+| 0 |
+| agg_0 |
+| 0.000000 |
+| agg_0 |
+| 0.000000 |
+| agg_0 |
+| 0.000000 |
+| agg_0 |
+| 0.000000 |
+failure
+| name_count |
+| 5 |
+| total_count |
+| 2 |
+| high_score_count |
+| 3 |
+| high_score_avg |
+| 94.166664 |
+| low_score_count |
+| 1 |
+| low_score_sum |
+| 74.500000 |
+| id | max_score | min_score | sum_score |
+| 3 | 94.500000 | 89.500000 | 276.500000 |
+| 2 | 93.500000 | 88.500000 | 271.000000 |
+| 1 | 99.000000 | 92.000000 | 286.000000 |
+| id | max_score |
+| 3 | 94.500000 |
+| 2 | 93.500000 |
+| 1 | 99.000000 |
+| id | max_score |
+| 3 | 94.500000 |
+| 2 | 93.500000 |
+| 1 | 100.000000 |
+| id | max_score | min_score |
+| 3 | 94.500000 | 89.500000 |
+| 2 | 93.500000 | 88.500000 |
+| 1 | 100.000000 | 92.000000 |
+| course | row_num | student_num | top_score | lowest_score |
+| ParallelCompute | 1 | 1 | 100.000000 | 100.000000 |
+| C++ | 3 | 3 | 92.000000 | 89.000000 |
+| ComputerNetworks | 3 | 3 | 99.000000 | 88.500000 |
+| DataStructure | 3 | 3 | 95.000000 | 93.500000 |
+failure
+failure
+failure
+| max_id |
+| 4 |
+| min_score |
+| 74.500000 |
+| avg_score |
+| 90.125000 |
+| course_num |
+| 8 |
+| row_num |
+| 8 |
+| row_num |
+| 0 |
+| sum_score |
+| 189.000000 |
+| total_count |
+| 7 |
+| id_count |
+| 7 |
+| float_count |
+| 7 |
+| int_count |
+| 7 |
+| sum_float |
+| 6.859870 |
+| avg_float |
+| 0.979981 |
+| max_float |
+| 999.999023 |
+| min_float |
+| -999.999023 |
+| agg_0 |
+| 0 |
+| agg_0 |
+| 0.000000 |
+| agg_0 |
+| 0.000000 |
+| agg_0 |
+| 0.000000 |
+| agg_0 |
+| 0.000000 |
+failure
+| name_count |
+| 5 |
+| total_count |
+| 2 |
+| high_score_count |
+| 3 |
+| high_score_avg |
+| 94.166664 |
+| low_score_count |
+| 1 |
+| low_score_sum |
+| 74.500000 |
+failure
+failure
+failure
+failure
+| max_id |
+| 4 |
+| min_score |
+| 74.500000 |
+| avg_score |
+| 90.125000 |
+| course_num |
+| 8 |
+| row_num |
+| 8 |
+| row_num |
+| 0 |
+| sum_score |
+| 189.000000 |
+| total_count |
+| 7 |
+| id_count |
+| 7 |
+| float_count |
+| 7 |
+| int_count |
+| 7 |
+| sum_float |
+| 6.859870 |
+| avg_float |
+| 0.979981 |
+| max_float |
+| 999.999023 |
+| min_float |
+| -999.999023 |
+| agg_0 |
+| 0 |
+| agg_0 |
+| 0.000000 |
+| agg_0 |
+| 0.000000 |
+| agg_0 |
+| 0.000000 |
+| agg_0 |
+| 0.000000 |
+failure
+| name_count |
+| 5 |
+| total_count |
+| 2 |
+| high_score_count |
+| 3 |
+| high_score_avg |
+| 94.166664 |
+| low_score_count |
+| 1 |
+| low_score_sum |
+| 74.500000 |
+| id | max_score | min_score | sum_score |
+| 3 | 94.500000 | 89.500000 | 276.500000 |
+| 2 | 93.500000 | 88.500000 | 271.000000 |
+| 1 | 99.000000 | 92.000000 | 286.000000 |
+| id | max_score |
+| 3 | 94.500000 |
+| 2 | 93.500000 |
+| 1 | 99.000000 |
+| id | max_score |
+| 3 | 94.500000 |
+| 2 | 93.500000 |
+| 1 | 100.000000 |
+| id | max_score | min_score |
+| 3 | 94.500000 | 89.500000 |
+| 2 | 93.500000 | 88.500000 |
+| 1 | 100.000000 | 92.000000 |
+| course | row_num | student_num | top_score | lowest_score |
+| ParallelCompute | 1 | 1 | 100.000000 | 100.000000 |
+| C++ | 3 | 3 | 92.000000 | 89.000000 |
+| ComputerNetworks | 3 | 3 | 99.000000 | 88.500000 |
+| DataStructure | 3 | 3 | 95.000000 | 93.500000 |
+failure
+failure
+failure
+| max_id |
+| 4 |
+| min_score |
+| 74.500000 |
+| avg_score |
+| 90.125000 |
+| course_num |
+| 8 |
+| row_num |
+| 8 |
+| row_num |
+| 0 |
+| sum_score |
+| 189.000000 |
+| total_count |
+| 7 |
+| id_count |
+| 7 |
+| float_count |
+| 7 |
+| int_count |
+| 7 |
+| sum_float |
+| 6.859870 |
+| avg_float |
+| 0.979981 |
+| max_float |
+| 999.999023 |
+| min_float |
+| -999.999023 |
+| agg_0 |
+| 0 |
+| agg_0 |
+| 0.000000 |
+| agg_0 |
+| 0.000000 |
+| agg_0 |
+| 0.000000 |
+| agg_0 |
+| 0.000000 |
+failure
+| name_count |
+| 5 |
+| total_count |
+| 2 |
+| high_score_count |
+| 3 |
+| high_score_avg |
+| 94.166664 |
+| low_score_count |
+| 1 |
+| low_score_sum |
+| 74.500000 |
+| id | max_score | min_score | sum_score |
+| 3 | 94.500000 | 89.500000 | 276.500000 |
+| 2 | 93.500000 | 88.500000 | 271.000000 |
+| 1 | 99.000000 | 92.000000 | 286.000000 |
+| id | max_score |
+| 3 | 94.500000 |
+| 2 | 93.500000 |
+| 1 | 99.000000 |
+| id | max_score |
+| 3 | 94.500000 |
+| 2 | 93.500000 |
+| 1 | 100.000000 |
+| id | max_score | min_score |
+| 3 | 94.500000 | 89.500000 |
+| 2 | 93.500000 | 88.500000 |
+| 1 | 100.000000 | 92.000000 |
+| course | row_num | student_num | top_score | lowest_score |
+| ParallelCompute | 1 | 1 | 100.000000 | 100.000000 |
+| C++ | 3 | 3 | 92.000000 | 89.000000 |
+| ComputerNetworks | 3 | 3 | 99.000000 | 88.500000 |
+| DataStructure | 3 | 3 | 95.000000 | 93.500000 |
+failure
+failure
+failure
+| max_id |
+| 4 |
+| min_score |
+| 74.500000 |
+| avg_score |
+| 90.125000 |
+| course_num |
+| 8 |
+| row_num |
+| 8 |
+| row_num |
+| 0 |
+| sum_score |
+| 189.000000 |
+| total_count |
+| 7 |
+| id_count |
+| 7 |
+| float_count |
+| 7 |
+| int_count |
+| 7 |
+| sum_float |
+| 6.859870 |
+| avg_float |
+| 0.979981 |
+| max_float |
+| 999.999023 |
+| min_float |
+| -999.999023 |
+| agg_0 |
+| 0 |
+| agg_0 |
+| 0.000000 |
+| agg_0 |
+| 0.000000 |
+| agg_0 |
+| 0.000000 |
+| agg_0 |
+| 0.000000 |
+failure
+| name_count |
+| 5 |
+| total_count |
+| 2 |
+| high_score_count |
+| 3 |
+| high_score_avg |
+| 94.166664 |
+| low_score_count |
+| 1 |
+| low_score_sum |
+| 74.500000 |
+| id | max_score | min_score | sum_score |
+| 3 | 94.500000 | 89.500000 | 276.500000 |
+| 2 | 93.500000 | 88.500000 | 271.000000 |
+| 1 | 99.000000 | 92.000000 | 286.000000 |
+| id | max_score |
+| 3 | 94.500000 |
+| 2 | 93.500000 |
+| 1 | 99.000000 |
+| id | max_score |
+| 3 | 94.500000 |
+| 2 | 93.500000 |
+| 1 | 100.000000 |
+| id | max_score | min_score |
+| 3 | 94.500000 | 89.500000 |
+| 2 | 93.500000 | 88.500000 |
+| 1 | 100.000000 | 92.000000 |
+| course | row_num | student_num | top_score | lowest_score |
+| ParallelCompute | 1 | 1 | 100.000000 | 100.000000 |
+| C++ | 3 | 3 | 92.000000 | 89.000000 |
+| ComputerNetworks | 3 | 3 | 99.000000 | 88.500000 |
+| DataStructure | 3 | 3 | 95.000000 | 93.500000 |
+failure
+failure
+failure
+| max_id |
+| 4 |
+| min_score |
+| 74.500000 |
+| avg_score |
+| 90.125000 |
+| course_num |
+| 8 |
+| row_num |
+| 8 |
+| row_num |
+| 0 |
+| sum_score |
+| 189.000000 |
+| total_count |
+| 7 |
+| id_count |
+| 7 |
+| float_count |
+| 7 |
+| int_count |
+| 7 |
+| sum_float |
+| 6.859870 |
+| avg_float |
+| 0.979981 |
+| max_float |
+| 999.999023 |
+| min_float |
+| -999.999023 |
+| agg_0 |
+| 0 |
+| agg_0 |
+| 0.000000 |
+| agg_0 |
+| 0.000000 |
+| agg_0 |
+| 0.000000 |
+| agg_0 |
+| 0.000000 |
+failure
+| name_count |
+| 5 |
+| total_count |
+| 2 |
+| high_score_count |
+| 3 |
+| high_score_avg |
+| 94.166664 |
+| low_score_count |
+| 1 |
+| low_score_sum |
+| 74.500000 |
+| id | max_score | min_score | sum_score |
+| 3 | 94.500000 | 89.500000 | 276.500000 |
+| 2 | 93.500000 | 88.500000 | 271.000000 |
+| 1 | 99.000000 | 92.000000 | 286.000000 |
+| id | max_score |
+| 3 | 94.500000 |
+| 2 | 93.500000 |
+| 1 | 99.000000 |
+| id | max_score |
+| 3 | 94.500000 |
+| 2 | 93.500000 |
+| 1 | 100.000000 |
+| id | max_score | min_score |
+| 3 | 94.500000 | 89.500000 |
+| 2 | 93.500000 | 88.500000 |
+| 1 | 100.000000 | 92.000000 |
+| course | row_num | student_num | top_score | lowest_score |
+| ParallelCompute | 1 | 1 | 100.000000 | 100.000000 |
+| C++ | 3 | 3 | 92.000000 | 89.000000 |
+| ComputerNetworks | 3 | 3 | 99.000000 | 88.500000 |
+| DataStructure | 3 | 3 | 95.000000 | 93.500000 |
+failure
+failure
+failure
+| max_id |
+| 4 |
+| min_score |
+| 74.500000 |
+| avg_score |
+| 90.125000 |
+| course_num |
+| 8 |
+| row_num |
+| 8 |
+| row_num |
+| 0 |
+| sum_score |
+| 189.000000 |
+| total_count |
+| 7 |
+| id_count |
+| 7 |
+| float_count |
+| 7 |
+| int_count |
+| 7 |
+| sum_float |
+| 6.859870 |
+| avg_float |
+| 0.979981 |
+| max_float |
+| 999.999023 |
+| min_float |
+| -999.999023 |
+| agg_0 |
+| 0 |
+| agg_0 |
+| 0.000000 |
+| agg_0 |
+| 0.000000 |
+| agg_0 |
+| 0.000000 |
+| agg_0 |
+| 0.000000 |
+failure
+| name_count |
+| 5 |
+| total_count |
+| 2 |
+| high_score_count |
+| 3 |
+| high_score_avg |
+| 94.166664 |
+| low_score_count |
+| 1 |
+| low_score_sum |
+| 74.500000 |
+| id | max_score | min_score | sum_score |
+| 3 | 94.500000 | 89.500000 | 276.500000 |
+| 2 | 93.500000 | 88.500000 | 271.000000 |
+| 1 | 99.000000 | 92.000000 | 286.000000 |
+| id | max_score |
+| 3 | 94.500000 |
+| 2 | 93.500000 |
+| 1 | 99.000000 |
+| id | max_score |
+| 3 | 94.500000 |
+| 2 | 93.500000 |
+| 1 | 100.000000 |
+| id | max_score | min_score |
+| 3 | 94.500000 | 89.500000 |
+| 2 | 93.500000 | 88.500000 |
+| 1 | 100.000000 | 92.000000 |
+| course | row_num | student_num | top_score | lowest_score |
+| ParallelCompute | 1 | 1 | 100.000000 | 100.000000 |
+| C++ | 3 | 3 | 92.000000 | 89.000000 |
+| ComputerNetworks | 3 | 3 | 99.000000 | 88.500000 |
+| DataStructure | 3 | 3 | 95.000000 | 93.500000 |
+failure
+failure
+failure
+failure
+| max_id |
+| 4 |
+| min_score |
+| 74.500000 |
+| avg_score |
+| 90.125000 |
+| course_num |
+| 8 |
+| row_num |
+| 8 |
+| row_num |
+| 0 |
+| sum_score |
+| 189.000000 |
+| total_count |
+| 7 |
+| id_count |
+| 7 |
+| float_count |
+| 7 |
+| int_count |
+| 7 |
+| sum_float |
+| 6.859870 |
+| avg_float |
+| 0.979981 |
+| max_float |
+| 999.999023 |
+| min_float |
+| -999.999023 |
+| agg_0 |
+| 0 |
+| agg_0 |
+| 0.000000 |
+| agg_0 |
+| 0.000000 |
+| agg_0 |
+| 0.000000 |
+| agg_0 |
+| 0.000000 |
+failure
+| name_count |
+| 5 |
+| total_count |
+| 2 |
+| high_score_count |
+| 3 |
+| high_score_avg |
+| 94.166664 |
+| low_score_count |
+| 1 |
+| low_score_sum |
+| 74.500000 |
+| id | max_score | min_score | sum_score |
+| 3 | 94.500000 | 89.500000 | 276.500000 |
+| 2 | 93.500000 | 88.500000 | 271.000000 |
+| 1 | 99.000000 | 92.000000 | 286.000000 |
+| id | max_score |
+| 3 | 94.500000 |
+| 2 | 93.500000 |
+| 1 | 99.000000 |
+| id | max_score |
+| 3 | 94.500000 |
+| 2 | 93.500000 |
+| 1 | 100.000000 |
+| id | max_score | min_score |
+| 3 | 94.500000 | 89.500000 |
+| 2 | 93.500000 | 88.500000 |
+| 1 | 100.000000 | 92.000000 |
+| course | row_num | student_num | top_score | lowest_score |
+| ParallelCompute | 1 | 1 | 100.000000 | 100.000000 |
+| C++ | 3 | 3 | 92.000000 | 89.000000 |
+| ComputerNetworks | 3 | 3 | 99.000000 | 88.500000 |
+| DataStructure | 3 | 3 | 95.000000 | 93.500000 |
+| course |
+| DataStructure |
+| DataStructure |
+| DataStructure |
+| ComputerNetworks |
+| ComputerNetworks |
+| ComputerNetworks |
+| C++ |
+| C++ |
+| C++ |
+| ParallelCompute |
+failure
+failure
+failure
+| max_id |
+| 4 |
+| min_score |
+| 74.500000 |
+| avg_score |
+| 90.125000 |
+| course_num |
+| 8 |
+| row_num |
+| 8 |
+| row_num |
+| 0 |
+| sum_score |
+| 189.000000 |
+| total_count |
+| 7 |
+| id_count |
+| 7 |
+| float_count |
+| 7 |
+| int_count |
+| 7 |
+| sum_float |
+| 6.859870 |
+| avg_float |
+| 0.979981 |
+| max_float |
+| 999.999023 |
+| min_float |
+| -999.999023 |
+| agg_0 |
+| 0 |
+| agg_0 |
+| 0.000000 |
+| agg_0 |
+| 0.000000 |
+| agg_0 |
+| 0.000000 |
+| agg_0 |
+| 0.000000 |
+failure
+| name_count |
+| 5 |
+| total_count |
+| 2 |
+| high_score_count |
+| 3 |
+| high_score_avg |
+| 94.166664 |
+| low_score_count |
+| 1 |
+| low_score_sum |
+| 74.500000 |
+| id | max_score | min_score | sum_score |
+| 3 | 94.500000 | 89.500000 | 276.500000 |
+| 2 | 93.500000 | 88.500000 | 271.000000 |
+| 1 | 99.000000 | 92.000000 | 286.000000 |
+| id | max_score |
+| 3 | 94.500000 |
+| 2 | 93.500000 |
+| 1 | 99.000000 |
+| id | max_score |
+| 3 | 94.500000 |
+| 2 | 93.500000 |
+| 1 | 100.000000 |
+| id | max_score | min_score |
+| 3 | 94.500000 | 89.500000 |
+| 2 | 93.500000 | 88.500000 |
+| 1 | 100.000000 | 92.000000 |
+| course | row_num | student_num | top_score | lowest_score |
+| ParallelCompute | 1 | 1 | 100.000000 | 100.000000 |
+| C++ | 3 | 3 | 92.000000 | 89.000000 |
+| ComputerNetworks | 3 | 3 | 99.000000 | 88.500000 |
+| DataStructure | 3 | 3 | 95.000000 | 93.500000 |
+failure
+failure
+failure
+failure
+| max_id |
+| 4 |
+| min_score |
+| 74.500000 |
+| avg_score |
+| 90.125000 |
+| course_num |
+| 8 |
+| row_num |
+| 8 |
+| row_num |
+| 0 |
+| sum_score |
+| 189.000000 |
+| total_count |
+| 7 |
+| id_count |
+| 7 |
+| float_count |
+| 7 |
+| int_count |
+| 7 |
+| sum_float |
+| 6.859870 |
+| avg_float |
+| 0.979981 |
+| max_float |
+| 999.999023 |
+| min_float |
+| -999.999023 |
+| agg_0 |
+| 0 |
+| agg_0 |
+| 0.000000 |
+| agg_0 |
+| 0.000000 |
+| agg_0 |
+| 0.000000 |
+| agg_0 |
+| 0.000000 |
+failure
+| name_count |
+| 5 |
+| total_count |
+| 2 |
+| high_score_count |
+| 3 |
+| high_score_avg |
+| 94.166664 |
+| low_score_count |
+| 1 |
+| low_score_sum |
+| 74.500000 |
+| id | max_score | min_score | sum_score |
+| 3 | 94.500000 | 89.500000 | 276.500000 |
+| 2 | 93.500000 | 88.500000 | 271.000000 |
+| 1 | 99.000000 | 92.000000 | 286.000000 |
+| id | max_score |
+| 3 | 94.500000 |
+| 2 | 93.500000 |
+| 1 | 99.000000 |
+| id | max_score |
+| 3 | 94.500000 |
+| 2 | 93.500000 |
+| 1 | 100.000000 |
+| id | max_score | min_score |
+| 3 | 94.500000 | 89.500000 |
+| 2 | 93.500000 | 88.500000 |
+| 1 | 100.000000 | 92.000000 |
+| course | row_num | student_num | top_score | lowest_score |
+| ParallelCompute | 1 | 1 | 100.000000 | 100.000000 |
+| C++ | 3 | 3 | 92.000000 | 89.000000 |
+| ComputerNetworks | 3 | 3 | 99.000000 | 88.500000 |
+| DataStructure | 3 | 3 | 95.000000 | 93.500000 |
+failure
+failure
+failure
+failure
+failure
+| max_id |
+| 4 |
+| min_score |
+| 74.500000 |
+| avg_score |
+| 90.125000 |
+| course_num |
+| 8 |
+| row_num |
+| 8 |
+| row_num |
+| 0 |
+| sum_score |
+| 189.000000 |
+| total_count |
+| 7 |
+| id_count |
+| 7 |
+| float_count |
+| 7 |
+| int_count |
+| 7 |
+| sum_float |
+| 6.859870 |
+| avg_float |
+| 0.979981 |
+| max_float |
+| 999.999023 |
+| min_float |
+| -999.999023 |
+| agg_0 |
+| 0 |
+| agg_0 |
+| 0.000000 |
+| agg_0 |
+| 0.000000 |
+| agg_0 |
+| 0.000000 |
+| agg_0 |
+| 0.000000 |
+failure
+| name_count |
+| 5 |
+| total_count |
+| 2 |
+| high_score_count |
+| 3 |
+| high_score_avg |
+| 94.166664 |
+| low_score_count |
+| 1 |
+| low_score_sum |
+| 74.500000 |
+| id | max_score | min_score | sum_score |
+| 3 | 94.500000 | 89.500000 | 276.500000 |
+| 2 | 93.500000 | 88.500000 | 271.000000 |
+| 1 | 99.000000 | 92.000000 | 286.000000 |
+| id | max_score |
+| 3 | 94.500000 |
+| 2 | 93.500000 |
+| 1 | 99.000000 |
+| id | max_score |
+| 3 | 94.500000 |
+| 2 | 93.500000 |
+| 1 | 100.000000 |
+| id | max_score | min_score |
+| 3 | 94.500000 | 89.500000 |
+| 2 | 93.500000 | 88.500000 |
+| 1 | 100.000000 | 92.000000 |
+| course | row_num | student_num | top_score | lowest_score |
+| ParallelCompute | 1 | 1 | 100.000000 | 100.000000 |
+| C++ | 3 | 3 | 92.000000 | 89.000000 |
+| ComputerNetworks | 3 | 3 | 99.000000 | 88.500000 |
+| DataStructure | 3 | 3 | 95.000000 | 93.500000 |
+| course | id | score |
+| id |
+failure
+failure
+failure
+| max_id |
+| 4 |
+| min_score |
+| 74.500000 |
+| avg_score |
+| 90.125000 |
+| course_num |
+| 8 |
+| row_num |
+| 8 |
+| row_num |
+| 0 |
+| sum_score |
+| 189.000000 |
+| total_count |
+| 7 |
+| id_count |
+| 7 |
+| float_count |
+| 7 |
+| int_count |
+| 7 |
+| sum_float |
+| 6.859870 |
+| avg_float |
+| 0.979981 |
+| max_float |
+| 999.999023 |
+| min_float |
+| -999.999023 |
+| agg_0 |
+| 0 |
+| agg_0 |
+| 0.000000 |
+| agg_0 |
+| 0.000000 |
+| agg_0 |
+| 0.000000 |
+| agg_0 |
+| 0.000000 |
+failure
+| name_count |
+| 5 |
+| total_count |
+| 2 |
+| high_score_count |
+| 3 |
+| high_score_avg |
+| 94.166664 |
+| low_score_count |
+| 1 |
+| low_score_sum |
+| 74.500000 |
+| id | max_score | min_score | sum_score |
+| 3 | 94.500000 | 89.500000 | 276.500000 |
+| 2 | 93.500000 | 88.500000 | 271.000000 |
+| 1 | 99.000000 | 92.000000 | 286.000000 |
+| id | max_score |
+| 3 | 94.500000 |
+| 2 | 93.500000 |
+| 1 | 99.000000 |
+| id | max_score |
+| 3 | 94.500000 |
+| 2 | 93.500000 |
+| 1 | 100.000000 |
+| id | max_score | min_score |
+| 3 | 94.500000 | 89.500000 |
+| 2 | 93.500000 | 88.500000 |
+| 1 | 100.000000 | 92.000000 |
+| course | row_num | student_num | top_score | lowest_score |
+| ParallelCompute | 1 | 1 | 100.000000 | 100.000000 |
+| C++ | 3 | 3 | 92.000000 | 89.000000 |
+| ComputerNetworks | 3 | 3 | 99.000000 | 88.500000 |
+| DataStructure | 3 | 3 | 95.000000 | 93.500000 |
+| course | id | score |
+| ComputerNetworks | 1 | 99.000000 |
+| DataStructure | 2 | 93.500000 |
+| C++ | 2 | 89.000000 |
+| id |
+| 1 |
+| 1 |
+| 2 |
+failure
+failure
+failure
+| max_id |
+| 4 |
+| min_score |
+| 74.500000 |
+| avg_score |
+| 90.125000 |
+| course_num |
+| 8 |
+| row_num |
+| 8 |
+| row_num |
+| 0 |
+| sum_score |
+| 189.000000 |
+| total_count |
+| 7 |
+| id_count |
+| 7 |
+| float_count |
+| 7 |
+| int_count |
+| 7 |
+| sum_float |
+| 6.859870 |
+| avg_float |
+| 0.979981 |
+| max_float |
+| 999.999023 |
+| min_float |
+| -999.999023 |
+| agg_0 |
+| 0 |
+| agg_0 |
+| 0.000000 |
+| agg_0 |
+| 0.000000 |
+| agg_0 |
+| 0.000000 |
+| agg_0 |
+| 0.000000 |
+failure
+| name_count |
+| 5 |
+| total_count |
+| 2 |
+| high_score_count |
+| 3 |
+| high_score_avg |
+| 94.166664 |
+| low_score_count |
+| 1 |
+| low_score_sum |
+| 74.500000 |
+| id | max_score | min_score | sum_score |
+| 3 | 94.500000 | 89.500000 | 276.500000 |
+| 2 | 93.500000 | 88.500000 | 271.000000 |
+| 1 | 99.000000 | 92.000000 | 286.000000 |
+| id | max_score |
+| 3 | 94.500000 |
+| 2 | 93.500000 |
+| 1 | 99.000000 |
+| id | max_score |
+| 3 | 94.500000 |
+| 2 | 93.500000 |
+| 1 | 100.000000 |
+| id | max_score | min_score |
+| 3 | 94.500000 | 89.500000 |
+| 2 | 93.500000 | 88.500000 |
+| 1 | 100.000000 | 92.000000 |
+| course | row_num | student_num | top_score | lowest_score |
+| ParallelCompute | 1 | 1 | 100.000000 | 100.000000 |
+| C++ | 3 | 3 | 92.000000 | 89.000000 |
+| ComputerNetworks | 3 | 3 | 99.000000 | 88.500000 |
+| DataStructure | 3 | 3 | 95.000000 | 93.500000 |
+| course | id | score |
+| ComputerNetworks | 1 | 99.000000 |
+| DataStructure | 2 | 93.500000 |
+| C++ | 2 | 89.000000 |
+| id |
+| 1 |
+| 1 |
+| 2 |
+failure
+failure
+failure
+| max_id |
+| 4 |
+| min_score |
+| 74.500000 |
+| avg_score |
+| 90.125000 |
+| course_num |
+| 8 |
+| row_num |
+| 8 |
+| row_num |
+| 0 |
+| sum_score |
+| 189.000000 |
+| total_count |
+| 7 |
+| id_count |
+| 7 |
+| float_count |
+| 7 |
+| int_count |
+| 7 |
+| sum_float |
+| 6.859870 |
+| avg_float |
+| 0.979981 |
+| max_float |
+| 999.999023 |
+| min_float |
+| -999.999023 |
+| agg_0 |
+| 0 |
+| agg_0 |
+| 0.000000 |
+| agg_0 |
+| 0.000000 |
+| agg_0 |
+| 0.000000 |
+| agg_0 |
+| 0.000000 |
+failure
+| name_count |
+| 5 |
+| total_count |
+| 2 |
+| high_score_count |
+| 3 |
+| high_score_avg |
+| 94.166664 |
+| low_score_count |
+| 1 |
+| low_score_sum |
+| 74.500000 |
+| id | max_score | min_score | sum_score |
+| 3 | 94.500000 | 89.500000 | 276.500000 |
+| 2 | 93.500000 | 88.500000 | 271.000000 |
+| 1 | 99.000000 | 92.000000 | 286.000000 |
+| id | max_score |
+| 3 | 94.500000 |
+| 2 | 93.500000 |
+| 1 | 99.000000 |
+| id | max_score |
+| 3 | 94.500000 |
+| 2 | 93.500000 |
+| 1 | 100.000000 |
+| id | max_score | min_score |
+| 3 | 94.500000 | 89.500000 |
+| 2 | 93.500000 | 88.500000 |
+| 1 | 100.000000 | 92.000000 |
+| course | row_num | student_num | top_score | lowest_score |
+| ParallelCompute | 1 | 1 | 100.000000 | 100.000000 |
+| C++ | 3 | 3 | 92.000000 | 89.000000 |
+| ComputerNetworks | 3 | 3 | 99.000000 | 88.500000 |
+| DataStructure | 3 | 3 | 95.000000 | 93.500000 |
+| course | id | score |
+| ComputerNetworks | 1 | 99.000000 |
+| DataStructure | 2 | 93.500000 |
+| C++ | 2 | 89.000000 |
+| id |
+| 1 |
+| 1 |
+| 2 |
+failure
+failure
+failure
+| max_id |
+| 4 |
+| min_score |
+| 74.500000 |
+| avg_score |
+| 90.125000 |
+| course_num |
+| 8 |
+| row_num |
+| 8 |
+| row_num |
+| 0 |
+| sum_score |
+| 189.000000 |
+| total_count |
+| 7 |
+| id_count |
+| 7 |
+| float_count |
+| 7 |
+| int_count |
+| 7 |
+| sum_float |
+| 6.859870 |
+| avg_float |
+| 0.979981 |
+| max_float |
+| 999.999023 |
+| min_float |
+| -999.999023 |
+| agg_0 |
+| 0 |
+| agg_0 |
+| 0.000000 |
+| agg_0 |
+| 0.000000 |
+| agg_0 |
+| 0.000000 |
+| agg_0 |
+| 0.000000 |
+failure
+| name_count |
+| 5 |
+| total_count |
+| 2 |
+| high_score_count |
+| 3 |
+| high_score_avg |
+| 94.166664 |
+| low_score_count |
+| 1 |
+| low_score_sum |
+| 74.500000 |
+| id | max_score | min_score | sum_score |
+| 3 | 94.500000 | 89.500000 | 276.500000 |
+| 2 | 93.500000 | 88.500000 | 271.000000 |
+| 1 | 99.000000 | 92.000000 | 286.000000 |
+| id | max_score |
+| 3 | 94.500000 |
+| 2 | 93.500000 |
+| 1 | 99.000000 |
+| id | max_score |
+| 3 | 94.500000 |
+| 2 | 93.500000 |
+| 1 | 100.000000 |
+| id | max_score | min_score |
+| 3 | 94.500000 | 89.500000 |
+| 2 | 93.500000 | 88.500000 |
+| 1 | 100.000000 | 92.000000 |
+| course | row_num | student_num | top_score | lowest_score |
+| ParallelCompute | 1 | 1 | 100.000000 | 100.000000 |
+| C++ | 3 | 3 | 92.000000 | 89.000000 |
+| ComputerNetworks | 3 | 3 | 99.000000 | 88.500000 |
+| DataStructure | 3 | 3 | 95.000000 | 93.500000 |
+| course | id | score |
+| ComputerNetworks | 1 | 99.000000 |
+| ComputerNetworks | 2 | 88.500000 |
+| ComputerNetworks | 3 | 92.500000 |
+| DataStructure | 1 | 95.000000 |
+| DataStructure | 2 | 93.500000 |
+| DataStructure | 3 | 94.500000 |
+| ParallelCompute | 1 | 100.000000 |
+| C++ | 1 | 92.000000 |
+| C++ | 2 | 89.000000 |
+| C++ | 3 | 89.500000 |
+| id |
+| 1 |
+| 2 |
+| 3 |
+| 1 |
+| 1 |
+| 2 |
+| 3 |
+| 1 |
+| 2 |
+| 3 |
+failure
+failure
+failure
+| max_id |
+| 4 |
+| min_score |
+| 74.500000 |
+| avg_score |
+| 90.125000 |
+| course_num |
+| 8 |
+| row_num |
+| 8 |
+| row_num |
+| 0 |
+| sum_score |
+| 189.000000 |
+| total_count |
+| 7 |
+| id_count |
+| 7 |
+| float_count |
+| 7 |
+| int_count |
+| 7 |
+| sum_float |
+| 6.859870 |
+| avg_float |
+| 0.979981 |
+| max_float |
+| 999.999023 |
+| min_float |
+| -999.999023 |
+| agg_0 |
+| 0 |
+| agg_0 |
+| 0.000000 |
+| agg_0 |
+| 0.000000 |
+| agg_0 |
+| 0.000000 |
+| agg_0 |
+| 0.000000 |
+failure
+| name_count |
+| 5 |
+| total_count |
+| 2 |
+| high_score_count |
+| 3 |
+| high_score_avg |
+| 94.166664 |
+| low_score_count |
+| 1 |
+| low_score_sum |
+| 74.500000 |
+| id | max_score | min_score | sum_score |
+| 3 | 94.500000 | 89.500000 | 276.500000 |
+| 2 | 93.500000 | 88.500000 | 271.000000 |
+| 1 | 99.000000 | 92.000000 | 286.000000 |
+| id | max_score |
+| 3 | 94.500000 |
+| 2 | 93.500000 |
+| 1 | 99.000000 |
+| id | max_score |
+| 3 | 94.500000 |
+| 2 | 93.500000 |
+| 1 | 100.000000 |
+| id | max_score | min_score |
+| 3 | 94.500000 | 89.500000 |
+| 2 | 93.500000 | 88.500000 |
+| 1 | 100.000000 | 92.000000 |
+| course | row_num | student_num | top_score | lowest_score |
+| ParallelCompute | 1 | 1 | 100.000000 | 100.000000 |
+| C++ | 3 | 3 | 92.000000 | 89.000000 |
+| ComputerNetworks | 3 | 3 | 99.000000 | 88.500000 |
+| DataStructure | 3 | 3 | 95.000000 | 93.500000 |
+| course | id | score |
+| ComputerNetworks | 1 | 99.000000 |
+| ComputerNetworks | 2 | 88.500000 |
+| ComputerNetworks | 3 | 92.500000 |
+| DataStructure | 1 | 95.000000 |
+| DataStructure | 2 | 93.500000 |
+| DataStructure | 3 | 94.500000 |
+| ParallelCompute | 1 | 100.000000 |
+| C++ | 1 | 92.000000 |
+| C++ | 2 | 89.000000 |
+| C++ | 3 | 89.500000 |
+| id |
+| 1 |
+| 2 |
+| 3 |
+| 1 |
+| 1 |
+| 2 |
+| 3 |
+| 1 |
+| 2 |
+| 3 |
+failure
+failure
+failure
+| max_id |
+| 4 |
+| min_score |
+| 74.500000 |
+| avg_score |
+| 90.125000 |
+| course_num |
+| 8 |
+| row_num |
+| 8 |
+| row_num |
+| 0 |
+| sum_score |
+| 189.000000 |
+| total_count |
+| 7 |
+| id_count |
+| 7 |
+| float_count |
+| 7 |
+| int_count |
+| 7 |
+| sum_float |
+| 6.859870 |
+| avg_float |
+| 0.979981 |
+| max_float |
+| 999.999023 |
+| min_float |
+| -999.999023 |
+| agg_0 |
+| 0 |
+| agg_0 |
+| 0.000000 |
+| agg_0 |
+| 0.000000 |
+| agg_0 |
+| 0.000000 |
+| agg_0 |
+| 0.000000 |
+failure
+| name_count |
+| 5 |
+| total_count |
+| 2 |
+| high_score_count |
+| 3 |
+| high_score_avg |
+| 94.166664 |
+| low_score_count |
+| 1 |
+| low_score_sum |
+| 74.500000 |
+| id | max_score | min_score | sum_score |
+| 3 | 94.500000 | 89.500000 | 276.500000 |
+| 2 | 93.500000 | 88.500000 | 271.000000 |
+| 1 | 99.000000 | 92.000000 | 286.000000 |
+| id | max_score |
+| 3 | 94.500000 |
+| 2 | 93.500000 |
+| 1 | 99.000000 |
+| id | max_score |
+| 3 | 94.500000 |
+| 2 | 93.500000 |
+| 1 | 100.000000 |
+| id | max_score | min_score |
+| 3 | 94.500000 | 89.500000 |
+| 2 | 93.500000 | 88.500000 |
+| 1 | 100.000000 | 92.000000 |
+| course | row_num | student_num | top_score | lowest_score |
+| ParallelCompute | 1 | 1 | 100.000000 | 100.000000 |
+| C++ | 3 | 3 | 92.000000 | 89.000000 |
+| ComputerNetworks | 3 | 3 | 99.000000 | 88.500000 |
+| DataStructure | 3 | 3 | 95.000000 | 93.500000 |
+| course | id | score |
+| ParallelCompute | 1 | 100.000000 |
+| ComputerNetworks | 1 | 99.000000 |
+| DataStructure | 1 | 95.000000 |
+| DataStructure | 3 | 94.500000 |
+| DataStructure | 2 | 93.500000 |
+| ComputerNetworks | 3 | 92.500000 |
+| C++ | 1 | 92.000000 |
+| C++ | 3 | 89.500000 |
+| C++ | 2 | 89.000000 |
+| ComputerNetworks | 2 | 88.500000 |
+| id |
+| 2 |
+| 2 |
+| 3 |
+| 1 |
+| 3 |
+| 2 |
+| 3 |
+| 1 |
+| 1 |
+| 1 |
+failure
+failure
+failure
+| max_id |
+| 4 |
+| min_score |
+| 74.500000 |
+| avg_score |
+| 90.125000 |
+| course_num |
+| 8 |
+| row_num |
+| 8 |
+| row_num |
+| 0 |
+| sum_score |
+| 189.000000 |
+| total_count |
+| 7 |
+| id_count |
+| 7 |
+| float_count |
+| 7 |
+| int_count |
+| 7 |
+| sum_float |
+| 6.859870 |
+| avg_float |
+| 0.979981 |
+| max_float |
+| 999.999023 |
+| min_float |
+| -999.999023 |
+| agg_0 |
+| 0 |
+| agg_0 |
+| 0.000000 |
+| agg_0 |
+| 0.000000 |
+| agg_0 |
+| 0.000000 |
+| agg_0 |
+| 0.000000 |
+failure
+| name_count |
+| 5 |
+| total_count |
+| 2 |
+| high_score_count |
+| 3 |
+| high_score_avg |
+| 94.166664 |
+| low_score_count |
+| 1 |
+| low_score_sum |
+| 74.500000 |
+| id | max_score | min_score | sum_score |
+| 1 | 99.000000 | 92.000000 | 286.000000 |
+| 2 | 93.500000 | 88.500000 | 271.000000 |
+| 3 | 94.500000 | 89.500000 | 276.500000 |
+| id | max_score |
+| 1 | 99.000000 |
+| 2 | 93.500000 |
+| 3 | 94.500000 |
+| id | max_score |
+| 1 | 100.000000 |
+| 2 | 93.500000 |
+| 3 | 94.500000 |
+| id | max_score | min_score |
+| 1 | 100.000000 | 92.000000 |
+| 2 | 93.500000 | 88.500000 |
+| 3 | 94.500000 | 89.500000 |
+| course | row_num | student_num | top_score | lowest_score |
+| C++ | 3 | 3 | 92.000000 | 89.000000 |
+| ComputerNetworks | 3 | 3 | 99.000000 | 88.500000 |
+| DataStructure | 3 | 3 | 95.000000 | 93.500000 |
+| ParallelCompute | 1 | 1 | 100.000000 | 100.000000 |
+| course | id | score |
+| ParallelCompute | 1 | 100.000000 |
+| ComputerNetworks | 1 | 99.000000 |
+| DataStructure | 1 | 95.000000 |
+| DataStructure | 3 | 94.500000 |
+| DataStructure | 2 | 93.500000 |
+| ComputerNetworks | 3 | 92.500000 |
+| C++ | 1 | 92.000000 |
+| C++ | 3 | 89.500000 |
+| C++ | 2 | 89.000000 |
+| ComputerNetworks | 2 | 88.500000 |
+| id |
+| 2 |
+| 2 |
+| 3 |
+| 1 |
+| 3 |
+| 2 |
+| 3 |
+| 1 |
+| 1 |
+| 1 |
+failure
+failure
+failure
+| max_id |
+| 4 |
+| min_score |
+| 74.500000 |
+| avg_score |
+| 90.125000 |
+| course_num |
+| 8 |
+| row_num |
+| 8 |
+| row_num |
+| 0 |
+| sum_score |
+| 189.000000 |
+| total_count |
+| 7 |
+| id_count |
+| 7 |
+| float_count |
+| 7 |
+| int_count |
+| 7 |
+| sum_float |
+| 6.859870 |
+| avg_float |
+| 0.979981 |
+| max_float |
+| 999.999023 |
+| min_float |
+| -999.999023 |
+| agg_0 |
+| 0 |
+| agg_0 |
+| 0.000000 |
+| agg_0 |
+| 0.000000 |
+| agg_0 |
+| 0.000000 |
+| agg_0 |
+| 0.000000 |
+failure
+| name_count |
+| 5 |
+| total_count |
+| 2 |
+| high_score_count |
+| 3 |
+| high_score_avg |
+| 94.166664 |
+| low_score_count |
+| 1 |
+| low_score_sum |
+| 74.500000 |
+| id | max_score | min_score | sum_score |
+| 1 | 99.000000 | 92.000000 | 286.000000 |
+| 2 | 93.500000 | 88.500000 | 271.000000 |
+| 3 | 94.500000 | 89.500000 | 276.500000 |
+| id | max_score |
+| 1 | 99.000000 |
+| 2 | 93.500000 |
+| 3 | 94.500000 |
+| id | max_score |
+| 1 | 100.000000 |
+| 2 | 93.500000 |
+| 3 | 94.500000 |
+| id | max_score | min_score |
+| 1 | 100.000000 | 92.000000 |
+| 2 | 93.500000 | 88.500000 |
+| 3 | 94.500000 | 89.500000 |
+| course | row_num | student_num | top_score | lowest_score |
+| C++ | 3 | 3 | 92.000000 | 89.000000 |
+| ComputerNetworks | 3 | 3 | 99.000000 | 88.500000 |
+| DataStructure | 3 | 3 | 95.000000 | 93.500000 |
+| ParallelCompute | 1 | 1 | 100.000000 | 100.000000 |
+| course | id | score |
+| ParallelCompute | 1 | 100.000000 |
+| ComputerNetworks | 1 | 99.000000 |
+| DataStructure | 1 | 95.000000 |
+| DataStructure | 3 | 94.500000 |
+| DataStructure | 2 | 93.500000 |
+| ComputerNetworks | 3 | 92.500000 |
+| C++ | 1 | 92.000000 |
+| C++ | 3 | 89.500000 |
+| C++ | 2 | 89.000000 |
+| ComputerNetworks | 2 | 88.500000 |
+| id |
+| 2 |
+| 2 |
+| 3 |
+| 1 |
+| 3 |
+| 2 |
+| 3 |
+| 1 |
+| 1 |
+| 1 |
+failure
+failure
+failure
+| max_id |
+| 4 |
+| min_score |
+| 74.500000 |
+| avg_score |
+| 90.125000 |
+| course_num |
+| 8 |
+| row_num |
+| 8 |
+| row_num |
+| 0 |
+| sum_score |
+| 189.000000 |
+| total_count |
+| 7 |
+| id_count |
+| 7 |
+| float_count |
+| 7 |
+| int_count |
+| 7 |
+| sum_float |
+| 6.859870 |
+| avg_float |
+| 0.979981 |
+| max_float |
+| 999.999023 |
+| min_float |
+| -999.999023 |
+| agg_0 |
+| 0 |
+| agg_0 |
+| 0.000000 |
+| agg_0 |
+| 0.000000 |
+| agg_0 |
+| 0.000000 |
+| agg_0 |
+| 0.000000 |
+failure
+| name_count |
+| 5 |
+| total_count |
+| 2 |
+| high_score_count |
+| 3 |
+| high_score_avg |
+| 94.166664 |
+| low_score_count |
+| 1 |
+| low_score_sum |
+| 74.500000 |
+| id | max_score | min_score | sum_score |
+| 1 | 99.000000 | 92.000000 | 286.000000 |
+| 2 | 93.500000 | 88.500000 | 271.000000 |
+| 3 | 94.500000 | 89.500000 | 276.500000 |
+| id | max_score |
+| 1 | 99.000000 |
+| 2 | 93.500000 |
+| 3 | 94.500000 |
+| id | max_score |
+| 1 | 100.000000 |
+| 2 | 93.500000 |
+| 3 | 94.500000 |
+| id | max_score | min_score |
+| 1 | 100.000000 | 92.000000 |
+| 2 | 93.500000 | 88.500000 |
+| 3 | 94.500000 | 89.500000 |
+| course | row_num | student_num | top_score | lowest_score |
+| C++ | 3 | 3 | 92.000000 | 89.000000 |
+| ComputerNetworks | 3 | 3 | 99.000000 | 88.500000 |
+| DataStructure | 3 | 3 | 95.000000 | 93.500000 |
+| ParallelCompute | 1 | 1 | 100.000000 | 100.000000 |
+| course | id | score |
+| ParallelCompute | 1 | 100.000000 |
+| ComputerNetworks | 1 | 99.000000 |
+| DataStructure | 1 | 95.000000 |
+| DataStructure | 3 | 94.500000 |
+| DataStructure | 2 | 93.500000 |
+| ComputerNetworks | 3 | 92.500000 |
+| C++ | 1 | 92.000000 |
+| C++ | 3 | 89.500000 |
+| C++ | 2 | 89.000000 |
+| ComputerNetworks | 2 | 88.500000 |
+| id |
+| 2 |
+| 2 |
+| 3 |
+| 1 |
+| 3 |
+| 2 |
+| 3 |
+| 1 |
+| 1 |
+| 1 |
+failure
+failure
+failure
+| max_id |
+| 4 |
+| min_score |
+| 74.500000 |
+| avg_score |
+| 90.125000 |
+| course_num |
+| 8 |
+| row_num |
+| 8 |
+| row_num |
+| 0 |
+| sum_score |
+| 189.000000 |
+| total_count |
+| 7 |
+| id_count |
+| 7 |
+| float_count |
+| 7 |
+| int_count |
+| 7 |
+| sum_float |
+| 6.859870 |
+| avg_float |
+| 0.979981 |
+| max_float |
+| 999.999023 |
+| min_float |
+| -999.999023 |
+| agg_0 |
+| 0 |
+| agg_0 |
+| 0.000000 |
+| agg_0 |
+| 0.000000 |
+| agg_0 |
+| 0.000000 |
+| agg_0 |
+| 0.000000 |
+failure
+| name_count |
+| 5 |
+| total_count |
+| 2 |
+| high_score_count |
+| 3 |
+| high_score_avg |
+| 94.166664 |
+| low_score_count |
+| 1 |
+| low_score_sum |
+| 74.500000 |
+| id | max_score | min_score | sum_score |
+| 1 | 99.000000 | 92.000000 | 286.000000 |
+| 2 | 93.500000 | 88.500000 | 271.000000 |
+| 3 | 94.500000 | 89.500000 | 276.500000 |
+| id | max_score |
+| 1 | 99.000000 |
+| 2 | 93.500000 |
+| 3 | 94.500000 |
+| id | max_score |
+| 1 | 100.000000 |
+| 2 | 93.500000 |
+| 3 | 94.500000 |
+| id | max_score | min_score |
+| 1 | 100.000000 | 92.000000 |
+| 2 | 93.500000 | 88.500000 |
+| 3 | 94.500000 | 89.500000 |
+| course | row_num | student_num | top_score | lowest_score |
+| C++ | 3 | 3 | 92.000000 | 89.000000 |
+| ComputerNetworks | 3 | 3 | 99.000000 | 88.500000 |
+| DataStructure | 3 | 3 | 95.000000 | 93.500000 |
+| ParallelCompute | 1 | 1 | 100.000000 | 100.000000 |
+| course | id | score |
+| ParallelCompute | 1 | 100.000000 |
+| ComputerNetworks | 1 | 99.000000 |
+| DataStructure | 1 | 95.000000 |
+| DataStructure | 3 | 94.500000 |
+| DataStructure | 2 | 93.500000 |
+| ComputerNetworks | 3 | 92.500000 |
+| C++ | 1 | 92.000000 |
+| C++ | 3 | 89.500000 |
+| C++ | 2 | 89.000000 |
+| ComputerNetworks | 2 | 88.500000 |
+| id |
+| 2 |
+| 2 |
+| 3 |
+| 1 |
+| 3 |
+| 2 |
+| 3 |
+| 1 |
+| 1 |
+| 1 |
+failure
+failure
+failure
+| max_id |
+| 4 |
+| min_score |
+| 74.500000 |
+| avg_score |
+| 90.125000 |
+| course_num |
+| 8 |
+| row_num |
+| 8 |
+| row_num |
+| 0 |
+| sum_score |
+| 189.000000 |
+| total_count |
+| 7 |
+| id_count |
+| 7 |
+| float_count |
+| 7 |
+| int_count |
+| 7 |
+| sum_float |
+| 6.859870 |
+| avg_float |
+| 0.979981 |
+| max_float |
+| 999.999023 |
+| min_float |
+| -999.999023 |
+| agg_0 |
+| 0 |
+| agg_0 |
+| 0.000000 |
+| agg_0 |
+| 0.000000 |
+| agg_0 |
+| 0.000000 |
+| agg_0 |
+| 0.000000 |
+failure
+| name_count |
+| 5 |
+| total_count |
+| 2 |
+| high_score_count |
+| 3 |
+| high_score_avg |
+| 94.166664 |
+| low_score_count |
+| 1 |
+| low_score_sum |
+| 74.500000 |
+| id | max_score | min_score | sum_score |
+| 1 | 99.000000 | 92.000000 | 286.000000 |
+| 2 | 93.500000 | 88.500000 | 271.000000 |
+| 3 | 94.500000 | 89.500000 | 276.500000 |
+| id | max_score |
+| 1 | 99.000000 |
+| 2 | 93.500000 |
+| 3 | 94.500000 |
+| id | max_score |
+| 1 | 100.000000 |
+| 2 | 93.500000 |
+| 3 | 94.500000 |
+| id | max_score | min_score |
+| course | row_num | student_num | top_score | lowest_score |
+| C++ | 3 | 3 | 92.000000 | 89.000000 |
+| ComputerNetworks | 3 | 3 | 99.000000 | 88.500000 |
+| DataStructure | 3 | 3 | 95.000000 | 93.500000 |
+| ParallelCompute | 1 | 1 | 100.000000 | 100.000000 |
+| course | id | score |
+| ParallelCompute | 1 | 100.000000 |
+| ComputerNetworks | 1 | 99.000000 |
+| DataStructure | 1 | 95.000000 |
+| DataStructure | 3 | 94.500000 |
+| DataStructure | 2 | 93.500000 |
+| ComputerNetworks | 3 | 92.500000 |
+| C++ | 1 | 92.000000 |
+| C++ | 3 | 89.500000 |
+| C++ | 2 | 89.000000 |
+| ComputerNetworks | 2 | 88.500000 |
+| id |
+| 2 |
+| 2 |
+| 3 |
+| 1 |
+| 3 |
+| 2 |
+| 3 |
+| 1 |
+| 1 |
+| 1 |
+failure
+failure
+failure
+| max_id |
+| 4 |
+| min_score |
+| 74.500000 |
+| avg_score |
+| 90.125000 |
+| course_num |
+| 8 |
+| row_num |
+| 8 |
+| row_num |
+| 0 |
+| sum_score |
+| 189.000000 |
+| total_count |
+| 7 |
+| id_count |
+| 7 |
+| float_count |
+| 7 |
+| int_count |
+| 7 |
+| sum_float |
+| 6.859870 |
+| avg_float |
+| 0.979981 |
+| max_float |
+| 999.999023 |
+| min_float |
+| -999.999023 |
+| agg_0 |
+| 0 |
+| agg_0 |
+| 0.000000 |
+| agg_0 |
+| 0.000000 |
+| agg_0 |
+| 0.000000 |
+| agg_0 |
+| 0.000000 |
+failure
+| name_count |
+| 5 |
+| total_count |
+| 2 |
+| high_score_count |
+| 3 |
+| high_score_avg |
+| 94.166664 |
+| low_score_count |
+| 1 |
+| low_score_sum |
+| 74.500000 |
+| id | max_score | min_score | sum_score |
+| 1 | 99.000000 | 92.000000 | 286.000000 |
+| 2 | 93.500000 | 88.500000 | 271.000000 |
+| 3 | 94.500000 | 89.500000 | 276.500000 |
+| id | max_score |
+| 1 | 99.000000 |
+| 2 | 93.500000 |
+| 3 | 94.500000 |
+| id | max_score |
+| 1 | 100.000000 |
+| 2 | 93.500000 |
+| 3 | 94.500000 |
+| id | max_score | min_score |
+| course | row_num | student_num | top_score | lowest_score |
+| C++ | 3 | 3 | 92.000000 | 89.000000 |
+| ComputerNetworks | 3 | 3 | 99.000000 | 88.500000 |
+| DataStructure | 3 | 3 | 95.000000 | 93.500000 |
+| ParallelCompute | 1 | 1 | 100.000000 | 100.000000 |
+| course | id | score |
+| ParallelCompute | 1 | 100.000000 |
+| ComputerNetworks | 1 | 99.000000 |
+| DataStructure | 1 | 95.000000 |
+| DataStructure | 3 | 94.500000 |
+| DataStructure | 2 | 93.500000 |
+| ComputerNetworks | 3 | 92.500000 |
+| C++ | 1 | 92.000000 |
+| C++ | 3 | 89.500000 |
+| C++ | 2 | 89.000000 |
+| ComputerNetworks | 2 | 88.500000 |
+| id |
+| 2 |
+| 2 |
+| 3 |
+| 1 |
+| 3 |
+| 2 |
+| 3 |
+| 1 |
+| 1 |
+| 1 |
+failure
+failure
+failure
+| max_id |
+| 4 |
+| min_score |
+| 74.500000 |
+| avg_score |
+| 90.125000 |
+| course_num |
+| 8 |
+| row_num |
+| 8 |
+| row_num |
+| 0 |
+| sum_score |
+| 189.000000 |
+| total_count |
+| 7 |
+| id_count |
+| 7 |
+| float_count |
+| 7 |
+| int_count |
+| 7 |
+| sum_float |
+| 6.859870 |
+| avg_float |
+| 0.979981 |
+| max_float |
+| 999.999023 |
+| min_float |
+| -999.999023 |
+| agg_0 |
+| 0 |
+| agg_0 |
+| 0.000000 |
+| agg_0 |
+| 0.000000 |
+| agg_0 |
+| 0.000000 |
+| agg_0 |
+| 0.000000 |
+failure
+| name_count |
+| 5 |
+| total_count |
+| 2 |
+| high_score_count |
+| 3 |
+| high_score_avg |
+| 94.166664 |
+| low_score_count |
+| 1 |
+| low_score_sum |
+| 74.500000 |
+| id | max_score | min_score | sum_score |
+| 1 | 99.000000 | 92.000000 | 286.000000 |
+| 2 | 93.500000 | 88.500000 | 271.000000 |
+| 3 | 94.500000 | 89.500000 | 276.500000 |
+| id | max_score |
+| id | max_score |
+| id | max_score | min_score |
+| course | row_num | student_num | top_score | lowest_score |
+| C++ | 3 | 3 | 92.000000 | 89.000000 |
+| ComputerNetworks | 3 | 3 | 99.000000 | 88.500000 |
+| DataStructure | 3 | 3 | 95.000000 | 93.500000 |
+| ParallelCompute | 1 | 1 | 100.000000 | 100.000000 |
+| course | id | score |
+| ParallelCompute | 1 | 100.000000 |
+| ComputerNetworks | 1 | 99.000000 |
+| DataStructure | 1 | 95.000000 |
+| DataStructure | 3 | 94.500000 |
+| DataStructure | 2 | 93.500000 |
+| ComputerNetworks | 3 | 92.500000 |
+| C++ | 1 | 92.000000 |
+| C++ | 3 | 89.500000 |
+| C++ | 2 | 89.000000 |
+| ComputerNetworks | 2 | 88.500000 |
+| id |
+| 2 |
+| 2 |
+| 3 |
+| 1 |
+| 3 |
+| 2 |
+| 3 |
+| 1 |
+| 1 |
+| 1 |
+failure
+failure
+failure
+| max_id |
+| 4 |
+| min_score |
+| 74.500000 |
+| avg_score |
+| 90.125000 |
+| course_num |
+| 8 |
+| row_num |
+| 8 |
+| row_num |
+| 0 |
+| sum_score |
+| 189.000000 |
+| total_count |
+| 7 |
+| id_count |
+| 7 |
+| float_count |
+| 7 |
+| int_count |
+| 7 |
+| sum_float |
+| 6.859870 |
+| avg_float |
+| 0.979981 |
+| max_float |
+| 999.999023 |
+| min_float |
+| -999.999023 |
+| agg_0 |
+| 0 |
+| agg_0 |
+| 0.000000 |
+| agg_0 |
+| 0.000000 |
+| agg_0 |
+| 0.000000 |
+| agg_0 |
+| 0.000000 |
+failure
+| name_count |
+| 5 |
+| total_count |
+| 2 |
+| high_score_count |
+| 3 |
+| high_score_avg |
+| 94.166664 |
+| low_score_count |
+| 1 |
+| low_score_sum |
+| 74.500000 |
+| id | max_score | min_score | sum_score |
+| 1 | 99.000000 | 92.000000 | 286.000000 |
+| 2 | 93.500000 | 88.500000 | 271.000000 |
+| 3 | 94.500000 | 89.500000 | 276.500000 |
+| id | max_score |
+| id | max_score |
+| 1 | 100.000000 |
+| id | max_score | min_score |
+failure
+failure
+| max_id |
+| 4 |
+| min_score |
+| 74.500000 |
+| avg_score |
+| 90.125000 |
+| course_num |
+| 8 |
+| row_num |
+| 8 |
+| row_num |
+| 0 |
+| sum_score |
+| 189.000000 |
+| total_count |
+| 7 |
+| id_count |
+| 7 |
+| float_count |
+| 7 |
+| int_count |
+| 7 |
+| sum_float |
+| 6.859870 |
+| avg_float |
+| 0.979981 |
+| max_float |
+| 999.999023 |
+| min_float |
+| -999.999023 |
+| agg_0 |
+| 0 |
+| agg_0 |
+| 0.000000 |
+| agg_0 |
+| 0.000000 |
+| agg_0 |
+| 0.000000 |
+| agg_0 |
+| 0.000000 |
+failure
+| name_count |
+| 5 |
+| total_count |
+| 2 |
+| high_score_count |
+| 3 |
+| high_score_avg |
+| 94.166664 |
+| low_score_count |
+| 1 |
+| low_score_sum |
+| 74.500000 |
+| id | max_score | min_score | sum_score |
+| 1 | 99.000000 | 92.000000 | 286.000000 |
+| 2 | 93.500000 | 88.500000 | 271.000000 |
+| 3 | 94.500000 | 89.500000 | 276.500000 |
+| id | max_score |
+| id | max_score |
+| 1 | 100.000000 |
+| id | max_score | min_score |
+failure
+failure
+| max_id |
+| 4 |
+| min_score |
+| 74.500000 |
+| avg_score |
+| 90.125000 |
+| course_num |
+| 8 |
+| row_num |
+| 8 |
+| row_num |
+| 0 |
+| sum_score |
+| 189.000000 |
+| total_count |
+| 7 |
+| id_count |
+| 7 |
+| float_count |
+| 7 |
+| int_count |
+| 7 |
+| sum_float |
+| 6.859870 |
+| avg_float |
+| 0.979981 |
+| max_float |
+| 999.999023 |
+| min_float |
+| -999.999023 |
+| agg_0 |
+| 0 |
+| agg_0 |
+| 0.000000 |
+| agg_0 |
+| 0.000000 |
+| agg_0 |
+| 0.000000 |
+| agg_0 |
+| 0.000000 |
+failure
+| name_count |
+| 5 |
+| total_count |
+| 2 |
+| high_score_count |
+| 3 |
+| high_score_avg |
+| 94.166664 |
+| low_score_count |
+| 1 |
+| low_score_sum |
+| 74.500000 |
+| id | max_score | min_score | sum_score |
+| 1 | 99.000000 | 92.000000 | 286.000000 |
+| 2 | 93.500000 | 88.500000 | 271.000000 |
+| 3 | 94.500000 | 89.500000 | 276.500000 |
+| id | max_score |
+| id | max_score |
+| 1 | 100.000000 |
+| id | max_score | min_score |
+failure
+failure
+| max_id |
+| 4 |
+| min_score |
+| 74.500000 |
+| avg_score |
+| 90.125000 |
+| course_num |
+| 8 |
+| row_num |
+| 8 |
+| row_num |
+| 0 |
+| sum_score |
+| 189.000000 |
+| total_count |
+| 7 |
+| id_count |
+| 7 |
+| float_count |
+| 7 |
+| int_count |
+| 7 |
+| sum_float |
+| 6.859870 |
+| avg_float |
+| 0.979981 |
+| max_float |
+| 999.999023 |
+| min_float |
+| -999.999023 |
+| agg_0 |
+| 0 |
+| agg_0 |
+| 0.000000 |
+| agg_0 |
+| 0.000000 |
+| agg_0 |
+| 0.000000 |
+| agg_0 |
+| 0.000000 |
+failure
+| name_count |
+| 5 |
+| total_count |
+| 2 |
+| high_score_count |
+| 3 |
+| high_score_avg |
+| 94.166664 |
+| low_score_count |
+| 1 |
+| low_score_sum |
+| 74.500000 |
+| id | max_score | min_score | sum_score |
+| 1 | 99.000000 | 92.000000 | 286.000000 |
+| 2 | 93.500000 | 88.500000 | 271.000000 |
+| 3 | 94.500000 | 89.500000 | 276.500000 |
+| id | max_score |
+| id | max_score |
+| 1 | 100.000000 |
+| id | max_score | min_score |
+failure
+failure
+| max_id |
+| 4 |
+| min_score |
+| 74.500000 |
+| avg_score |
+| 90.125000 |
+| course_num |
+| 8 |
+| row_num |
+| 8 |
+| row_num |
+| 0 |
+| sum_score |
+| 189.000000 |
+| total_count |
+| 7 |
+| id_count |
+| 7 |
+| float_count |
+| 7 |
+| int_count |
+| 7 |
+| sum_float |
+| 6.859870 |
+| avg_float |
+| 0.979981 |
+| max_float |
+| 999.999023 |
+| min_float |
+| -999.999023 |
+| agg_0 |
+| 0 |
+| agg_0 |
+| 0.000000 |
+| agg_0 |
+| 0.000000 |
+| agg_0 |
+| 0.000000 |
+| agg_0 |
+| 0.000000 |
+failure
+| name_count |
+| 5 |
+| total_count |
+| 2 |
+| high_score_count |
+| 3 |
+| high_score_avg |
+| 94.166664 |
+| low_score_count |
+| 1 |
+| low_score_sum |
+| 74.500000 |
+| id | max_score | min_score | sum_score |
+| 1 | 99.000000 | 92.000000 | 286.000000 |
+| 2 | 93.500000 | 88.500000 | 271.000000 |
+| 3 | 94.500000 | 89.500000 | 276.500000 |
+| id | max_score |
+| id | max_score |
+| 1 | 100.000000 |
+| id | max_score | min_score |
+failure
+failure
+| max_id |
+| 4 |
+| min_score |
+| 74.500000 |
+| avg_score |
+| 90.125000 |
+| course_num |
+| 8 |
+| row_num |
+| 8 |
+| row_num |
+| 0 |
+| sum_score |
+| 189.000000 |
+| total_count |
+| 7 |
+| id_count |
+| 7 |
+| float_count |
+| 7 |
+| int_count |
+| 7 |
+| sum_float |
+| 6.859870 |
+| avg_float |
+| 0.979981 |
+| max_float |
+| 999.999023 |
+| min_float |
+| -999.999023 |
+| agg_0 |
+| 0 |
+| agg_0 |
+| 0.000000 |
+| agg_0 |
+| 0.000000 |
+| agg_0 |
+| 0.000000 |
+| agg_0 |
+| 0.000000 |
+failure
+| name_count |
+| 5 |
+| total_count |
+| 2 |
+| high_score_count |
+| 3 |
+| high_score_avg |
+| 94.166664 |
+| low_score_count |
+| 1 |
+| low_score_sum |
+| 74.500000 |
+| id | max_score | min_score | sum_score |
+| 1 | 99.000000 | 92.000000 | 286.000000 |
+| 2 | 93.500000 | 88.500000 | 271.000000 |
+| 3 | 94.500000 | 89.500000 | 276.500000 |
+| id | max_score |
+| id | max_score |
+| 1 | 100.000000 |
+| id | max_score | min_score |
+| 1 | 100.000000 | 92.000000 |
+| 2 | 93.500000 | 88.500000 |
+| 3 | 94.500000 | 89.500000 |
+failure
+failure
+| max_id |
+| 4 |
+| min_score |
+| 74.500000 |
+| avg_score |
+| 90.125000 |
+| course_num |
+| 8 |
+| row_num |
+| 8 |
+| row_num |
+| 0 |
+| sum_score |
+| 189.000000 |
+| total_count |
+| 7 |
+| id_count |
+| 7 |
+| float_count |
+| 7 |
+| int_count |
+| 7 |
+| sum_float |
+| 6.859870 |
+| avg_float |
+| 0.979981 |
+| max_float |
+| 999.999023 |
+| min_float |
+| -999.999023 |
+| agg_0 |
+| 0 |
+| agg_0 |
+| 0.000000 |
+| agg_0 |
+| 0.000000 |
+| agg_0 |
+| 0.000000 |
+| agg_0 |
+| 0.000000 |
+failure
+| name_count |
+| 5 |
+| total_count |
+| 2 |
+| high_score_count |
+| 3 |
+| high_score_avg |
+| 94.166664 |
+| low_score_count |
+| 1 |
+| low_score_sum |
+| 74.500000 |
+| id | max_score | min_score | sum_score |
+| 1 | 99.000000 | 92.000000 | 286.000000 |
+| 2 | 93.500000 | 88.500000 | 271.000000 |
+| 3 | 94.500000 | 89.500000 | 276.500000 |
+| id | max_score |
+| id | max_score |
+| 1 | 100.000000 |
+| id | max_score | min_score |
+| 1 | 100.000000 | 92.000000 |
+| 2 | 93.500000 | 88.500000 |
+| 3 | 94.500000 | 89.500000 |
+| course | row_num | student_num | top_score | lowest_score |
+| C++ | 3 | 3 | 92.000000 | 89.000000 |
+| ComputerNetworks | 3 | 3 | 99.000000 | 88.500000 |
+| DataStructure | 3 | 3 | 95.000000 | 93.500000 |
+| ParallelCompute | 1 | 1 | 100.000000 | 100.000000 |
+| course | id | score |
+| ParallelCompute | 1 | 100.000000 |
+| ComputerNetworks | 1 | 99.000000 |
+| DataStructure | 1 | 95.000000 |
+| DataStructure | 3 | 94.500000 |
+| DataStructure | 2 | 93.500000 |
+| ComputerNetworks | 3 | 92.500000 |
+| C++ | 1 | 92.000000 |
+| C++ | 3 | 89.500000 |
+| C++ | 2 | 89.000000 |
+| ComputerNetworks | 2 | 88.500000 |
+| course |
+| ComputerNetworks |
+| DataStructure |
+| id | max_score |
+failure
+failure
+failure
+| max_id |
+| 4 |
+| min_score |
+| 74.500000 |
+| avg_score |
+| 90.125000 |
+| course_num |
+| 8 |
+| row_num |
+| 8 |
+| row_num |
+| 0 |
+| sum_score |
+| 189.000000 |
+| total_count |
+| 7 |
+| id_count |
+| 7 |
+| float_count |
+| 7 |
+| int_count |
+| 7 |
+| sum_float |
+| 6.859870 |
+| avg_float |
+| 0.979981 |
+| max_float |
+| 999.999023 |
+| min_float |
+| -999.999023 |
+| agg_0 |
+| 0 |
+| agg_0 |
+| 0.000000 |
+| agg_0 |
+| 0.000000 |
+| agg_0 |
+| 0.000000 |
+| agg_0 |
+| 0.000000 |
+failure
+| name_count |
+| 5 |
+| total_count |
+| 2 |
+| high_score_count |
+| 3 |
+| high_score_avg |
+| 94.166664 |
+| low_score_count |
+| 1 |
+| low_score_sum |
+| 74.500000 |
+| id | max_score | min_score | sum_score |
+| 1 | 99.000000 | 92.000000 | 286.000000 |
+| 2 | 93.500000 | 88.500000 | 271.000000 |
+| 3 | 94.500000 | 89.500000 | 276.500000 |
+| id | max_score |
+| id | max_score |
+| 1 | 100.000000 |
+| id | max_score | min_score |
+| 1 | 100.000000 | 92.000000 |
+| 2 | 93.500000 | 88.500000 |
+| 3 | 94.500000 | 89.500000 |
+| course | row_num | student_num | top_score | lowest_score |
+| C++ | 3 | 3 | 92.000000 | 89.000000 |
+| ComputerNetworks | 3 | 3 | 99.000000 | 88.500000 |
+| DataStructure | 3 | 3 | 95.000000 | 93.500000 |
+| ParallelCompute | 1 | 1 | 100.000000 | 100.000000 |
+| course | id | score |
+| ParallelCompute | 1 | 100.000000 |
+| ComputerNetworks | 1 | 99.000000 |
+| DataStructure | 1 | 95.000000 |
+| DataStructure | 3 | 94.500000 |
+| DataStructure | 2 | 93.500000 |
+| ComputerNetworks | 3 | 92.500000 |
+| C++ | 1 | 92.000000 |
+| C++ | 3 | 89.500000 |
+| C++ | 2 | 89.000000 |
+| ComputerNetworks | 2 | 88.500000 |
+failure
+failure

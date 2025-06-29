@@ -264,5 +264,39 @@ src/execution/CMakeFiles/execution.dir/executor_aggregation.cpp.o: \
  /usr/include/c++/11/condition_variable \
  /home/code/db2025/src/recovery/log_manager.h \
  /home/code/db2025/src/recovery/log_defs.h \
- /home/code/db2025/src/record/rm_scan.h /usr/include/c++/11/sstream \
- /usr/include/c++/11/bits/sstream.tcc
+ /home/code/db2025/src/record/rm_scan.h \
+ /home/code/db2025/src/optimizer/planner.h \
+ /home/code/db2025/src/execution/execution_manager.h \
+ /home/code/db2025/src/record/rm.h \
+ /home/code/db2025/src/record/rm_manager.h \
+ /home/code/db2025/src/optimizer/plan.h \
+ /home/code/db2025/src/parser/ast.h /home/code/db2025/src/parser/parser.h \
+ /home/code/db2025/src/parser/ast_printer.h \
+ /home/code/db2025/src/parser/parser_defs.h \
+ /home/code/db2025/src/transaction/transaction_manager.h \
+ /usr/include/c++/11/optional /usr/include/c++/11/shared_mutex \
+ /home/code/db2025/src/transaction/watermark.h \
+ /home/code/db2025/src/common/exception.h \
+ /home/code/db2025/src/analyze/analyze.h /usr/include/c++/11/sstream \
+ /usr/include/c++/11/bits/sstream.tcc /usr/include/c++/11/cmath \
+ /usr/include/math.h /usr/include/x86_64-linux-gnu/bits/math-vector.h \
+ /usr/include/x86_64-linux-gnu/bits/libm-simd-decl-stubs.h \
+ /usr/include/x86_64-linux-gnu/bits/flt-eval-method.h \
+ /usr/include/x86_64-linux-gnu/bits/fp-logb.h \
+ /usr/include/x86_64-linux-gnu/bits/fp-fast.h \
+ /usr/include/x86_64-linux-gnu/bits/mathcalls-helper-functions.h \
+ /usr/include/x86_64-linux-gnu/bits/mathcalls.h \
+ /usr/include/x86_64-linux-gnu/bits/mathcalls-narrow.h \
+ /usr/include/x86_64-linux-gnu/bits/iscanonical.h \
+ /usr/include/c++/11/bits/specfun.h /usr/include/c++/11/tr1/gamma.tcc \
+ /usr/include/c++/11/tr1/special_function_util.h \
+ /usr/include/c++/11/tr1/bessel_function.tcc \
+ /usr/include/c++/11/tr1/beta_function.tcc \
+ /usr/include/c++/11/tr1/ell_integral.tcc \
+ /usr/include/c++/11/tr1/exp_integral.tcc \
+ /usr/include/c++/11/tr1/hypergeometric.tcc \
+ /usr/include/c++/11/tr1/legendre_function.tcc \
+ /usr/include/c++/11/tr1/modified_bessel_func.tcc \
+ /usr/include/c++/11/tr1/poly_hermite.tcc \
+ /usr/include/c++/11/tr1/poly_laguerre.tcc \
+ /usr/include/c++/11/tr1/riemann_zeta.tcc

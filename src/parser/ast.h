@@ -175,11 +175,11 @@ struct SetClause : public TreeNode {
 };
 
 struct BinaryExpr : public TreeNode {
-    std::shared_ptr<Col> lhs;
+    std::shared_ptr<Expr> lhs;
     SvCompOp op;
     std::shared_ptr<Expr> rhs;
 
-    BinaryExpr(std::shared_ptr<Col> lhs_, SvCompOp op_, std::shared_ptr<Expr> rhs_) :
+    BinaryExpr(std::shared_ptr<Expr> lhs_, SvCompOp op_, std::shared_ptr<Expr> rhs_) :
             lhs(std::move(lhs_)), op(op_), rhs(std::move(rhs_)) {}
 };
 
@@ -336,6 +336,9 @@ struct SemValue {
     std::shared_ptr<Limit> sv_limit;      // 添加LIMIT
 
     SetKnobType sv_setKnobType;
+    
+    // 添加混合选择器类型，用于存储普通列和聚合函数的组合
+    std::pair<std::vector<std::shared_ptr<Col>>, std::vector<std::shared_ptr<AggFunc>>> sv_mixed_selector;
 };
 
 extern std::shared_ptr<ast::TreeNode> parse_tree;

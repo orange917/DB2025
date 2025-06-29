@@ -12,41 +12,47 @@ See the Mulan PSL v2 for more details. */
 #include "errors.h"
 #include <sstream>
 #include <algorithm>
+#include <cmath>
+#include <iostream>
 
 AggregationExecutor::AggregationExecutor(std::unique_ptr<AbstractExecutor> prev,
-                                       const std::vector<AggFunc>& agg_funcs,
-                                       const std::vector<TabCol>& group_by_cols,
-                                       const std::vector<Condition>& having_conds,
-                                       int limit_val)
-    : prev_(std::move(prev)), agg_funcs_(agg_funcs), group_by_cols_(group_by_cols),
-      having_conds_(having_conds), limit_val_(limit_val), current_result_idx_(0), is_initialized_(false) {
-    
+            const std::vector<AggFunc>& agg_funcs,
+            const std::vector<TabCol>& group_by_cols,
+            const std::vector<Condition>& having_conds,
+            const std::vector<OrderByCol>& order_by_cols,
+            const std::vector<bool>& order_by_directions,
+            int limit_val)
+        : prev_(std::move(prev)), agg_funcs_(agg_funcs), group_by_cols_(group_by_cols),
+        having_conds_(having_conds), order_by_cols_(order_by_cols), 
+        order_by_directions_(order_by_directions), limit_val_(limit_val), 
+        current_result_idx_(0), is_initialized_(false) {
+
     // 计算输出列元数据
     size_t offset = 0;
-    
+
     // 如果有GROUP BY，先添加分组列
     for (const auto& group_col : group_by_cols_) {
         ColMeta col_meta;
         col_meta.tab_name = group_col.tab_name;
         col_meta.name = group_col.col_name;
         col_meta.offset = offset;
-        
+
         // 获取列类型和长度
         auto pos = get_col(prev_->cols(), group_col);
         col_meta.type = pos->type;
         col_meta.len = pos->len;
-        
+
         cols_.push_back(col_meta);
         offset += col_meta.len;
     }
-    
+
     // 添加聚合函数列
     for (const auto& agg_func : agg_funcs_) {
         ColMeta col_meta;
         col_meta.tab_name = "";
         col_meta.name = agg_func.alias.empty() ? "agg_" + std::to_string(cols_.size()) : agg_func.alias;
         col_meta.offset = offset;
-        
+
         // 根据聚合函数类型确定输出类型
         if (agg_func.func_type == AGG_COUNT) {
             col_meta.type = TYPE_INT;
@@ -65,19 +71,19 @@ AggregationExecutor::AggregationExecutor(std::unique_ptr<AbstractExecutor> prev,
                 col_meta.len = sizeof(int);
             }
         }
-        
+
         cols_.push_back(col_meta);
         offset += col_meta.len;
     }
-    
+
     len_ = offset;
-    
+
     // 初始化全局聚合状态（用于没有GROUP BY的情况）
     if (group_by_cols_.empty()) {
         AggState& global_state = group_states_["global"];
         global_state.count = 0;
         global_state.agg_values.clear();
-        
+
         // 根据聚合函数类型初始化聚合值
         for (const auto& agg_func : agg_funcs_) {
             Value agg_val;
@@ -386,8 +392,216 @@ Value AggregationExecutor::get_agg_value(const AggState& state, AggFuncType func
 }
 
 bool AggregationExecutor::evaluate_having(const AggResult& result) {
-    // 简化实现：暂时返回true
-    // TODO: 实现HAVING条件评估
+    // 如果没有HAVING条件，直接返回true
+    if (having_conds_.empty()) {
+        return true;
+    }
+    
+    std::cout << "DEBUG: Evaluating HAVING for group with count: " << result.count << std::endl;
+    
+    // 对每个HAVING条件进行评估
+    for (size_t cond_idx = 0; cond_idx < having_conds_.size(); cond_idx++) {
+        const auto& cond = having_conds_[cond_idx];
+        bool cond_result = false;
+        
+        std::cout << "DEBUG: Processing condition " << cond_idx << std::endl;
+        
+        // 处理聚合条件左侧
+        Value left_value;
+        if (cond.lhs_col.tab_name.empty() && cond.lhs_col.col_name.empty() && cond.is_lhs_agg) {
+            // 左侧是聚合函数
+            int group_idx = -1;
+            
+            // 特殊处理 COUNT(*)
+            if (cond.lhs_agg.func_type == AGG_COUNT && 
+                cond.lhs_agg.col.tab_name.empty() && cond.lhs_agg.col.col_name.empty()) {
+                // COUNT(*) - 直接使用分组计数
+                left_value.set_int(result.count);
+                std::cout << "DEBUG: LHS COUNT(*) = " << result.count << std::endl;
+            } else {
+                // 寻找匹配的聚合函数
+                for (size_t i = 0; i < agg_funcs_.size(); i++) {
+                    // 比较函数类型和列名，忽略表名的差异
+                    if (agg_funcs_[i].func_type == cond.lhs_agg.func_type && 
+                        agg_funcs_[i].col.col_name == cond.lhs_agg.col.col_name) {
+                        group_idx = i;
+                        break;
+                    }
+                }
+                
+                if (group_idx >= 0 && group_idx < result.agg_values.size()) {
+                    left_value = result.agg_values[group_idx];
+                    std::cout << "DEBUG: LHS agg function found at index " << group_idx << ", value: " << left_value.float_val << std::endl;
+                } else {
+                    // 找不到匹配的聚合函数，返回默认值
+                    if (cond.lhs_agg.func_type == AGG_COUNT) {
+                        left_value.set_int(0);
+                    } else if (cond.lhs_agg.func_type == AGG_AVG) {
+                        left_value.set_float(0.0f);
+                    } else {
+                        left_value.set_int(0);
+                    }
+                    std::cout << "DEBUG: LHS agg function not found, using default value: " << left_value.float_val << std::endl;
+                }
+            }
+        } else if (!cond.lhs_col.tab_name.empty() || !cond.lhs_col.col_name.empty()) {
+            // 左侧是分组列
+            int group_idx = -1;
+            
+            // 寻找匹配的分组列
+            for (size_t i = 0; i < group_by_cols_.size(); i++) {
+                if (group_by_cols_[i].tab_name == cond.lhs_col.tab_name && 
+                    group_by_cols_[i].col_name == cond.lhs_col.col_name) {
+                    group_idx = i;
+                    break;
+                }
+            }
+            
+            if (group_idx >= 0 && group_idx < result.group_key.size()) {
+                left_value = result.group_key[group_idx];
+            } else {
+                // 找不到匹配的分组列，返回默认值
+                left_value.set_int(0);
+            }
+        } else {
+            // 左侧是常量值
+            left_value = cond.lhs_value;
+        }
+        
+        // 处理条件右侧
+        Value right_value;
+        if (cond.rhs_col.tab_name.empty() && cond.rhs_col.col_name.empty() && cond.is_rhs_agg) {
+            // 右侧是聚合函数
+            int group_idx = -1;
+            
+            // 特殊处理 COUNT(*)
+            if (cond.rhs_agg.func_type == AGG_COUNT && 
+                cond.rhs_agg.col.tab_name.empty() && cond.rhs_agg.col.col_name.empty()) {
+                // COUNT(*) - 直接使用分组计数
+                right_value.set_int(result.count);
+            } else {
+                // 寻找匹配的聚合函数
+                for (size_t i = 0; i < agg_funcs_.size(); i++) {
+                    // 比较函数类型和列名，忽略表名的差异
+                    if (agg_funcs_[i].func_type == cond.rhs_agg.func_type && 
+                        agg_funcs_[i].col.col_name == cond.rhs_agg.col.col_name) {
+                        group_idx = i;
+                        break;
+                    }
+                }
+
+                if (group_idx >= 0 && group_idx < result.agg_values.size()) {
+                    right_value = result.agg_values[group_idx];
+                } else {
+                    // 找不到匹配的聚合函数，返回默认值
+                    if (cond.rhs_agg.func_type == AGG_COUNT) {
+                        right_value.set_int(0);
+                    } else if (cond.rhs_agg.func_type == AGG_AVG) {
+                        right_value.set_float(0.0f);
+                    } else {
+                        right_value.set_int(0);
+                    }
+                }
+            }
+        } else if (!cond.rhs_col.tab_name.empty() || !cond.rhs_col.col_name.empty()) {
+            // 右侧是分组列
+            int group_idx = -1;
+
+            // 寻找匹配的分组列
+            for (size_t i = 0; i < group_by_cols_.size(); i++) {
+                if (group_by_cols_[i].tab_name == cond.rhs_col.tab_name &&
+                    group_by_cols_[i].col_name == cond.rhs_col.col_name) {
+                    group_idx = i;
+                    break;
+                }
+            }
+
+            if (group_idx >= 0 && group_idx < result.group_key.size()) {
+                right_value = result.group_key[group_idx];
+            } else {
+                // 找不到匹配的分组列，返回默认值
+                right_value.set_int(0);
+            }
+        } else {
+            // 右侧是常量值
+            right_value = cond.rhs_val;
+            std::cout << "DEBUG: RHS constant value = " << right_value.float_val << std::endl;
+        }
+        
+        // 根据操作符计算条件结果
+        if (left_value.type == TYPE_INT && right_value.type == TYPE_INT) {
+            switch (cond.op) {
+                case OP_EQ: cond_result = left_value.int_val == right_value.int_val; break;
+                case OP_NE: cond_result = left_value.int_val != right_value.int_val; break;
+                case OP_LT: cond_result = left_value.int_val < right_value.int_val; break;
+                case OP_GT: cond_result = left_value.int_val > right_value.int_val; break;
+                case OP_LE: cond_result = left_value.int_val <= right_value.int_val; break;
+                case OP_GE: cond_result = left_value.int_val >= right_value.int_val; break;
+                default: cond_result = false; break;
+            }
+            std::cout << "DEBUG: INT comparison: " << left_value.int_val << " " << cond.op << " " << right_value.int_val << " = " << cond_result << std::endl;
+        } else if (left_value.type == TYPE_FLOAT && right_value.type == TYPE_FLOAT) {
+            switch (cond.op) {
+                case OP_EQ: cond_result = fabs(left_value.float_val - right_value.float_val) < 1e-6; break;
+                case OP_NE: cond_result = fabs(left_value.float_val - right_value.float_val) >= 1e-6; break;
+                case OP_LT: cond_result = left_value.float_val < right_value.float_val; break;
+                case OP_GT: cond_result = left_value.float_val > right_value.float_val; break;
+                case OP_LE: cond_result = left_value.float_val <= right_value.float_val; break;
+                case OP_GE: cond_result = left_value.float_val >= right_value.float_val; break;
+                default: cond_result = false; break;
+            }
+            std::cout << "DEBUG: FLOAT comparison: " << left_value.float_val << " " << cond.op << " " << right_value.float_val << " = " << cond_result << std::endl;
+        } else if (left_value.type == TYPE_INT && right_value.type == TYPE_FLOAT) {
+            // 将int转换为float进行比较
+            float left_float = static_cast<float>(left_value.int_val);
+            switch (cond.op) {
+                case OP_EQ: cond_result = fabs(left_float - right_value.float_val) < 1e-6; break;
+                case OP_NE: cond_result = fabs(left_float - right_value.float_val) >= 1e-6; break;
+                case OP_LT: cond_result = left_float < right_value.float_val; break;
+                case OP_GT: cond_result = left_float > right_value.float_val; break;
+                case OP_LE: cond_result = left_float <= right_value.float_val; break;
+                case OP_GE: cond_result = left_float >= right_value.float_val; break;
+                default: cond_result = false; break;
+            }
+            std::cout << "DEBUG: INT->FLOAT comparison: " << left_float << " " << cond.op << " " << right_value.float_val << " = " << cond_result << std::endl;
+        } else if (left_value.type == TYPE_FLOAT && right_value.type == TYPE_INT) {
+            // 将int转换为float进行比较
+            float right_float = static_cast<float>(right_value.int_val);
+            switch (cond.op) {
+                case OP_EQ: cond_result = fabs(left_value.float_val - right_float) < 1e-6; break;
+                case OP_NE: cond_result = fabs(left_value.float_val - right_float) >= 1e-6; break;
+                case OP_LT: cond_result = left_value.float_val < right_float; break;
+                case OP_GT: cond_result = left_value.float_val > right_float; break;
+                case OP_LE: cond_result = left_value.float_val <= right_float; break;
+                case OP_GE: cond_result = left_value.float_val >= right_float; break;
+                default: cond_result = false; break;
+            }
+            std::cout << "DEBUG: FLOAT->INT comparison: " << left_value.float_val << " " << cond.op << " " << right_float << " = " << cond_result << std::endl;
+        } else if (left_value.type == TYPE_STRING && right_value.type == TYPE_STRING) {
+            switch (cond.op) {
+                case OP_EQ: cond_result = left_value.str_val == right_value.str_val; break;
+                case OP_NE: cond_result = left_value.str_val != right_value.str_val; break;
+                case OP_LT: cond_result = left_value.str_val < right_value.str_val; break;
+                case OP_GT: cond_result = left_value.str_val > right_value.str_val; break;
+                case OP_LE: cond_result = left_value.str_val <= right_value.str_val; break;
+                case OP_GE: cond_result = left_value.str_val >= right_value.str_val; break;
+                default: cond_result = false; break;
+            }
+        } else {
+            // 类型不匹配，条件为false
+            cond_result = false;
+            std::cout << "DEBUG: Type mismatch: left=" << left_value.type << ", right=" << right_value.type << std::endl;
+        }
+        
+        // 对于AND条件，一旦有一个条件为false，整个结果就为false
+        if (!cond_result) {
+            std::cout << "DEBUG: Condition " << cond_idx << " failed, returning false" << std::endl;
+            return false;
+        }
+    }
+    
+    // 所有条件都满足
+    std::cout << "DEBUG: All conditions satisfied, returning true" << std::endl;
     return true;
 }
 
@@ -431,7 +645,21 @@ void AggregationExecutor::compute_final_results() {
     }
     
     // 计算最终结果
+    std::vector<std::pair<std::string, AggState>> sorted_groups;
     for (const auto& pair : group_states_) {
+        sorted_groups.push_back(pair);
+    }
+    
+    // 如果没有ORDER BY，按照分组键的字典序排序，确保输出顺序稳定
+    if (order_by_cols_.empty()) {
+        std::sort(sorted_groups.begin(), sorted_groups.end(), 
+                 [](const std::pair<std::string, AggState>& a, 
+                    const std::pair<std::string, AggState>& b) {
+                     return a.first < b.first;
+                 });
+    }
+    
+    for (const auto& pair : sorted_groups) {
         const auto& group_key_str = pair.first;
         const auto& state = pair.second;
         
@@ -490,7 +718,7 @@ void AggregationExecutor::compute_final_results() {
             agg_values.push_back(agg_value);
         }
         
-        AggResult result(group_key_values, agg_values);
+        AggResult result(group_key_values, agg_values, state.count);
         
         // 检查HAVING条件
         if (evaluate_having(result)) {
@@ -498,6 +726,74 @@ void AggregationExecutor::compute_final_results() {
         }
     }
     
+    // 应用排序规则
+    if (!order_by_cols_.empty()) {
+        std::sort(results_.begin(), results_.end(), [this](const AggResult& a, const AggResult& b) {
+            // 按照order_by_cols_中的顺序，依次比较各列
+            for (size_t i = 0; i < order_by_cols_.size(); i++) {
+                const auto& order_col = order_by_cols_[i];
+                bool is_asc = order_by_directions_[i];  // true表示升序，false表示降序
+                
+                Value a_val, b_val;
+                
+                if (order_col.is_agg) {
+                    // 排序列是聚合函数
+                    int agg_idx = -1;
+                    for (size_t j = 0; j < agg_funcs_.size(); j++) {
+                        if (agg_funcs_[j].func_type == order_col.agg.func_type && 
+                            agg_funcs_[j].col.tab_name == order_col.agg.col.tab_name && 
+                            agg_funcs_[j].col.col_name == order_col.agg.col.col_name) {
+                            agg_idx = j;
+                            break;
+                        }
+                    }
+                    
+                    if (agg_idx >= 0 && agg_idx < a.agg_values.size()) {
+                        a_val = a.agg_values[agg_idx];
+                        b_val = b.agg_values[agg_idx];
+                    } else {
+                        continue;  // 跳过无效的聚合函数
+                    }
+                } else {
+                    // 排序列是分组列
+                    int group_idx = -1;
+                    for (size_t j = 0; j < group_by_cols_.size(); j++) {
+                        if (group_by_cols_[j].tab_name == order_col.col.tab_name && 
+                            group_by_cols_[j].col_name == order_col.col.col_name) {
+                            group_idx = j;
+                            break;
+                        }
+                    }
+                    
+                    if (group_idx >= 0 && group_idx < a.group_key.size()) {
+                        a_val = a.group_key[group_idx];
+                        b_val = b.group_key[group_idx];
+                    } else {
+                        continue;  // 跳过无效的列
+                    }
+                }
+                
+                // 根据值类型进行比较
+                if (a_val.type == TYPE_INT && b_val.type == TYPE_INT) {
+                    if (a_val.int_val != b_val.int_val) {
+                        return is_asc ? (a_val.int_val < b_val.int_val) : (a_val.int_val > b_val.int_val);
+                    }
+                } else if (a_val.type == TYPE_FLOAT && b_val.type == TYPE_FLOAT) {
+                    if (fabs(a_val.float_val - b_val.float_val) >= 1e-6) {
+                        return is_asc ? (a_val.float_val < b_val.float_val) : (a_val.float_val > b_val.float_val);
+                    }
+                } else if (a_val.type == TYPE_STRING && b_val.type == TYPE_STRING) {
+                    if (a_val.str_val != b_val.str_val) {
+                        return is_asc ? (a_val.str_val < b_val.str_val) : (a_val.str_val > b_val.str_val);
+                    }
+                }
+            }
+
+            // 所有排序字段都相等，则认为相等
+            return false;
+        });
+    }
+
     // 应用LIMIT
     if (limit_val_ > 0 && results_.size() > (size_t)limit_val_) {
         results_.resize(limit_val_);

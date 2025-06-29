@@ -268,4 +268,15 @@ src/analyze/CMakeFiles/analyze.dir/analyze.cpp.o: \
  /usr/include/c++/11/condition_variable \
  /home/code/db2025/src/recovery/log_manager.h \
  /home/code/db2025/src/recovery/log_defs.h \
- /home/code/db2025/src/record/rm_scan.h
+ /home/code/db2025/src/record/rm_scan.h \
+ /home/code/db2025/src/optimizer/planner.h \
+ /home/code/db2025/src/execution/execution_defs.h \
+ /home/code/db2025/src/execution/execution_manager.h \
+ /home/code/db2025/src/record/rm.h \
+ /home/code/db2025/src/record/rm_manager.h \
+ /home/code/db2025/src/optimizer/plan.h \
+ /home/code/db2025/src/execution/executor_abstract.h \
+ /home/code/db2025/src/transaction/transaction_manager.h \
+ /usr/include/c++/11/optional /usr/include/c++/11/shared_mutex \
+ /home/code/db2025/src/transaction/watermark.h \
+ /home/code/db2025/src/common/exception.h
