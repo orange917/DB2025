@@ -32,7 +32,7 @@
 
 alpha [a-zA-Z]
 digit [0-9]
-white_space [ \t]+
+white_space [ \t\r\n]+
 new_line "\r"|"\n"|"\r\n"
 sign "+"|"-"
 identifier {alpha}(_|{alpha}|{digit})*

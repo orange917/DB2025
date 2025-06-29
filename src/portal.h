@@ -184,6 +184,8 @@ class Portal
                 x->agg_funcs_,
                 x->group_by_cols_,
                 x->having_conds_,
+                x->order_by_cols_,
+                x->order_by_directions_,
                 x->limit_val_
             );
         }

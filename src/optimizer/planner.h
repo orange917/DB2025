@@ -64,26 +64,30 @@ class Planner {
     }
 };
 
+struct OrderByCol {
+    TabCol col;         // 排序列
+    AggFunc agg;        // 聚合函数
+    bool is_agg;        // 是否是聚合函数列
+};
+
 class AggPlan : public Plan
 {
 public:
-    AggPlan(PlanTag tag, std::shared_ptr<Plan> subplan,
-            std::vector<AggFunc> agg_funcs,
-            std::vector<TabCol> group_by_cols,
-            std::vector<Condition> having_conds,
-            int limit_val)
-    {
-        Plan::tag = tag;
-        subplan_ = std::move(subplan);
-        agg_funcs_ = std::move(agg_funcs);
-        group_by_cols_ = std::move(group_by_cols);
-        having_conds_ = std::move(having_conds);
-        limit_val_ = limit_val;
-    }
-    ~AggPlan() {}
-    std::shared_ptr<Plan> subplan_;
+    AggPlan(std::shared_ptr<Plan> subplan, const std::vector<AggFunc> &agg_funcs,
+        const std::vector<TabCol> &group_by_cols,
+        const std::vector<Condition> &having_conds,
+        const std::vector<OrderByCol> &order_by_cols,
+        const std::vector<bool> &order_by_directions,
+        int limit_val)
+    : agg_funcs_(agg_funcs), group_by_cols_(group_by_cols), having_conds_(having_conds),
+    order_by_cols_(order_by_cols), order_by_directions_(order_by_directions), 
+    limit_val_(limit_val), subplan_(std::move(subplan)) {}
+
     std::vector<AggFunc> agg_funcs_;
     std::vector<TabCol> group_by_cols_;
     std::vector<Condition> having_conds_;
+    std::vector<OrderByCol> order_by_cols_;
+    std::vector<bool> order_by_directions_;
     int limit_val_;
+    std::shared_ptr<Plan> subplan_;
 };

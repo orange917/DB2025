@@ -110,6 +110,60 @@ extern int yydebug;
 #endif
 
 /* Value type.  */
+#if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
+union YYSTYPE
+{
+#line 24 "/home/code/db2025/src/parser/yacc.y"
+
+    int sv_int;
+    float sv_float;
+    std::string sv_str;
+    bool sv_bool;
+    OrderByDir sv_orderby_dir;
+    std::vector<std::string> sv_strs;
+
+    std::shared_ptr<TreeNode> sv_node;
+
+    SvCompOp sv_comp_op;
+    AggFuncType sv_agg_func_type;
+
+    std::shared_ptr<TypeLen> sv_type_len;
+
+    std::shared_ptr<Field> sv_field;
+    std::vector<std::shared_ptr<Field>> sv_fields;
+
+    std::shared_ptr<Expr> sv_expr;
+    std::shared_ptr<AggFunc> sv_agg_func;
+    std::vector<std::shared_ptr<AggFunc>> sv_agg_funcs;
+
+    std::shared_ptr<Value> sv_val;
+    std::vector<std::shared_ptr<Value>> sv_vals;
+
+    std::shared_ptr<Col> sv_col;
+    std::vector<std::shared_ptr<Col>> sv_cols;
+
+    std::shared_ptr<SetClause> sv_set_clause;
+    std::vector<std::shared_ptr<SetClause>> sv_set_clauses;
+
+    std::shared_ptr<BinaryExpr> sv_cond;
+    std::vector<std::shared_ptr<BinaryExpr>> sv_conds;
+
+    std::shared_ptr<OrderBy> sv_orderby;
+    std::shared_ptr<GroupBy> sv_groupby;
+    std::shared_ptr<Having> sv_having;
+    std::shared_ptr<Limit> sv_limit;
+
+    SetKnobType sv_setKnobType;
+    
+    std::pair<std::vector<std::shared_ptr<Col>>, std::vector<std::shared_ptr<AggFunc>>> sv_mixed_selector;
+
+#line 161 "/home/code/db2025/src/parser/yacc.tab.h"
+
+};
+typedef union YYSTYPE YYSTYPE;
+# define YYSTYPE_IS_TRIVIAL 1
+# define YYSTYPE_IS_DECLARED 1
+#endif
 
 /* Location type.  */
 #if ! defined YYLTYPE && ! defined YYLTYPE_IS_DECLARED
