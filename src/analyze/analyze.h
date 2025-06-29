@@ -52,6 +52,10 @@ class Query{
     std::vector<OrderByCol> order_by_cols;  // ORDER BY 列
     std::vector<bool> order_by_directions;  // ORDER BY 方向 (true=ASC, false=DESC)
     bool has_order_by;  // 是否有ORDER BY
+    
+    // 添加连接表达式支持
+    std::vector<std::shared_ptr<ast::JoinExpr>> jointree;  // 连接表达式树
+    bool has_join;  // 是否有连接
 
     Query(){
         has_agg = false;
@@ -59,6 +63,7 @@ class Query{
         has_having = false;
         has_limit = false;
         has_order_by = false;
+        has_join = false;
         limit_val = -1;
     }
 

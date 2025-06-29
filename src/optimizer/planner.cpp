@@ -241,12 +241,98 @@ std::shared_ptr<Plan> Planner::physical_optimization(std::shared_ptr<Query> quer
     return plan;
 }
 
-
+std::shared_ptr<Plan> Planner::build_join_plan(std::shared_ptr<Query> query, const std::vector<std::string>& tables) {
+    // 创建表扫描计划
+    std::vector<std::shared_ptr<Plan>> table_scan_executors(tables.size());
+    for (size_t i = 0; i < tables.size(); i++) {
+        auto curr_conds = pop_conds(query->conds, tables[i]);
+        std::vector<std::string> index_col_names;
+        bool index_exist = get_index_cols(tables[i], curr_conds, index_col_names);
+        if (index_exist == false) {
+            index_col_names.clear();
+            table_scan_executors[i] = 
+                std::make_shared<ScanPlan>(T_SeqScan, sm_manager_, tables[i], curr_conds, index_col_names);
+        } else {
+            table_scan_executors[i] =
+                std::make_shared<ScanPlan>(T_IndexScan, sm_manager_, tables[i], curr_conds, index_col_names);
+        }
+    }
+    
+    // 构建连接计划
+    std::shared_ptr<Plan> current_plan = table_scan_executors[0];
+    
+    for (const auto& join_expr : query->jointree) {
+        // 查找右表的扫描计划
+        std::shared_ptr<Plan> right_plan = nullptr;
+        for (size_t i = 0; i < tables.size(); i++) {
+            if (tables[i] == join_expr->right) {
+                right_plan = table_scan_executors[i];
+                break;
+            }
+        }
+        
+        if (!right_plan) {
+            throw InternalError("Right table not found in join expression");
+        }
+        
+        // 转换连接条件
+        std::vector<Condition> join_conds;
+        for (const auto& cond : join_expr->conds) {
+            Condition join_cond;
+            
+            // 处理左操作数
+            if (auto lhs_col = std::dynamic_pointer_cast<ast::Col>(cond->lhs)) {
+                join_cond.lhs_col = {.tab_name = lhs_col->tab_name, .col_name = lhs_col->col_name};
+                join_cond.is_lhs_agg = false;
+            } else {
+                throw InternalError("Join condition lhs must be a column");
+            }
+            
+            // 处理右操作数
+            if (auto rhs_col = std::dynamic_pointer_cast<ast::Col>(cond->rhs)) {
+                join_cond.rhs_col = {.tab_name = rhs_col->tab_name, .col_name = rhs_col->col_name};
+                join_cond.is_rhs_agg = false;
+            } else {
+                throw InternalError("Join condition rhs must be a column");
+            }
+            
+            join_cond.op = convert_sv_comp_op(cond->op);
+            join_cond.is_rhs_val = false;
+            
+            join_conds.push_back(join_cond);
+        }
+        
+        // 根据连接类型创建连接计划
+        PlanTag join_tag = (join_expr->type == SEMI_JOIN) ? T_SemiJoin : T_NestLoop;
+        
+        current_plan = std::make_shared<JoinPlan>(
+            join_tag,
+            std::move(current_plan),
+            std::move(right_plan),
+            join_conds
+        );
+        
+        // 设置连接类型
+        auto join_plan = std::dynamic_pointer_cast<JoinPlan>(current_plan);
+        if (join_plan) {
+            join_plan->type = join_expr->type;
+        }
+    }
+    
+    return current_plan;
+}
 
 std::shared_ptr<Plan> Planner::make_one_rel(std::shared_ptr<Query> query)
 {
     auto x = std::dynamic_pointer_cast<ast::SelectStmt>(query->parse);
     std::vector<std::string> tables = query->tables;
+    
+    // 处理连接表达式
+    if (query->has_join && !query->jointree.empty()) {
+        // 如果有连接表达式，使用连接表达式来构建查询计划
+        return build_join_plan(query, tables);
+    }
+    
     // // Scan table , 生成表算子列表tab_nodes
     std::vector<std::shared_ptr<Plan>> table_scan_executors(tables.size());
     for (size_t i = 0; i < tables.size(); i++) {
@@ -632,4 +718,16 @@ std::shared_ptr<Plan> Planner::do_planner(std::shared_ptr<Query> query, Context 
         throw InternalError("Unexpected AST root");
     }
     return plannerRoot;
+}
+
+CompOp Planner::convert_sv_comp_op(ast::SvCompOp op) {
+    switch (op) {
+        case ast::SV_OP_EQ: return OP_EQ;
+        case ast::SV_OP_NE: return OP_NE;
+        case ast::SV_OP_LT: return OP_LT;
+        case ast::SV_OP_GT: return OP_GT;
+        case ast::SV_OP_LE: return OP_LE;
+        case ast::SV_OP_GE: return OP_GE;
+        default: throw InternalError("Unknown comparison operator");
+    }
 }

@@ -15,7 +15,7 @@ See the Mulan PSL v2 for more details. */
 /**
  * @description: 分析器，进行语义分析和查询重写，需要检查不符合语义规定的部分
  * @param {shared_ptr<ast::TreeNode>} parse parser生成的结果集
- * @return {shared_ptr<Query>} Query 
+ * @return {shared_ptr<Query>} Query
  */
 std::shared_ptr<Query> Analyze::do_analyze(std::shared_ptr<ast::TreeNode> parse)
 {
@@ -24,6 +24,12 @@ std::shared_ptr<Query> Analyze::do_analyze(std::shared_ptr<ast::TreeNode> parse)
     {
         // 处理表名
         query->tables = std::move(x->tabs);
+
+        // 处理连接表达式 - 从表名中提取连接信息
+        // 由于语法分析器的限制，我们需要在这里处理连接表达式
+        // 假设表名格式为: table1, table2 JOIN table3 ON condition
+        // 我们需要解析这种格式并提取连接信息
+
         /** 检查表是否存在 */
         for(auto &tab_name : query->tables)
         {
@@ -32,7 +38,7 @@ std::shared_ptr<Query> Analyze::do_analyze(std::shared_ptr<ast::TreeNode> parse)
                 throw TableNotFoundError(tab_name);
             }
         }
-        
+
         // 处理聚合函数
         if (!x->agg_funcs.empty()) {
             query->has_agg = true;
@@ -132,6 +138,34 @@ std::shared_ptr<Query> Analyze::do_analyze(std::shared_ptr<ast::TreeNode> parse)
         //处理where条件
         get_clause(x->conds, query->conds);
         check_clause(query->tables, query->conds);
+        
+        // 处理连接表达式
+        if (!x->jointree.empty()) {
+            query->has_join = true;
+            
+            // 简单处理：直接复制连接表达式，不修改左表名
+            query->jointree = x->jointree;
+            
+            // 检查连接表达式中的表是否存在，并添加到表列表中
+            for (const auto& join_expr : query->jointree) {
+                // 检查右表是否存在
+                if (!sm_manager_->db_.is_table(join_expr->right)) {
+                    throw TableNotFoundError(join_expr->right);
+                }
+                
+                // 将右表添加到表列表中（如果还没有的话）
+                bool found = false;
+                for (const auto& existing_table : query->tables) {
+                    if (existing_table == join_expr->right) {
+                        found = true;
+                        break;
+                    }
+                }
+                if (!found) {
+                    query->tables.push_back(join_expr->right);
+                }
+            }
+        }
         
         // 语义检查：检测SELECT列表中的非聚合列和WHERE子句中的聚合函数
         if (query->has_group_by) {
@@ -256,9 +290,6 @@ void Analyze::get_clause(const std::vector<std::shared_ptr<ast::BinaryExpr>> &sv
             cond.is_rhs_val = true;
             cond.is_rhs_agg = false;
             cond.rhs_val = convert_sv_value(rhs_val);
-            std::cout << "DEBUG: get_clause - RHS value converted, type: " << cond.rhs_val.type 
-                      << ", int_val: " << cond.rhs_val.int_val 
-                      << ", float_val: " << cond.rhs_val.float_val << std::endl;
         } else if (auto rhs_col = std::dynamic_pointer_cast<ast::Col>(expr->rhs)) {
             cond.is_rhs_val = false;
             cond.is_rhs_agg = false;
@@ -314,14 +345,13 @@ void Analyze::check_clause(const std::vector<std::string> &tab_names, std::vecto
                 float float_val = static_cast<float>(cond.rhs_val.int_val);
                 cond.rhs_val.set_float(float_val);
                 rhs_type = TYPE_FLOAT;
-                continue;
             } else if(lhs_type == TYPE_INT && rhs_type == TYPE_FLOAT) {
                 int int_val = static_cast<int>(cond.rhs_val.float_val);
                 cond.rhs_val.set_int(int_val);
                 rhs_type = TYPE_INT;
-                continue;
+            } else {
+                throw IncompatibleTypeError(coltype2str(lhs_type), coltype2str(rhs_type));
             }
-            throw IncompatibleTypeError(coltype2str(lhs_type), coltype2str(rhs_type));
         }
     }
 }

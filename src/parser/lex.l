@@ -80,11 +80,13 @@ single_op ";"|"("|")"|","|"="|">"|"<"|"."
 "INDEX" { return INDEX; }
 "AND" { return AND; }
 "JOIN" { return JOIN; }
+"SEMI" { return SEMI; }
 "EXIT" { return EXIT; }
 "HELP" { return HELP; }
 "ORDER" { return ORDER; }
 "BY" { return BY; }
 "ASC" { return ASC; }
+"ON" { return ON; }
 "ENABLE_NESTLOOP" { return ENABLE_NESTLOOP; }
 "ENABLE_SORTMERGE" { return ENABLE_SORTMERGE; }
 "COUNT" { return COUNT; }

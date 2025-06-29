@@ -14,7 +14,7 @@ See the Mulan PSL v2 for more details. */
 #include <memory>
 
 enum JoinType {
-    INNER_JOIN, LEFT_JOIN, RIGHT_JOIN, FULL_JOIN
+    INNER_JOIN, LEFT_JOIN, RIGHT_JOIN, FULL_JOIN, SEMI_JOIN
 };
 namespace ast {
 
@@ -275,10 +275,11 @@ struct SelectStmt : public TreeNode {
                std::shared_ptr<OrderBy> order_,
                std::shared_ptr<GroupBy> group_by_ = nullptr,
                std::shared_ptr<Having> having_ = nullptr,
-               std::shared_ptr<Limit> limit_ = nullptr) :
+               std::shared_ptr<Limit> limit_ = nullptr,
+               std::vector<std::shared_ptr<JoinExpr>> jointree_ = std::vector<std::shared_ptr<JoinExpr>>()) :
             cols(std::move(cols_)), agg_funcs(std::move(agg_funcs_)), tabs(std::move(tabs_)), 
             conds(std::move(conds_)), order(std::move(order_)), group_by(std::move(group_by_)),
-            having(std::move(having_)), limit(std::move(limit_)) {
+            having(std::move(having_)), limit(std::move(limit_)), jointree(std::move(jointree_)) {
                 has_sort = (bool)order;
                 has_group_by = (bool)group_by;
                 has_having = (bool)having;
@@ -336,6 +337,10 @@ struct SemValue {
     std::shared_ptr<Limit> sv_limit;      // 添加LIMIT
 
     SetKnobType sv_setKnobType;
+    
+    // 添加连接表达式支持
+    std::shared_ptr<JoinExpr> sv_joinexpr;
+    std::vector<std::shared_ptr<JoinExpr>> sv_joinexprs;
     
     // 添加混合选择器类型，用于存储普通列和聚合函数的组合
     std::pair<std::vector<std::shared_ptr<Col>>, std::vector<std::shared_ptr<AggFunc>>> sv_mixed_selector;
