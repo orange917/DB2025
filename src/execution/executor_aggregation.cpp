@@ -209,7 +209,7 @@ std::string AggregationExecutor::get_group_key(const std::unique_ptr<RmRecord>& 
 void AggregationExecutor::update_agg_state(AggState& state, const std::unique_ptr<RmRecord>& record) {
     state.count++;
     
-    // 确保聚合值数组有足够的元素，并正确初始化
+    // 确保聚合值数组和累加器数组有足够的元素
     while (state.agg_values.size() < agg_funcs_.size()) {
         Value agg_val;
         size_t i = state.agg_values.size();
@@ -235,6 +235,7 @@ void AggregationExecutor::update_agg_state(AggState& state, const std::unique_pt
             }
         }
         state.agg_values.push_back(agg_val);
+        state.float_accumulators.push_back(0.0);  // 初始化double累加器
     }
     
     for (size_t i = 0; i < agg_funcs_.size(); i++) {
@@ -306,33 +307,33 @@ void AggregationExecutor::update_agg_state(AggState& state, const std::unique_pt
                 if (state.agg_values[i].type == TYPE_INT && value.type == TYPE_INT) {
                     state.agg_values[i].set_int(state.agg_values[i].int_val + value.int_val);
                 } else if (state.agg_values[i].type == TYPE_FLOAT && value.type == TYPE_FLOAT) {
-                    state.agg_values[i].set_float(state.agg_values[i].float_val + value.float_val);
+                    // 使用double累加器保持精度
+                    state.float_accumulators[i] += static_cast<double>(value.float_val);
+                    // 更新Value中的float值（用于显示）
+                    state.agg_values[i].set_float(static_cast<float>(state.float_accumulators[i]));
                 } else {
                     // 初始化聚合值
                     if (value.type == TYPE_INT) {
                         state.agg_values[i].set_int(value.int_val);
                     } else if (value.type == TYPE_FLOAT) {
                         state.agg_values[i].set_float(value.float_val);
+                        state.float_accumulators[i] = static_cast<double>(value.float_val);
                     } else {
                         state.agg_values[i].set_str(value.str_val);
                     }
                 }
                 break;
                 
-            case AGG_AVG:
-                // AVG需要特殊处理，先累加，最后计算平均值
-                if (state.agg_values[i].type == TYPE_FLOAT && value.type == TYPE_FLOAT) {
-                    state.agg_values[i].set_float(state.agg_values[i].float_val + value.float_val);
-                } else {
-                    // 初始化聚合值
-                    if (value.type == TYPE_INT) {
-                        state.agg_values[i].set_float((float)value.int_val);
-                    } else if (value.type == TYPE_FLOAT) {
-                        state.agg_values[i].set_float(value.float_val);
-                    } else {
-                        state.agg_values[i].set_float(0.0f);
-                    }
+                case AGG_AVG:
+                // AVG需要特殊处理，先累加，最后在compute_final_results中计算平均值
+                if (value.type == TYPE_INT) {
+                    // 累加整数值到double累加器
+                    state.float_accumulators[i] += static_cast<double>(value.int_val);
+                } else if (value.type == TYPE_FLOAT) {
+                    // 累加浮点数值到double累加器
+                    state.float_accumulators[i] += static_cast<double>(value.float_val);
                 }
+                // 注意：这里不需要更新state.agg_values[i]，因为它只在最终计算时才有用
                 break;
         }
     }
@@ -373,9 +374,11 @@ Value AggregationExecutor::get_agg_value(const AggState& state, AggFuncType func
     Value result = state.agg_values[func_index];
     
     if (func_type == AGG_AVG && state.count > 0) {
-        // 计算平均值
+        // 计算平均值，使用double保持精度
         if (result.type == TYPE_FLOAT) {
-            result.set_float(result.float_val / state.count);
+            double sum_double = state.float_accumulators[func_index]; // 使用累加器里的总和
+            double avg_double = sum_double / state.count;
+            result.set_float(static_cast<float>(avg_double));
         }
     }
     
@@ -467,9 +470,10 @@ void AggregationExecutor::compute_final_results() {
                 agg_value = state.agg_values[i];
                 
                 if (agg_func.func_type == AGG_AVG && state.count > 0) {
-                    // 计算平均值
-                    if (agg_value.type == TYPE_FLOAT) {
-                        agg_value.set_float(agg_value.float_val / state.count);
+                    // 计算平均值，使用double累加器保持精度
+                    if (i < state.float_accumulators.size()) {
+                        double avg_double = state.float_accumulators[i] / state.count;
+                        agg_value.set_float(static_cast<float>(avg_double));
                     }
                 }
             } else {

@@ -1274,7 +1274,7 @@ case 58:
 YY_RULE_SETUP
 #line 124 "lex.l"
 {
-    yylval->sv_float = atof(yytext);
+    yylval->sv_float = strtof(yytext, nullptr);
     return VALUE_FLOAT;
 }
 	YY_BREAK

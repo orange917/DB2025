@@ -15,15 +15,16 @@ See the Mulan PSL v2 for more details. */
 #include "index/ix.h"
 #include "system/sm.h"
 #include <cstring>
+#include <cmath>
 
 class NestedLoopJoinExecutor : public AbstractExecutor {
    private:
-    std::unique_ptr<AbstractExecutor> left_;    // 左儿子节点（需要join的表）
-    std::unique_ptr<AbstractExecutor> right_;   // 右儿子节点（需要join的表）
-    size_t len_;                                // join后获得的每条记录的长度
-    std::vector<ColMeta> cols_;                 // join后获得的记录的字段
-
-    std::vector<Condition> fed_conds_;          // join条件
+    static constexpr float FLT_EPSILON = 1e-6; //容差
+    std::unique_ptr<AbstractExecutor> left_;    // 左表执行器
+    std::unique_ptr<AbstractExecutor> right_;   // 右表执行器
+    size_t len_;                                // 输出元组长度
+    std::vector<ColMeta> cols_;                 // 输出列元数据
+    std::vector<Condition> fed_conds_;          // 连接条件
     bool isend;                                 // 是否已经到达结尾
     
     std::unique_ptr<RmRecord> left_tuple_;      // 当前左表元组
@@ -191,12 +192,12 @@ private:
                 float right_float = *(float*)right_val;
 
                 switch (cond.op) {
-                    case OP_EQ: result = (left_float == right_float); break;
-                    case OP_NE: result = (left_float != right_float); break;
-                    case OP_LT: result = (left_float < right_float); break;
-                    case OP_GT: result = (left_float > right_float); break;
-                    case OP_LE: result = (left_float <= right_float); break;
-                    case OP_GE: result = (left_float >= right_float); break;
+                    case OP_EQ: result = std::fabs(left_float - right_float) <= FLT_EPSILON; break;
+                    case OP_NE: result = std::fabs(left_float - right_float) > FLT_EPSILON; break;
+                    case OP_LT: result = left_float - right_float < -FLT_EPSILON; break;
+                    case OP_GT: result = left_float - right_float > FLT_EPSILON; break;
+                    case OP_LE: result = left_float - right_float <= FLT_EPSILON; break;
+                    case OP_GE: result = left_float - right_float >= -FLT_EPSILON; break;
                     default: result = false;
                 }
             } else if (type == TYPE_STRING) {

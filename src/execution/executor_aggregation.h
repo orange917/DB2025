@@ -30,24 +30,11 @@ struct AggResult {
 
 // 聚合状态结构
 struct AggState {
-    std::vector<Value> agg_values; // 聚合函数当前状态
-    int count;                     // COUNT(*)的计数
+    int count;
+    std::vector<Value> agg_values;
+    std::vector<double> float_accumulators;  // 用于浮点数聚合的double累加器
     
-    AggState() : count(0) {
-        // 初始化聚合值，设置正确的类型
-        Value count_val, max_val, min_val, sum_val, avg_val;
-        count_val.set_int(0);
-        max_val.set_int(0);
-        min_val.set_int(0);
-        sum_val.set_int(0);
-        avg_val.set_float(0.0f);
-        
-        agg_values.push_back(count_val); // COUNT
-        agg_values.push_back(max_val);   // MAX
-        agg_values.push_back(min_val);   // MIN
-        agg_values.push_back(sum_val);   // SUM
-        agg_values.push_back(avg_val);   // AVG
-    }
+    AggState() : count(0) {}
 };
 
 class AggregationExecutor : public AbstractExecutor {
