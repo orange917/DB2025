@@ -463,6 +463,11 @@ expr:
     {
         $$ = std::static_pointer_cast<Expr>($1);
     }
+    |   '(' dml ')'
+    {
+        // 子查询：将SELECT语句包装为表达式
+        $$ = std::static_pointer_cast<Expr>($2);
+    }
     ;
 
 setClauses:
