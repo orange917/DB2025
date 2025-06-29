@@ -252,7 +252,14 @@ void AggregationExecutor::update_agg_state(AggState& state, const std::unique_pt
             continue;
         }
         
-        Value value = get_column_value(record, agg_func.col);
+        // 只有当列名不为空时才调用 get_column_value
+        Value value;
+        if (!agg_func.col.col_name.empty()) {
+            value = get_column_value(record, agg_func.col);
+        } else {
+            // 如果列名为空，设置默认值
+            value.set_int(0);
+        }
         
         switch (agg_func.func_type) {
             case AGG_COUNT:
@@ -740,9 +747,8 @@ void AggregationExecutor::compute_final_results() {
                     // 排序列是聚合函数
                     int agg_idx = -1;
                     for (size_t j = 0; j < agg_funcs_.size(); j++) {
-                        if (agg_funcs_[j].func_type == order_col.agg.func_type && 
-                            agg_funcs_[j].col.tab_name == order_col.agg.col.tab_name && 
-                            agg_funcs_[j].col.col_name == order_col.agg.col.col_name) {
+                        // 通过别名匹配聚合函数
+                        if (agg_funcs_[j].alias == order_col.agg.alias) {
                             agg_idx = j;
                             break;
                         }
@@ -801,11 +807,27 @@ void AggregationExecutor::compute_final_results() {
 }
 
 Value AggregationExecutor::get_column_value(const std::unique_ptr<RmRecord>& record, const TabCol& col) {
+    // 添加调试信息
+    if (col.tab_name.empty() && col.col_name.empty()) {
+        std::cout << "DEBUG: get_column_value called with empty column name" << std::endl;
+        Value value;
+        value.set_int(0);
+        return value;
+    }
+    
+    if (col.col_name.empty()) {
+        std::cout << "DEBUG: get_column_value called with empty col_name: tab_name=" << col.tab_name << std::endl;
+        Value value;
+        value.set_int(0);
+        return value;
+    }
+    
     auto pos = get_col(prev_->cols(), col);
     Value value;
     
     if (pos == prev_->cols().end()) {
         // 如果找不到列，返回默认值
+        std::cout << "DEBUG: Column not found: " << col.tab_name << "." << col.col_name << std::endl;
         value.set_int(0);
         return value;
     }

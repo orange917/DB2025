@@ -97,8 +97,24 @@ std::shared_ptr<Query> Analyze::do_analyze(std::shared_ptr<ast::TreeNode> parse)
             for (size_t i = 0; i < x->order->cols.size(); i++) {
                 OrderByCol order_col;
                 order_col.col = {.tab_name = x->order->cols[i]->tab_name, .col_name = x->order->cols[i]->col_name};
-                order_col.is_agg = false;  // 暂时只支持普通列排序
-                order_col.col = check_column(all_cols, order_col.col);
+                
+                // 检查排序列是否是聚合函数的别名
+                bool is_agg_alias = false;
+                for (const auto& agg_func : query->agg_funcs) {
+                    if (agg_func.alias == order_col.col.col_name) {
+                        order_col.is_agg = true;
+                        order_col.agg = agg_func;
+                        is_agg_alias = true;
+                        break;
+                    }
+                }
+                
+                if (!is_agg_alias) {
+                    // 不是聚合函数别名，按普通列处理
+                    order_col.is_agg = false;
+                    order_col.col = check_column(all_cols, order_col.col);
+                }
+                
                 query->order_by_cols.push_back(order_col);
                 
                 // 设置排序方向

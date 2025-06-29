@@ -66,45 +66,44 @@ extern int yydebug;
     DELETE = 267,                  /* DELETE  */
     FROM = 268,                    /* FROM  */
     ASC = 269,                     /* ASC  */
-    ORDER = 270,                   /* ORDER  */
-    BY = 271,                      /* BY  */
-    WHERE = 272,                   /* WHERE  */
-    UPDATE = 273,                  /* UPDATE  */
-    SET = 274,                     /* SET  */
-    SELECT = 275,                  /* SELECT  */
-    INT = 276,                     /* INT  */
-    CHAR = 277,                    /* CHAR  */
-    FLOAT = 278,                   /* FLOAT  */
-    INDEX = 279,                   /* INDEX  */
-    AND = 280,                     /* AND  */
-    JOIN = 281,                    /* JOIN  */
-    EXIT = 282,                    /* EXIT  */
-    HELP = 283,                    /* HELP  */
-    TXN_BEGIN = 284,               /* TXN_BEGIN  */
-    TXN_COMMIT = 285,              /* TXN_COMMIT  */
-    TXN_ABORT = 286,               /* TXN_ABORT  */
-    TXN_ROLLBACK = 287,            /* TXN_ROLLBACK  */
-    ORDER_BY = 288,                /* ORDER_BY  */
-    ENABLE_NESTLOOP = 289,         /* ENABLE_NESTLOOP  */
-    ENABLE_SORTMERGE = 290,        /* ENABLE_SORTMERGE  */
-    COUNT = 291,                   /* COUNT  */
-    MAX = 292,                     /* MAX  */
-    MIN = 293,                     /* MIN  */
-    SUM = 294,                     /* SUM  */
-    AVG = 295,                     /* AVG  */
-    GROUP = 296,                   /* GROUP  */
-    HAVING = 297,                  /* HAVING  */
-    LIMIT = 298,                   /* LIMIT  */
-    AS = 299,                      /* AS  */
-    LEQ = 300,                     /* LEQ  */
-    NEQ = 301,                     /* NEQ  */
-    GEQ = 302,                     /* GEQ  */
-    T_EOF = 303,                   /* T_EOF  */
-    IDENTIFIER = 304,              /* IDENTIFIER  */
-    VALUE_STRING = 305,            /* VALUE_STRING  */
-    VALUE_INT = 306,               /* VALUE_INT  */
-    VALUE_FLOAT = 307,             /* VALUE_FLOAT  */
-    VALUE_BOOL = 308               /* VALUE_BOOL  */
+    WHERE = 270,                   /* WHERE  */
+    UPDATE = 271,                  /* UPDATE  */
+    SET = 272,                     /* SET  */
+    SELECT = 273,                  /* SELECT  */
+    INT = 274,                     /* INT  */
+    CHAR = 275,                    /* CHAR  */
+    FLOAT = 276,                   /* FLOAT  */
+    INDEX = 277,                   /* INDEX  */
+    AND = 278,                     /* AND  */
+    JOIN = 279,                    /* JOIN  */
+    EXIT = 280,                    /* EXIT  */
+    HELP = 281,                    /* HELP  */
+    TXN_BEGIN = 282,               /* TXN_BEGIN  */
+    TXN_COMMIT = 283,              /* TXN_COMMIT  */
+    TXN_ABORT = 284,               /* TXN_ABORT  */
+    TXN_ROLLBACK = 285,            /* TXN_ROLLBACK  */
+    ENABLE_NESTLOOP = 286,         /* ENABLE_NESTLOOP  */
+    ENABLE_SORTMERGE = 287,        /* ENABLE_SORTMERGE  */
+    COUNT = 288,                   /* COUNT  */
+    MAX = 289,                     /* MAX  */
+    MIN = 290,                     /* MIN  */
+    SUM = 291,                     /* SUM  */
+    AVG = 292,                     /* AVG  */
+    GROUP = 293,                   /* GROUP  */
+    HAVING = 294,                  /* HAVING  */
+    LIMIT = 295,                   /* LIMIT  */
+    AS = 296,                      /* AS  */
+    ORDER = 297,                   /* ORDER  */
+    BY = 298,                      /* BY  */
+    LEQ = 299,                     /* LEQ  */
+    NEQ = 300,                     /* NEQ  */
+    GEQ = 301,                     /* GEQ  */
+    T_EOF = 302,                   /* T_EOF  */
+    IDENTIFIER = 303,              /* IDENTIFIER  */
+    VALUE_STRING = 304,            /* VALUE_STRING  */
+    VALUE_INT = 305,               /* VALUE_INT  */
+    VALUE_FLOAT = 306,             /* VALUE_FLOAT  */
+    VALUE_BOOL = 307               /* VALUE_BOOL  */
   };
   typedef enum yytokentype yytoken_kind_t;
 #endif
@@ -113,7 +112,7 @@ extern int yydebug;
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 union YYSTYPE
 {
-#line 24 "/home/code/db2025/src/parser/yacc.y"
+#line 25 "/home/code/db2025/src/parser/yacc.y"
 
     int sv_int;
     float sv_float;
@@ -159,7 +158,7 @@ union YYSTYPE
     std::pair<std::shared_ptr<Col>, OrderByDir> sv_order_col_with_dir;
     std::vector<std::pair<std::shared_ptr<Col>, OrderByDir>> sv_order_col_list;
 
-#line 163 "/home/code/db2025/src/parser/yacc.tab.h"
+#line 162 "/home/code/db2025/src/parser/yacc.tab.h"
 
 };
 typedef union YYSTYPE YYSTYPE;

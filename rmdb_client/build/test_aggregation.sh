@@ -25,35 +25,24 @@ drop table employee;
 drop table orders;
 drop table products;
 
+create table grade (course char(20),id int,score float);
+insert into grade values('DataStructure',1,95);
+insert into grade values('DataStructure',2,93.5);
+insert into grade values('DataStructure',3,94.5);
+insert into grade values('ComputerNetworks',1,99);
+insert into grade values('ComputerNetworks',2,88.5);
+insert into grade values('ComputerNetworks',3,92.5);
+insert into grade values('C++',1,92);
+insert into grade values('C++',2,89);
+insert into grade values('C++',3,89.5);
+
 # -----------------------------------------------------------------
-# 测试15: 多表连接聚合测试
+# 测试20: 综合测试
 # -----------------------------------------------------------------
-echo "=== 测试15: 多表连接聚合测试 ===";
-create table employee (emp_id int, name char(20), dept char(20), salary float);
-create table orders (order_id int, emp_id int, amount float, date char(10));
-create table products (prod_id int, name char(20), price float, category char(20));
-
-insert into employee values(1, 'Alice', 'Sales', 5000);
-insert into employee values(2, 'Bob', 'Sales', 5500);
-insert into employee values(3, 'Charlie', 'IT', 6000);
-insert into employee values(4, 'David', 'IT', 6500);
-insert into employee values(5, 'Eve', 'HR', 4500);
-
-insert into orders values(1, 1, 1000, '2024-01-01');
-insert into orders values(2, 1, 1500, '2024-01-02');
-insert into orders values(3, 2, 2000, '2024-01-03');
-insert into orders values(4, 3, 800, '2024-01-04');
-insert into orders values(5, 4, 1200, '2024-01-05');
-insert into orders values(6, 5, 900, '2024-01-06');
-
-insert into products values(1, 'Laptop', 1200, 'Electronics');
-insert into products values(2, 'Phone', 800, 'Electronics');
-insert into products values(3, 'Desk', 300, 'Furniture');
-insert into products values(4, 'Chair', 200, 'Furniture');
-
-select e.dept, COUNT(*) as emp_count, AVG(e.salary) as avg_salary from employee e group by e.dept;
-select e.dept, SUM(o.amount) as total_sales from employee e, orders o where e.emp_id = o.emp_id group by e.dept;
-select p.category, COUNT(*) as prod_count, AVG(p.price) as avg_price from products p group by p.category;
+echo "=== 测试20: 综合测试 ===";
+select course, COUNT(*) as student_count, AVG(score) as avg_score, MAX(score) as max_score, MIN(score) as min_score, SUM(score) as total_score from grade group by course having COUNT(*) >= 2 order by avg_score desc;
+select region, product, COUNT(*) as sales_count, SUM(amount) as total_amount, AVG(amount) as avg_amount from sales group by region, product having SUM(amount) > 1000 order by total_amount desc limit 5;
+select dept, COUNT(*) as emp_count, AVG(salary) as avg_salary, SUM(salary) as total_salary from employee group by dept having COUNT(*) > 1 order by avg_salary desc;
 
 EOF
 

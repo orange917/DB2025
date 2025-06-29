@@ -235,8 +235,8 @@ std::shared_ptr<Plan> Planner::physical_optimization(std::shared_ptr<Query> quer
         // 多表连接
         plan = make_one_rel(query);
     }
-    // 处理orderby
-    plan = generate_sort_plan(query, std::move(plan)); 
+    // 移除这里的 ORDER BY 处理，因为它在 generate_select_plan 中处理
+    // plan = generate_sort_plan(query, std::move(plan)); 
 
     return plan;
 }
@@ -511,9 +511,11 @@ std::shared_ptr<Plan> Planner::generate_select_plan(std::shared_ptr<Query> query
 
     // 新增：如果有聚合或分组，插入AggPlan
     if (query->has_agg || query->has_group_by) {
+        // 对于聚合查询，ORDER BY 应该在聚合之后处理
+        // 所以这里不调用 generate_sort_plan
         plannerRoot = std::make_shared<AggPlan>(
             plannerRoot, query->agg_funcs, query->group_by_cols, query->having_conds, 
-            std::vector<OrderByCol>(), std::vector<bool>(), query->limit_val
+            query->order_by_cols, query->order_by_directions, query->limit_val
         );
         
         // 为聚合查询创建正确的投影列
@@ -533,11 +535,11 @@ std::shared_ptr<Plan> Planner::generate_select_plan(std::shared_ptr<Query> query
         }
         
         sel_cols = std::move(agg_sel_cols);
-    }
-
-    // 处理ORDER BY子句
-    if (query->has_order_by) {
-        plannerRoot = generate_sort_plan(query, std::move(plannerRoot));
+    } else {
+        // 对于非聚合查询，ORDER BY 在聚合之前处理
+        if (query->has_order_by) {
+            plannerRoot = generate_sort_plan(query, std::move(plannerRoot));
+        }
     }
 
     // 创建ProjectionPlan，传递limit值

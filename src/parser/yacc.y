@@ -14,6 +14,7 @@ using namespace ast;
 %}
 
 // request a pure (reentrant) parser
+
 %define api.pure full
 // enable location in error handler
 %locations
@@ -68,10 +69,10 @@ using namespace ast;
 }
 
 // keywords
-%token SHOW TABLES CREATE TABLE DROP DESC INSERT INTO VALUES DELETE FROM ASC ORDER BY
-WHERE UPDATE SET SELECT INT CHAR FLOAT INDEX AND JOIN EXIT HELP TXN_BEGIN TXN_COMMIT TXN_ABORT TXN_ROLLBACK ORDER_BY ENABLE_NESTLOOP ENABLE_SORTMERGE
+%token SHOW TABLES CREATE TABLE DROP DESC INSERT INTO VALUES DELETE FROM ASC
+WHERE UPDATE SET SELECT INT CHAR FLOAT INDEX AND JOIN EXIT HELP TXN_BEGIN TXN_COMMIT TXN_ABORT TXN_ROLLBACK ENABLE_NESTLOOP ENABLE_SORTMERGE
 // 添加聚合函数和分组关键字
-COUNT MAX MIN SUM AVG GROUP HAVING LIMIT AS
+COUNT MAX MIN SUM AVG GROUP HAVING LIMIT AS ORDER BY
 // non-keywords
 %token LEQ NEQ GEQ T_EOF
 
@@ -218,17 +219,17 @@ dml:
     {
         $$ = std::make_shared<UpdateStmt>($2, $4, $5);
     }
-    |   SELECT selector FROM tableList optWhereClause opt_order_clause opt_group_by_clause opt_having_clause opt_limit_clause
+    |   SELECT selector FROM tableList optWhereClause opt_group_by_clause opt_having_clause opt_order_clause opt_limit_clause
     {
-        $$ = std::make_shared<SelectStmt>($2, std::vector<std::shared_ptr<AggFunc>>(), $4, $5, $6, $7, $8, $9);
+        $$ = std::make_shared<SelectStmt>($2, std::vector<std::shared_ptr<AggFunc>>(), $4, $5, $8, $6, $7, $9);
     }
-    |   SELECT agg_func_list FROM tableList optWhereClause opt_order_clause opt_group_by_clause opt_having_clause opt_limit_clause
+    |   SELECT agg_func_list FROM tableList optWhereClause opt_group_by_clause opt_having_clause opt_order_clause opt_limit_clause
     {
-        $$ = std::make_shared<SelectStmt>(std::vector<std::shared_ptr<Col>>(), $2, $4, $5, $6, $7, $8, $9);
+        $$ = std::make_shared<SelectStmt>(std::vector<std::shared_ptr<Col>>(), $2, $4, $5, $8, $6, $7, $9);
     }
-    |   SELECT mixed_selector FROM tableList optWhereClause opt_order_clause opt_group_by_clause opt_having_clause opt_limit_clause
+    |   SELECT mixed_selector FROM tableList optWhereClause opt_group_by_clause opt_having_clause opt_order_clause opt_limit_clause
     {
-        $$ = std::make_shared<SelectStmt>($2.first, $2.second, $4, $5, $6, $7, $8, $9);
+        $$ = std::make_shared<SelectStmt>($2.first, $2.second, $4, $5, $8, $6, $7, $9);
     }
     ;
 
