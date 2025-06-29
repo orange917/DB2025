@@ -288,16 +288,20 @@ std::shared_ptr<Plan> Planner::build_join_plan(std::shared_ptr<Query> query, con
                 throw InternalError("Join condition lhs must be a column");
             }
             
-            // 处理右操作数
-            if (auto rhs_col = std::dynamic_pointer_cast<ast::Col>(cond->rhs)) {
-                join_cond.rhs_col = {.tab_name = rhs_col->tab_name, .col_name = rhs_col->col_name};
+            // 处理右操作数，允许是列或常数
+            if (auto rhs_val = std::dynamic_pointer_cast<ast::Value>(cond->rhs)) {
+                join_cond.is_rhs_val = true;
                 join_cond.is_rhs_agg = false;
+                join_cond.rhs_val = convert_sv_value(rhs_val);
+            } else if (auto rhs_col = std::dynamic_pointer_cast<ast::Col>(cond->rhs)) {
+                join_cond.is_rhs_val = false;
+                join_cond.is_rhs_agg = false;
+                join_cond.rhs_col = {.tab_name = rhs_col->tab_name, .col_name = rhs_col->col_name};
             } else {
-                throw InternalError("Join condition rhs must be a column");
+                throw InternalError("Join condition rhs must be a column or value");
             }
             
             join_cond.op = convert_sv_comp_op(cond->op);
-            join_cond.is_rhs_val = false;
             
             join_conds.push_back(join_cond);
         }
@@ -730,4 +734,18 @@ CompOp Planner::convert_sv_comp_op(ast::SvCompOp op) {
         case ast::SV_OP_GE: return OP_GE;
         default: throw InternalError("Unknown comparison operator");
     }
+}
+
+Value Planner::convert_sv_value(const std::shared_ptr<ast::Value> &sv_val) {
+    Value val;
+    if (auto int_lit = std::dynamic_pointer_cast<ast::IntLit>(sv_val)) {
+        val.set_int(int_lit->val);
+    } else if (auto float_lit = std::dynamic_pointer_cast<ast::FloatLit>(sv_val)) {
+        val.set_float(float_lit->val);
+    } else if (auto str_lit = std::dynamic_pointer_cast<ast::StringLit>(sv_val)) {
+        val.set_str(str_lit->val);
+    } else {
+        throw InternalError("Unexpected sv value type");
+    }
+    return val;
 }

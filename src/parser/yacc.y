@@ -522,13 +522,13 @@ join_expr_list:
     ;
 
 join_clause:
-    JOIN tbName ON condition
+    JOIN tbName ON whereClause
     {
-        $$ = std::make_shared<JoinExpr>("", $2, std::vector<std::shared_ptr<BinaryExpr>>{$4}, ::INNER_JOIN);
+        $$ = std::make_shared<JoinExpr>("", $2, $4, ::INNER_JOIN);
     }
-    | SEMI JOIN tbName ON condition
+    | SEMI JOIN tbName ON whereClause
     {
-        $$ = std::make_shared<JoinExpr>("", $3, std::vector<std::shared_ptr<BinaryExpr>>{$5}, ::SEMI_JOIN);
+        $$ = std::make_shared<JoinExpr>("", $3, $5, ::SEMI_JOIN);
     }
     ;
 
