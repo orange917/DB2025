@@ -12,6 +12,7 @@ See the Mulan PSL v2 for more details. */
 
 #include <sys/stat.h>
 #include <unistd.h>
+#include <dirent.h>
 
 #include <fstream>
 #include <set>
@@ -284,28 +285,37 @@ void SmManager::drop_table(const std::string& tab_name, Context* context) {
         throw TableNotFoundError(tab_name);
     }
 
-    // Step 1: Clean up and delete all associated indexes.
-    // We must copy the index metadata because the loop will modify the table's index list by calling drop_index.
+    // Step 0: 彻底删除所有相关的物理索引文件（无论元数据是否存在）
+    DIR* dir = opendir(".");
+    if (dir) {
+        struct dirent* entry;
+        std::string prefix = tab_name + "_";
+        std::string suffix = ".idx";
+        while ((entry = readdir(dir)) != nullptr) {
+            std::string fname = entry->d_name;
+            if (fname.size() > prefix.size() + suffix.size() &&
+                fname.substr(0, prefix.size()) == prefix &&
+                fname.substr(fname.size() - suffix.size()) == suffix) {
+                // 直接删除物理文件
+                remove(fname.c_str());
+            }
+        }
+        closedir(dir);
+    }
+
+    // Step 1: Clean up and delete all associated indexes (元数据)
     auto indexes_to_drop = db_.tabs_[tab_name].indexes;
     for (const auto& index_meta : indexes_to_drop) {
         std::vector<std::string> col_names;
         for (const auto& col : index_meta.cols) {
             col_names.push_back(col.name);
         }
-
         std::string index_name = ix_manager_->get_index_name(tab_name, col_names);
-
-        // Find and close the index handle
         auto ih_iter = ihs_.find(index_name);
         if (ih_iter != ihs_.end()) {
-            // The index manager should be responsible for cleaning up pages from the buffer pool.
-            // The manual page deletion logic here is complex and error-prone.
-            // We will rely on the manager's close and destroy functions to handle cleanup.
             ix_manager_->close_index(ih_iter->second.get());
             ihs_.erase(ih_iter);
         }
-        
-        // This is the crucial step to delete the physical index file.
         ix_manager_->destroy_index(tab_name, index_meta.cols);
     }
 
@@ -340,6 +350,7 @@ void SmManager::drop_table(const std::string& tab_name, Context* context) {
     // Step 4: Persist the metadata changes.
     flush_meta();
 }
+
 /**
  * @description: 创建索引
  * @param {string&} tab_name 表的名称
@@ -350,6 +361,10 @@ void SmManager::create_index(const std::string& tab_name, const std::vector<std:
     std::lock_guard<std::mutex> lock(meta_mutex_);
     // 检查表是否存在
     if(!db_.is_table(tab_name)) {
+        throw TableNotFoundError(tab_name);
+    }
+    // 检查表的物理文件是否存在
+    if (!disk_manager_->is_file(tab_name)) {
         throw TableNotFoundError(tab_name);
     }
 
@@ -376,7 +391,7 @@ void SmManager::create_index(const std::string& tab_name, const std::vector<std:
 
     // 创建索引文件
     std::string index_name = ix_manager_->get_index_name(tab_name, col_names);
-    if (ihs_.find(index_name) != ihs_.end()) {
+    if (ihs_.find(index_name) != ihs_.end() || ix_manager_->exists(tab_name, col_names)) {
         throw IndexExistsError(tab_name, col_names);
     }
 
@@ -448,82 +463,46 @@ void SmManager::create_index(const std::string& tab_name, const std::vector<std:
  */
 void SmManager::drop_index(const std::string& tab_name, const std::vector<std::string>& col_names, Context* context) {
     std::lock_guard<std::mutex> lock(meta_mutex_);
-    // 检查表是否存在
-    if (!db_.is_table(tab_name)) {
-        throw TableNotFoundError(tab_name);
+    TabMeta* tab = nullptr;
+    if (db_.is_table(tab_name)) {
+        tab = &db_.get_table(tab_name);
     }
-    
-    TabMeta& tab = db_.get_table(tab_name);
-    
-    // 检查索引是否存在
-    if (!tab.is_index(col_names)) {
-        throw IndexNotFoundError(tab_name, col_names);
-    }
-    
-    // 获取索引元数据
-    auto index_iter = tab.get_index_meta(col_names);
-    // 先拷贝一份索引的 cols
-    std::vector<ColMeta> index_cols = index_iter->cols;
-    
     // 获取索引名
     std::string index_name = ix_manager_->get_index_name(tab_name, col_names);
-    
-    // 关闭并删除索引
+
+    // 关闭并删除索引 handle
     auto ih_iter = ihs_.find(index_name);
     if (ih_iter != ihs_.end()) {
         ix_manager_->close_index(ih_iter->second.get());
         ihs_.erase(ih_iter);
     }
-    
-    // 删除索引文件
-    ix_manager_->destroy_index(tab_name, index_cols);
-    
-    // 从表的索引列表中移除该索引
-    tab.indexes.erase(index_iter);
-    
-    // 更新表元数据中列的索引标记
-    for (const auto& col_name : col_names) {
-        // 检查该列是否还在其他索引中
-        bool still_indexed = false;
-        
-        for (const auto& index : tab.indexes) {
-            // 检查该列是否在其他索引中
-            for (const auto& idx_col : index.cols) {
-                if (idx_col.name == col_name) {
-                    still_indexed = true;
-                    break;
-                }
-            }
-            if (still_indexed) break;
-        }
-        
-        // 如果该列不再被任何索引使用，则更新index标志
-        if (!still_indexed) {
-            auto col_it = tab.get_col(col_name);
-            col_it->index = false;
-        }
-    }
-    
-    // 将修改后的元数据写入磁盘
-    flush_meta();
-}
 
-/**
- * @description: 删除索引
- * @param {string&} tab_name 表名称
- * @param {vector<ColMeta>&} cols 索引包含的字段元数据
- * @param {Context*} context
- */
-void SmManager::drop_index(const std::string& tab_name, const std::vector<ColMeta>& cols, Context* context) {
-    std::lock_guard<std::mutex> lock(meta_mutex_);
-    // 从字段元数据中获取字段名列表
-    std::vector<std::string> col_names;
-    for (const auto& col : cols) {
-        col_names.push_back(col.name);
+    // 删除物理索引文件（无论元数据是否存在）
+    ix_manager_->destroy_index(tab_name, col_names);
+
+    // 如果元数据存在且有该索引，移除元数据
+    if (tab && tab->is_index(col_names)) {
+        auto index_iter = tab->get_index_meta(col_names);
+        tab->indexes.erase(index_iter);
+        // 更新表元数据中列的索引标记
+        for (const auto& col_name : col_names) {
+            bool still_indexed = false;
+            for (const auto& index : tab->indexes) {
+                for (const auto& idx_col : index.cols) {
+                    if (idx_col.name == col_name) {
+                        still_indexed = true;
+                        break;
+                    }
+                }
+                if (still_indexed) break;
+            }
+            if (!still_indexed) {
+                auto col_it = tab->get_col(col_name);
+                col_it->index = false;
+            }
+        }
+        flush_meta();
     }
-    
-    // 调用第一个重载的drop_index函数完成删除操作
-    drop_index(tab_name, col_names, context);
 }
 
 /**

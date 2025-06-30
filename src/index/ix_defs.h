@@ -90,10 +90,12 @@ public:
 
     void deserialize(char* src) {
         int offset = 0;
+        col_types_.clear();
+        col_lens_.clear();
         tot_len_ = *reinterpret_cast<const int*>(src + offset);
         offset += sizeof(int);
         first_free_page_no_ = *reinterpret_cast<const page_id_t*>(src + offset);
-        offset += sizeof(int);
+        offset += sizeof(page_id_t);
         num_pages_ = *reinterpret_cast<const int*>(src + offset);
         offset += sizeof(int);
         root_page_ = *reinterpret_cast<const page_id_t*>(src + offset);

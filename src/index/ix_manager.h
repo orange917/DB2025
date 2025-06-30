@@ -88,10 +88,11 @@ class IxManager {
         }
         fhdr->update_tot_len();
         
-        char* data = new char[fhdr->tot_len_];
+        char* data = new char[PAGE_SIZE];
+        memset(data, 0, PAGE_SIZE);
         fhdr->serialize(data);
-
-        disk_manager_->write_page(fd, IX_FILE_HDR_PAGE, data, fhdr->tot_len_);
+        disk_manager_->write_page(fd, IX_FILE_HDR_PAGE, data, PAGE_SIZE);
+        delete[] data;
 
         char page_buf[PAGE_SIZE];  // 在内存中初始化page_buf中的内容，然后将其写入磁盘
         memset(page_buf, 0, PAGE_SIZE);
@@ -135,7 +136,9 @@ class IxManager {
 
     void destroy_index(const std::string &filename, const std::vector<ColMeta>& index_cols) {
         std::string ix_name = get_index_name(filename, index_cols);
-        disk_manager_->destroy_file(ix_name);
+        if (disk_manager_->is_file(ix_name)) {
+            disk_manager_->destroy_file(ix_name);
+        }
     }
 
     void destroy_index(const std::string &filename, const std::vector<std::string>& index_cols) {
