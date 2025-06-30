@@ -278,7 +278,10 @@ class IndexScanExecutor : public AbstractExecutor {
 
     while (!scan_->is_end()) {
       auto rcd = fh_->get_record(scan_->rid(), context_);
-
+      if (rcd == nullptr) { // 防止空指针
+        scan_->next();
+        continue;
+      }
       // 使用现有的条件检查方法
       if (!eval_conds(rcd.get(), cols_)) {
         scan_->next();
@@ -292,7 +295,9 @@ class IndexScanExecutor : public AbstractExecutor {
   void nextTuple() override {
     for (scan_->next(); !scan_->is_end(); scan_->next()) {
       auto rcd = fh_->get_record(scan_->rid(), context_);
-
+      if (rcd == nullptr) { // 防止空指针
+        continue;
+      }
       if (eval_conds(rcd.get(), cols_)) {
         rid_ = scan_->rid();
         break;
