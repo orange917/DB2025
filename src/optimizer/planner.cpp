@@ -67,6 +67,7 @@ bool Planner::get_index_cols(std::string tab_name, std::vector<Condition> curr_c
     for (const auto& index : tab.indexes) {
         int match = 0;
         bool can_continue = true;
+        std::vector<std::string> matched_cols;
 
         // 遍历索引中的每个列，检查最左前缀匹配
         for (size_t i = 0; i < index.cols.size() && can_continue; ++i) {
@@ -91,6 +92,7 @@ bool Planner::get_index_cols(std::string tab_name, std::vector<Condition> curr_c
 
                 if (col_usable) {
                     match++;
+                    matched_cols.push_back(idx_col.name);
                 } else if (i == 0) {
                     // 第一列必须可用，否则不满足最左前缀原则
                     can_continue = false;
@@ -107,10 +109,7 @@ bool Planner::get_index_cols(std::string tab_name, std::vector<Condition> curr_c
         // 更新最佳匹配
         if (match > best_match) {
             best_match = match;
-            best_index_cols.clear();
-            for (const auto& col : index.cols) {
-                best_index_cols.push_back(col.name);
-            }
+            best_index_cols = matched_cols;  // 只返回实际匹配的列
         }
     }
 

@@ -30,7 +30,9 @@ class IxScan : public RecScan {
 
     void next() override;
 
-    bool is_end() const override { return iid_ == end_; }
+    bool is_end() const override { 
+        return iid_ == end_; 
+    }
 
     Rid rid() const override;
 

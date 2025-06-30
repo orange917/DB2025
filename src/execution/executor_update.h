@@ -25,139 +25,175 @@ class UpdateExecutor : public AbstractExecutor {
     std::vector<Rid> rids_;
     std::string tab_name_;
     std::vector<SetClause> set_clauses_;
+    std::unique_ptr<AbstractExecutor> scanner_;
     SmManager *sm_manager_;
 
-
-private:
     // Helper function to evaluate conditions on a record
     bool eval_conds(const RmRecord *record, const std::vector<ColMeta> &cols) {
-        // TODO: Implement actual condition evaluation logic.
+        for (const auto &cond : conds_) {
+            if (!eval_cond(record, cols, cond)) {
+                return false;
+            }
+        }
         return true;
     }
 
+    // Helper function to evaluate a single condition
+    bool eval_cond(const RmRecord *record, const std::vector<ColMeta> &cols, const Condition &cond) {
+        auto col_iter = std::find_if(cols.begin(), cols.end(), 
+            [&cond](const ColMeta &col) { 
+                return col.tab_name == cond.lhs_col.tab_name && col.name == cond.lhs_col.col_name; 
+            });
+        
+        if (col_iter == cols.end()) {
+            return false;
+        }
+
+        char *lhs_val = const_cast<char*>(record->data) + col_iter->offset;
+        
+        if (cond.is_rhs_val) {
+            char *rhs_val = cond.rhs_val.raw->data;
+            int cmp_res = ix_compare(lhs_val, rhs_val, col_iter->type, col_iter->len);
+            
+            switch (cond.op) {
+                case OP_EQ: return (cmp_res == 0);
+                case OP_NE: return (cmp_res != 0);
+                case OP_LT: return (cmp_res < 0);
+                case OP_GT: return (cmp_res > 0);
+                case OP_LE: return (cmp_res <= 0);
+                case OP_GE: return (cmp_res >= 0);
+                default: return false;
+            }
+        } else {
+            // Handle column comparison (not implemented for simplicity)
+            return false;
+        }
+    }
+
 public:
-    UpdateExecutor(SmManager *sm_manager, const std::string &tab_name, std::vector<SetClause> set_clauses,
-                std::vector<Condition> conds, std::vector<Rid> rids, Context *context) {
+    UpdateExecutor(SmManager *sm_manager, const std::string &tab_name,
+                   std::vector<SetClause> set_clauses, std::vector<Condition> conds,
+                   std::unique_ptr<AbstractExecutor> scanner, Context *context) {
         sm_manager_ = sm_manager;
         tab_name_ = tab_name;
         set_clauses_ = std::move(set_clauses);
         tab_ = sm_manager_->db_.get_table(tab_name);
         fh_ = sm_manager_->fhs_.at(tab_name).get();
         conds_ = std::move(conds);
-        rids_ = std::move(rids);
-        context_ = context;
-        // 判断是否满足 where 条件
-        // (Removed invalid use of 'old_record' here; condition evaluation is handled in Next())
+        scanner_ = std::move(scanner);
+        AbstractExecutor::context_ = context;
     }
 
     std::unique_ptr<RmRecord> Next() override {
+        // 1. 收集所有满足条件的 rid
+        rids_.clear();
+        for (scanner_->beginTuple(); !scanner_->is_end(); scanner_->nextTuple()) {
+            rids_.push_back(scanner_->rid());
+        }
+        // 2. 对 rids_ 做 update（用你前面写的 update 逻辑即可）
         for (const Rid &rid : rids_) {
             std::unique_ptr<RmRecord> record_ptr = fh_->get_record(rid, context_);
             if (!record_ptr) continue;
             RmRecord &old_record = *record_ptr;
-
-            // 判断是否满足 where 条件
-            if (!eval_conds(&old_record, tab_.cols)) continue;
-
-            // 添加到事务的写集合中 - 在修改前记录原始数据
-            if (context_ != nullptr && context_->txn_ != nullptr) {
-                // 创建记录副本用于事务回滚
-                RmRecord record_copy(old_record.size);
-                memcpy(record_copy.data, old_record.data, old_record.size);
-
-                // 创建写记录并添加到事务的写集合中
-                WriteRecord* write_record = new WriteRecord(
-                    WType::UPDATE_TUPLE,
-                    tab_name_,
-                    rid,
-                    record_copy
-                );
-
-                // 添加到事务的写集合中
-                context_->txn_->append_write_record(write_record);
-            }
-
-             // 生成新记录（先拷贝原数据，再根据 set_clauses 修改）
+            // 生成新记录（先拷贝原数据，再根据 set_clauses 修改）
             RmRecord new_record = old_record;
             for (const auto &set_clause : set_clauses_) {
                 auto col = get_col(tab_.cols, set_clause.lhs);
                 char *data_ptr = new_record.data + col->offset;
                 Value val = set_clause.rhs;
-
-                // 类型对齐与转换
                 if (col->type != val.type) {
                     if (col->type == TYPE_FLOAT && val.type == TYPE_INT) {
-                        // 将 INT 转换为 FLOAT
                         val.float_val = static_cast<float>(val.int_val);
                         val.type = TYPE_FLOAT;
                     } else if (col->type == TYPE_INT && val.type == TYPE_FLOAT) {
-                        // 将 FLOAT 转换为 INT
                         val.int_val = static_cast<int>(val.float_val);
                         val.type = TYPE_INT;
                     }
                 }
-
-                // 确认类型匹配，以防万一
                 if (col->type != val.type) {
                     throw IncompatibleTypeError(coltype2str(col->type), coltype2str(val.type));
                 }
-
                 val.init_raw(col->len);
                 memcpy(data_ptr, val.raw->data, col->len);
             }
-
-            // 先删除旧索引项
+            // 先做唯一性检查（只对unique索引，且新旧key不同才查）
             for (auto &index : tab_.indexes) {
+                if (!index.unique) continue;
                 auto ih = sm_manager_->ihs_.at(sm_manager_->get_ix_manager()->get_index_name(tab_name_, index.cols)).get();
-                char* key = new char[index.col_tot_len];
+                char* new_key = new char[index.col_tot_len];
+                char* old_key = new char[index.col_tot_len];
                 int offset = 0;
                 for (size_t j = 0; j < index.col_num; ++j) {
-                    memcpy(key + offset, old_record.data + index.cols[j].offset, index.cols[j].len);
+                    memcpy(new_key + offset, new_record.data + index.cols[j].offset, index.cols[j].len);
+                    memcpy(old_key + offset, old_record.data + index.cols[j].offset, index.cols[j].len);
                     offset += index.cols[j].len;
                 }
-                ih->delete_entry(key, context_->txn_);
-                delete[] key;
+                if (memcmp(new_key, old_key, index.col_tot_len) != 0) {
+                    std::vector<Rid> rids;
+                    ih->get_value(new_key, &rids, context_ ? context_->txn_ : nullptr);
+                    if (!rids.empty()) {
+                        delete[] new_key; delete[] old_key;
+                        throw UniqueIndexViolationError(tab_name_, {});
+                    }
+                }
+                delete[] new_key; delete[] old_key;
             }
-
-            // 写回新数据
+            // 先删除所有索引的旧key
+            for (auto &index : tab_.indexes) {
+                auto ih = sm_manager_->ihs_.at(sm_manager_->get_ix_manager()->get_index_name(tab_name_, index.cols)).get();
+                char* old_key = new char[index.col_tot_len];
+                int offset = 0;
+                for (size_t j = 0; j < index.col_num; ++j) {
+                    memcpy(old_key + offset, old_record.data + index.cols[j].offset, index.cols[j].len);
+                    offset += index.cols[j].len;
+                }
+                ih->delete_entry(old_key, context_ ? context_->txn_ : nullptr);
+                delete[] old_key;
+            }
+            // 写主表新数据
             fh_->update_record(rid, new_record.data, context_);
-
-            // 再插入新索引项（异常安全）
+            // 插入所有索引的新key，异常要回滚
+            bool index_ok = true;
             try {
                 for (auto &index : tab_.indexes) {
                     auto ih = sm_manager_->ihs_.at(sm_manager_->get_ix_manager()->get_index_name(tab_name_, index.cols)).get();
-                    char* key = new char[index.col_tot_len];
+                    char* new_key = new char[index.col_tot_len];
                     int offset = 0;
                     for (size_t j = 0; j < index.col_num; ++j) {
-                        memcpy(key + offset, new_record.data + index.cols[j].offset, index.cols[j].len);
+                        memcpy(new_key + offset, new_record.data + index.cols[j].offset, index.cols[j].len);
                         offset += index.cols[j].len;
                     }
-                    ih->insert_entry(key, rid, context_->txn_);
-                    delete[] key;
+                    ih->insert_entry(new_key, rid, context_ ? context_->txn_ : nullptr);
+                    delete[] new_key;
                 }
-            } catch (const std::exception& e) {
+            } catch (...) {
+                index_ok = false;
+            }
+            if (!index_ok) {
                 // 回滚主表和索引
                 fh_->update_record(rid, old_record.data, context_);
                 for (auto &index : tab_.indexes) {
                     auto ih = sm_manager_->ihs_.at(sm_manager_->get_ix_manager()->get_index_name(tab_name_, index.cols)).get();
-                    char* key = new char[index.col_tot_len];
+                    char* new_key = new char[index.col_tot_len];
+                    char* old_key = new char[index.col_tot_len];
                     int offset = 0;
                     for (size_t j = 0; j < index.col_num; ++j) {
-                        memcpy(key + offset, new_record.data + index.cols[j].offset, index.cols[j].len);
+                        memcpy(new_key + offset, new_record.data + index.cols[j].offset, index.cols[j].len);
+                        memcpy(old_key + offset, old_record.data + index.cols[j].offset, index.cols[j].len);
                         offset += index.cols[j].len;
                     }
-                    ih->delete_entry(key, context_->txn_);
-                    // 恢复旧索引
-                    key = new char[index.col_tot_len];
-                    offset = 0;
-                    for (size_t j = 0; j < index.col_num; ++j) {
-                        memcpy(key + offset, old_record.data + index.cols[j].offset, index.cols[j].len);
-                        offset += index.cols[j].len;
-                    }
-                    ih->insert_entry(key, rid, context_->txn_);
-                    delete[] key;
+                    ih->delete_entry(new_key, context_ ? context_->txn_ : nullptr);
+                    ih->insert_entry(old_key, rid, context_ ? context_->txn_ : nullptr);
+                    delete[] new_key; delete[] old_key;
                 }
                 throw;
+            }
+            // 事务日志
+            if (context_ != nullptr && context_->txn_ != nullptr) {
+                RmRecord record_copy(old_record.size);
+                memcpy(record_copy.data, old_record.data, old_record.size);
+                WriteRecord* write_record = new WriteRecord(WType::UPDATE_TUPLE, tab_name_, rid, record_copy);
+                context_->txn_->append_write_record(write_record);
             }
         }
         return nullptr;

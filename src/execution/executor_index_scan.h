@@ -10,320 +10,351 @@ See the Mulan PSL v2 for more details. */
 
 #pragma once
 
+#include <algorithm>
+#include <cfloat>
+#include <climits>
+#include <cstddef>
+#include <cstdint>
+#include <memory>
+
+#include "common/common.h"
+#include "common/context.h"
+#include "defs.h"
 #include "execution_defs.h"
 #include "execution_manager.h"
 #include "executor_abstract.h"
 #include "index/ix.h"
-#include "system/sm.h"
+#include "index/ix_defs.h"
 #include "index/ix_index_handle.h"
+#include "index/ix_scan.h"
+#include "record/rm_defs.h"
+#include "system/sm.h"
+#include "system/sm_meta.h"
 
 class IndexScanExecutor : public AbstractExecutor {
-   private:
-    std::string tab_name_;                      // 表名称
-    TabMeta tab_;                               // 表的元数据
-    std::vector<Condition> conds_;              // 扫描条件
-    RmFileHandle *fh_;                          // 表的数据文件句柄
-    std::vector<ColMeta> cols_;                 // 需要读取的字段
-    size_t len_;                                // 选取出来的一条记录的长度
-    std::vector<Condition> fed_conds_;          // 扫描条件，和conds_字段相同
+ private:
+  std::string tab_name_;              // 表名称
+  TabMeta tab_;                       // 表的元数据
+  std::vector<Condition> conds_;      // 扫描条件
+  RmFileHandle *fh_;                  // 表的数据文件句柄
+  std::vector<ColMeta> cols_;         // 需要读取的字段
+  size_t len_;                        // 选取出来的一条记录的长度
+  std::vector<Condition> fed_conds_;  // 扫描条件，和conds_字段相同
 
-    std::vector<std::string> index_col_names_;  // index scan涉及到的索引包含的字段
-    IndexMeta index_meta_;                      // index scan涉及到的索引元数据
+  std::vector<std::string> index_col_names_;  // index scan涉及到的索引包含的字段
+  IndexMeta index_meta_;                      // index scan涉及到的索引元数据
+  std::vector<ColMeta>
+      index_tuple_cols_;  // 记录了index中的tuple的信息。相比index_meta.cols只修改了offset部分。
 
-    Rid rid_;
-    std::unique_ptr<RecScan> scan_;
+  Rid rid_;
+  std::unique_ptr<RecScan> scan_;
 
-    SmManager *sm_manager_;
+  SmManager *sm_manager_;
 
-   public:
-    IndexScanExecutor(SmManager *sm_manager, std::string tab_name, std::vector<Condition> conds, std::vector<std::string> index_col_names,
-                    Context *context) {
-        sm_manager_ = sm_manager;
-        context_ = context;
-        tab_name_ = std::move(tab_name);
-        tab_ = sm_manager_->db_.get_table(tab_name_);
-        conds_ = std::move(conds);
-        // index_no_ = index_no;
-        index_col_names_ = index_col_names;
-        index_meta_ = *(tab_.get_index_meta(index_col_names_));
-        fh_ = sm_manager_->fhs_.at(tab_name_).get();
-        cols_ = tab_.cols;
-        len_ = cols_.back().offset + cols_.back().len;
-        std::map<CompOp, CompOp> swap_op = {
-            {OP_EQ, OP_EQ}, {OP_NE, OP_NE}, {OP_LT, OP_GT}, {OP_GT, OP_LT}, {OP_LE, OP_GE}, {OP_GE, OP_LE},
-        };
+ public:
+  // 索引扫描算子需要读操作，所以需要context来获取事务信息。
+  IndexScanExecutor(SmManager *sm_manager, std::string tab_name, std::vector<Condition> conds,
+                    std::vector<std::string> index_col_names, Context *context) {
+    sm_manager_ = sm_manager;
+    tab_name_ = std::move(tab_name);
+    tab_ = sm_manager_->db_.get_table(tab_name_);
+    // index_no_ = index_no;
+    index_col_names_ = index_col_names;
 
-        for (auto &cond : conds_) {
-            if (cond.lhs_col.tab_name != tab_name_) {
-                // lhs is on other table, now rhs must be on this table
-                assert(!cond.is_rhs_val && cond.rhs_col.tab_name == tab_name_);
-                // swap lhs and rhs
-                std::swap(cond.lhs_col, cond.rhs_col);
-                cond.op = swap_op.at(cond.op);
-            }
+    AbstractExecutor::context_ = context;
+
+    // 查找匹配的索引
+    bool found_index = false;
+    for (auto &index_meta : tab_.indexes) {
+      size_t i;
+
+      // 索引：index_col_names全部是索引cols的前缀。
+      for (i = 0; i < index_col_names_.size(); ++i) {
+        if (i >= index_meta.cols.size() || index_col_names_[i] != index_meta.cols[i].name) {
+          break;
         }
-        fed_conds_ = conds_;
+      }
+
+      if (i == index_col_names.size()) {
+        index_meta_ = index_meta;
+        found_index = true;
+        break;
+      }
     }
 
-    void beginTuple() override {
-        // 构建索引查询的起始键和终止键
-        IxIndexHandle *ih = sm_manager_->ihs_.at(sm_manager_->get_ix_manager()->get_index_name(tab_name_, index_col_names_)).get();
+    // 如果没有找到匹配的索引，抛出异常
+    if (!found_index) {
+      throw InternalError("No matching index found for index scan");
+    }
 
-        // 初始化索引扫描的键值范围
-        char *lower_key = nullptr;
-        char *upper_key = nullptr;
-        bool lower_inclusive = false;
-        bool upper_inclusive = false;
+    fh_ = sm_manager_->fhs_.at(tab_name_).get();
+    cols_ = tab_.cols;
+    len_ = cols_.back().offset + cols_.back().len;
 
-        // 分析条件，构建查询范围
-        int total_len = 0;
-        for (const auto &col : index_meta_.cols) {
-            total_len += col.len;
+    std::map<CompOp, CompOp> swap_op = {
+        {OP_EQ, OP_EQ}, {OP_NE, OP_NE}, {OP_LT, OP_GT},
+        {OP_GT, OP_LT}, {OP_LE, OP_GE}, {OP_GE, OP_LE},
+    };
+
+    // 下面是把左边变成当前table。
+    for (auto &cond : conds) {
+      if (cond.lhs_col.tab_name != tab_name_) {
+        // lhs is on other table, now rhs must be on this table
+        assert(!cond.is_rhs_val && cond.rhs_col.tab_name == tab_name_);
+        // swap lhs and rhs
+        std::swap(cond.lhs_col, cond.rhs_col);
+        cond.op = swap_op.at(cond.op);
+      }
+
+      // 现在条件的左表必然是tab_name_.
+      // 现在左右表名不等，条件为等值，可以认为是归并连接。
+      // 归并连接条件不可用作扫描算子的筛选。
+      if (cond.op == OP_EQ && !cond.is_rhs_val &&
+          cond.lhs_col.tab_name != cond.rhs_col.tab_name) {
+        ;  // 什么都不做。
+      } else {
+        fed_conds_.push_back(cond);  //
+      }
+    }
+
+    conds_ = fed_conds_;
+
+    int offset = 0;
+    for (auto &index_meta : index_meta_.cols) {
+      index_tuple_cols_.emplace_back(index_meta);
+      index_tuple_cols_.back().offset = offset;
+      offset += index_meta.len;
+    }
+
+#ifdef DEBUG
+    std::cout << "index scan, start !!!" << std::endl;
+    for (auto &col : cols_) {
+      std::cout << col.name << ' ';
+    }
+    std::cout << std::endl;
+#endif
+  }
+
+  void beginTuple() override {
+    // 进行必要的类型转换。
+    for (auto &cond : conds_) {
+      if (cond.lhs_col.tab_name == tab_name_ && cond.is_rhs_val) {
+        auto col_meta_iter =
+            std::find_if(index_meta_.cols.begin(), index_meta_.cols.end(),
+                         [&cond](ColMeta &col) { return cond.lhs_col.col_name == col.name; });
+        if (col_meta_iter == index_meta_.cols.end()) {
+          continue;
         }
 
-        // 临时存储各列的条件范围
-        struct KeyRange {
-            char *lower_key;
-            char *upper_key;
-            bool lower_inclusive;
-            bool upper_inclusive;
-            bool has_lower;
-            bool has_upper;
-
-            KeyRange() : lower_key(nullptr), upper_key(nullptr),
-                        lower_inclusive(false), upper_inclusive(false),
-                        has_lower(false), has_upper(false) {}
-        };
-
-        std::map<std::string, KeyRange> col_ranges;
-
-        // 从条件中提取每一列的查询范围
-        for (auto &cond : conds_) {
-            // 只处理与索引列相关的条件
-            bool is_index_col = false;
-            for (const auto &index_col : index_col_names_) {
-                if (cond.lhs_col.col_name == index_col && cond.lhs_col.tab_name == tab_name_) {
-                    is_index_col = true;
-                    break;
-                }
-            }
-
-            if (!is_index_col || !cond.is_rhs_val) {
-                continue;
-            }
-
-            // 获取列元数据
-            auto col_meta = tab_.get_col(cond.lhs_col.col_name);
-            auto &range = col_ranges[col_meta->name];
-
-            // 根据操作符更新列的条件范围
-            switch (cond.op) {
-                case OP_EQ: {
-                    if (!range.has_lower ||
-                        (range.has_lower && memcmp(range.lower_key, cond.rhs_val.raw->data, col_meta->len) < 0)) {
-                        range.lower_key = cond.rhs_val.raw->data;
-                        range.lower_inclusive = true;
-                        range.has_lower = true;
-                    }
-                    if (!range.has_upper ||
-                        (range.has_upper && memcmp(range.upper_key, cond.rhs_val.raw->data, col_meta->len) > 0)) {
-                        range.upper_key = cond.rhs_val.raw->data;
-                        range.upper_inclusive = true;
-                        range.has_upper = true;
-                    }
-                    break;
-                }
-                case OP_LT: {
-                    if (!range.has_upper ||
-                        (range.has_upper && memcmp(range.upper_key, cond.rhs_val.raw->data, col_meta->len) > 0)) {
-                        range.upper_key = cond.rhs_val.raw->data;
-                        range.upper_inclusive = false;
-                        range.has_upper = true;
-                    }
-                    break;
-                }
-                case OP_LE: {
-                    if (!range.has_upper ||
-                        (range.has_upper && memcmp(range.upper_key, cond.rhs_val.raw->data, col_meta->len) > 0)) {
-                        range.upper_key = cond.rhs_val.raw->data;
-                        range.upper_inclusive = true;
-                        range.has_upper = true;
-                    }
-                    break;
-                }
-                case OP_GT: {
-                    if (!range.has_lower ||
-                        (range.has_lower && memcmp(range.lower_key, cond.rhs_val.raw->data, col_meta->len) < 0)) {
-                        range.lower_key = cond.rhs_val.raw->data;
-                        range.lower_inclusive = false;
-                        range.has_lower = true;
-                    }
-                    break;
-                }
-                case OP_GE: {
-                    if (!range.has_lower ||
-                        (range.has_lower && memcmp(range.lower_key, cond.rhs_val.raw->data, col_meta->len) < 0)) {
-                        range.lower_key = cond.rhs_val.raw->data;
-                        range.lower_inclusive = true;
-                        range.has_lower = true;
-                    }
-                    break;
-                }
-                default:
-                    break;
-            }
+        // 使用现有的类型转换方法
+        if (col_meta_iter->type != cond.rhs_val.type) {
+          if (col_meta_iter->type == TYPE_FLOAT && cond.rhs_val.type == TYPE_INT) {
+            cond.rhs_val.float_val = static_cast<float>(cond.rhs_val.int_val);
+            cond.rhs_val.type = TYPE_FLOAT;
+          } else if (col_meta_iter->type == TYPE_INT && cond.rhs_val.type == TYPE_FLOAT) {
+            cond.rhs_val.int_val = static_cast<int>(cond.rhs_val.float_val);
+            cond.rhs_val.type = TYPE_INT;
+          }
         }
+        cond.rhs_val.init_raw(col_meta_iter->len);
+      }
+    }
 
-        // 构建完整的索引查询键
-        bool need_scan = false;
-        if (!col_ranges.empty()) {
-            lower_key = new char[total_len];
-            upper_key = new char[total_len];
-            memset(lower_key, 0, total_len);
-            memset(upper_key, 0xff, total_len); // 默认最大值
+    RmRecord key_start(index_meta_.col_tot_len);
+    RmRecord key_end(index_meta_.col_tot_len);
+    std::vector<const ColMeta *> lower_col;
+    std::vector<const ColMeta *> upper_col;
 
-            int offset = 0;
-            bool has_lower = false;
-            bool has_upper = false;
+    auto ix_manager = sm_manager_->get_ix_manager();
+    auto ix_index_handle =
+        sm_manager_->ihs_.at(ix_manager->get_index_name(tab_name_, index_meta_.cols)).get();
 
-            // 按照索引列顺序构建键
-            for (const auto &index_col_name : index_col_names_) {
-                auto col_meta = tab_.get_col(index_col_name);
-                auto it = col_ranges.find(index_col_name);
+    // 按照最左匹配原则构造上下界
+    // 遍历索引的每一列，按顺序处理
+    for (size_t col_idx = 0; col_idx < index_meta_.cols.size(); ++col_idx) {
+        const std::string& index_col_name = index_meta_.cols[col_idx].name;
+        bool found_condition = false;
+        bool is_range_query = false;
+        
+        // 查找当前索引列对应的条件
+        for (auto &condition : conds_) {
+            if (condition.is_rhs_val && condition.lhs_col.tab_name == tab_name_ &&
+                condition.lhs_col.col_name == index_col_name) {
+                
+                found_condition = true;
+                const char *rhs_key = condition.rhs_val.raw->data;
+                const ColMeta &index_col = *get_col(index_tuple_cols_, condition.lhs_col);
 
-                if (it != col_ranges.end() && it->second.has_lower) {
-                    memcpy(lower_key + offset, it->second.lower_key, col_meta->len);
-                    has_lower = true;
-                    lower_inclusive = it->second.lower_inclusive;
-                }
-
-                if (it != col_ranges.end()) {
-                    // 如果对前面的列有限制，但对这一列没有，后续列就不能用于范围查询了
-                    // 但如果前面列是等值条件，此列是范围条件，依然可以用索引
-                    if (has_lower && !has_upper && it->second.has_upper) {
-                        memcpy(upper_key + offset, it->second.upper_key, col_meta->len);
-                        has_upper = true;
-                        upper_inclusive = it->second.upper_inclusive;
-                        // 对于后续列，使用默认的最小/最大值
+                switch (condition.op) {
+                    case OP_EQ: {
+                        // 等值查询：同时设置上下界
+                        memcpy(key_start.data + index_col.offset, rhs_key, index_col.len);
+                        memcpy(key_end.data + index_col.offset, rhs_key, index_col.len);
+                        lower_col.push_back(&index_col);
+                        upper_col.push_back(&index_col);
                         break;
                     }
-                }
-
-                if (it != col_ranges.end() && it->second.has_upper) {
-                    memcpy(upper_key + offset, it->second.upper_key, col_meta->len);
-                    has_upper = true;
-                    upper_inclusive = it->second.upper_inclusive;
-                }
-
-                offset += col_meta->len;
-
-                // 最左前缀匹配原则：如果当前列没有等值条件，后续列就不能用于范围查询
-                if (it == col_ranges.end() ||
-                   (it != col_ranges.end() && (!it->second.has_lower || !it->second.has_upper || 
-                                              memcmp(it->second.lower_key, it->second.upper_key, col_meta->len) != 0))) {
-                    break;
-                }
-            }
-
-            // 创建索引扫描
-            if (has_lower && has_upper) {
-                scan_ = ih->create_scan(lower_key, upper_key, lower_inclusive, upper_inclusive);
-            } else if (has_lower) {
-                scan_ = ih->create_scan(lower_key, nullptr, lower_inclusive, false);
-            } else if (has_upper) {
-                scan_ = ih->create_scan(nullptr, upper_key, false, upper_inclusive);
-            } else {
-                need_scan = true;
-            }
-        } else {
-            need_scan = true;
-        }
-
-        // 如果没有可用条件，执行完整扫描
-        if (need_scan) {
-            scan_ = ih->create_scan(nullptr, nullptr, false, false);
-        }
-        nextTuple();
-    }
-
-    void nextTuple() override {
-        // 循环，直到找到一个匹配的记录或扫描结束
-        while (!scan_->is_end()) {
-            // 获取当前记录ID
-            rid_ = scan_->rid();
-            // 读取记录数据
-            auto rec = fh_->get_record(rid_, context_);
-            if (!rec) {
-                scan_->next();
-                continue;
-            }
-
-            // 检查所有附加条件是否满足
-            bool match = true;
-            for (auto &cond : fed_conds_) {
-                // ... 您现有的条件检查逻辑 ...
-                // (这部分逻辑是正确的，无需修改)
-                const auto &col = tab_.get_col(cond.lhs_col.col_name);
-                char *lhs_val = rec->data + col->offset;
-                if (cond.is_rhs_val) {
-                    char *rhs_val = cond.rhs_val.raw->data;
-                    int cmp_res = ix_compare(lhs_val, rhs_val, col->type, col->len);
-                    switch (cond.op) {
-                        case OP_EQ: match = (cmp_res == 0); break;
-                        case OP_NE: match = (cmp_res != 0); break;
-                        case OP_LT: match = (cmp_res < 0); break;
-                        case OP_GT: match = (cmp_res > 0); break;
-                        case OP_LE: match = (cmp_res <= 0); break;
-                        case OP_GE: match = (cmp_res >= 0); break;
+                    case OP_GT:
+                    case OP_GE: {
+                        // 范围查询：设置下界
+                        memcpy(key_start.data + index_col.offset, rhs_key, index_col.len);
+                        lower_col.push_back(&index_col);
+                        is_range_query = true;
+                        break;
                     }
+                    case OP_LT:
+                    case OP_LE: {
+                        // 范围查询：设置上界
+                        memcpy(key_end.data + index_col.offset, rhs_key, index_col.len);
+                        upper_col.push_back(&index_col);
+                        is_range_query = true;
+                        break;
+                    }
+                    default:
+                        break;
                 }
-                if (!match) break;
+                break; // 找到条件后退出内层循环
             }
-
-            if (match) {
-                // 找到了一个匹配的记录，方法结束。
-                // rid_ 现在指向这个记录，等待Next()方法来取用。
-                return;
-            }
-
-            // 当前记录不匹配，移动到索引中的下一条记录
-            scan_->next();
+        }
+        
+        // 如果没有找到当前列的条件，或者遇到了范围查询，停止处理后续列
+        if (!found_condition || is_range_query) {
+            break;
         }
     }
 
-    bool is_end() const override {
-        return scan_ == nullptr || scan_->is_end();
+    // 为未设置的列填充默认值
+    for (size_t col_idx = lower_col.size(); col_idx < index_tuple_cols_.size(); ++col_idx) {
+        switch (index_tuple_cols_[col_idx].type) {
+            case TYPE_INT: {
+                int min_int = INT32_MIN;
+                int max_int = INT32_MAX;
+                memcpy(key_start.data + index_tuple_cols_[col_idx].offset, &min_int,
+                       index_tuple_cols_[col_idx].len);
+                memcpy(key_end.data + index_tuple_cols_[col_idx].offset, &max_int,
+                       index_tuple_cols_[col_idx].len);
+                break;
+            }
+            case TYPE_FLOAT: {
+                float min_float = -std::numeric_limits<float>::max();
+                float max_float = std::numeric_limits<float>::max();
+                memcpy(key_start.data + index_tuple_cols_[col_idx].offset, &min_float,
+                       index_tuple_cols_[col_idx].len);
+                memcpy(key_end.data + index_tuple_cols_[col_idx].offset, &max_float,
+                       index_tuple_cols_[col_idx].len);
+                break;
+            }
+            case TYPE_STRING: {
+                memset(key_start.data + index_tuple_cols_[col_idx].offset, 0, index_tuple_cols_[col_idx].len);
+                memset(key_end.data + index_tuple_cols_[col_idx].offset, CHAR_MAX, index_tuple_cols_[col_idx].len);
+                break;
+            }
+            default:
+                break;
+        }
     }
 
-     std::unique_ptr<RmRecord> Next() override {
-        // **关键修改 2: 重新设计Next()的逻辑**
+    // 初始化 ix_scan 所需要的参数
+    Iid lower_Iid;
+    Iid upper_Iid;  
 
-        // 如果上一次的nextTuple()调用已经确定我们到达了末尾，则返回空
-        if (is_end()) {
-            return nullptr;
-        }
+    // 确定扫描范围
+    if (lower_col.empty()) {
+        // 没有下界条件，从第一个叶子节点开始
+        lower_Iid = ix_index_handle->leaf_begin();
+    } else {
+        lower_Iid = ix_index_handle->lower_bound(key_start.data);
+    }
 
-        // 获取当前已定位好的记录
-        auto record_to_return = fh_->get_record(rid_, context_);
+    if (upper_col.empty()) {
+        // 没有上界条件，扫描到最后一个叶子节点结束
+        upper_Iid = ix_index_handle->leaf_end();
+    } else {
+        upper_Iid = ix_index_handle->upper_bound(key_end.data);
+    }
 
-        // 在返回当前记录之前，为下一次调用做好准备
-        // 1. 将底层扫描器向前移动一个位置
+    // 初始化 索引表扫描操作接口
+    scan_ = std::make_unique<IxScan>(ix_index_handle, lower_Iid, upper_Iid, sm_manager_->get_bpm());
+
+    while (!scan_->is_end()) {
+      auto rcd = fh_->get_record(scan_->rid(), context_);
+
+      // 使用现有的条件检查方法
+      if (!eval_conds(rcd.get(), cols_)) {
         scan_->next();
-        // 2. 调用nextTuple()来寻找下一个满足所有条件的记录
-        nextTuple();
-
-        // 返回我们之前保存的记录
-        return record_to_return;
+      } else {
+        rid_ = scan_->rid();
+        break;
+      }
     }
+  }
 
-    const std::vector<ColMeta> &cols() const override {
-        return cols_;
+  void nextTuple() override {
+    for (scan_->next(); !scan_->is_end(); scan_->next()) {
+      auto rcd = fh_->get_record(scan_->rid(), context_);
+
+      if (eval_conds(rcd.get(), cols_)) {
+        rid_ = scan_->rid();
+        break;
+      }
     }
+  }
 
+  std::unique_ptr<RmRecord> Next() override { return fh_->get_record(rid_, context_); }
 
-    size_t tupleLen() const override {
-        return len_;
+  Rid &rid() override { return rid_; }
+
+  bool is_end() const override { return scan_->is_end(); }
+
+  const std::vector<ColMeta> &cols() const override { return cols_; }
+
+  size_t tupleLen() const override { return len_; };
+
+  // 条件判断函数
+  bool eval_conds(const RmRecord *rec, const std::vector<ColMeta> &cols) {
+    for (auto &cond : conds_) {
+      if (!eval_cond(rec, cols, cond)) {
+        return false;
+      }
     }
+    return true;
+  }
 
-    Rid &rid() override { return rid_; }
+  bool eval_cond(const RmRecord *rec, const std::vector<ColMeta> &cols, const Condition &cond) {
+    // 获取左操作数值
+    auto lhs_col = get_col(cols, cond.lhs_col);
+    const char *lhs_value = rec->data + lhs_col->offset;
+
+    // 根据右操作数是值还是列，进行处理
+    if (cond.is_rhs_val) {
+      // 右操作数是字面值
+      char *rhs_val = cond.rhs_val.raw->data;
+      int cmp_res = ix_compare(lhs_value, rhs_val, lhs_col->type, lhs_col->len);
+      
+      switch (cond.op) {
+        case OP_EQ: return (cmp_res == 0);
+        case OP_NE: return (cmp_res != 0);
+        case OP_LT: return (cmp_res < 0);
+        case OP_GT: return (cmp_res > 0);
+        case OP_LE: return (cmp_res <= 0);
+        case OP_GE: return (cmp_res >= 0);
+        default: return false;
+      }
+    } else {
+      // 右操作数也是列
+      auto rhs_col = get_col(cols, cond.rhs_col);
+      const char *rhs_value = rec->data + rhs_col->offset;
+      int cmp_res = ix_compare(lhs_value, rhs_value, lhs_col->type, lhs_col->len);
+      
+      switch (cond.op) {
+        case OP_EQ: return (cmp_res == 0);
+        case OP_NE: return (cmp_res != 0);
+        case OP_LT: return (cmp_res < 0);
+        case OP_GT: return (cmp_res > 0);
+        case OP_LE: return (cmp_res <= 0);
+        case OP_GE: return (cmp_res >= 0);
+        default: return false;
+      }
+    }
+  }
 };

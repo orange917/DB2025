@@ -25,7 +25,6 @@ See the Mulan PSL v2 for more details. */
 #include "execution/execution_sort.h"
 #include "execution/executor_aggregation.h"
 #include "common/common.h"
-#include "execution/executor_semi_join.h"
 
 typedef enum portalTag{
     PORTAL_Invalid_Query = 0,
@@ -74,18 +73,14 @@ class Portal
                 {
                     std::shared_ptr<ProjectionPlan> p = std::dynamic_pointer_cast<ProjectionPlan>(x->subplan_);
                     std::unique_ptr<AbstractExecutor> root= convert_plan_executor(p, context);
-                    return std::make_shared<PortalStmt>(PORTAL_ONE_SELECT, p->sel_cols_, std::move(root), plan);
+                    return std::make_shared<PortalStmt>(PORTAL_ONE_SELECT, std::move(p->sel_cols_), std::move(root), plan);
                 }
                     
                 case T_Update:
                 {
                     std::unique_ptr<AbstractExecutor> scan= convert_plan_executor(x->subplan_, context);
-                    std::vector<Rid> rids;
-                    for (scan->beginTuple(); !scan->is_end(); scan->nextTuple()) {
-                        rids.push_back(scan->rid());
-                    }
-                    std::unique_ptr<AbstractExecutor> root =std::make_unique<UpdateExecutor>(sm_manager_, 
-                                                            x->tab_name_, x->set_clauses_, x->conds_, rids, context);
+                    std::unique_ptr<AbstractExecutor> root = std::make_unique<UpdateExecutor>(sm_manager_, 
+                                                            x->tab_name_, x->set_clauses_, x->conds_, std::move(scan), context);
                     return std::make_shared<PortalStmt>(PORTAL_DML_WITHOUT_SELECT, std::vector<TabCol>(), std::move(root), plan);
                 }
                 case T_Delete:
@@ -160,7 +155,7 @@ class Portal
     {
         if(auto x = std::dynamic_pointer_cast<ProjectionPlan>(plan)){
             return std::make_unique<ProjectionExecutor>(convert_plan_executor(x->subplan_, context), 
-                                                        x->sel_cols_, x->limit_val_);
+                                                        x->sel_cols_);
         } else if(auto x = std::dynamic_pointer_cast<ScanPlan>(plan)) {
             if(x->tag == T_SeqScan) {
                 return std::make_unique<SeqScanExecutor>(sm_manager_, x->tab_name_, x->conds_, context);
@@ -171,20 +166,10 @@ class Portal
         } else if(auto x = std::dynamic_pointer_cast<JoinPlan>(plan)) {
             std::unique_ptr<AbstractExecutor> left = convert_plan_executor(x->left_, context);
             std::unique_ptr<AbstractExecutor> right = convert_plan_executor(x->right_, context);
-            
-            if (x->type == SEMI_JOIN) {
-                // 使用半连接执行器
-                std::unique_ptr<AbstractExecutor> join = std::make_unique<SemiJoinExecutor>(
-                                    std::move(left), 
-                                    std::move(right), std::move(x->conds_));
-                return join;
-            } else {
-                // 使用嵌套循环连接执行器
-                std::unique_ptr<AbstractExecutor> join = std::make_unique<NestedLoopJoinExecutor>(
-                                    std::move(left), 
-                                    std::move(right), std::move(x->conds_));
-                return join;
-            }
+            std::unique_ptr<AbstractExecutor> join = std::make_unique<NestedLoopJoinExecutor>(
+                                std::move(left), 
+                                std::move(right), std::move(x->conds_));
+            return join;
         } else if(auto x = std::dynamic_pointer_cast<SortPlan>(plan)) {
             return std::make_unique<SortExecutor>(convert_plan_executor(x->subplan_, context), 
                                             x->sel_col_, x->is_desc_);

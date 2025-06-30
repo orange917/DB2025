@@ -22,7 +22,7 @@ See the Mulan PSL v2 for more details. */
 
 class SeqScanExecutor : public AbstractExecutor {
    private:
-    static constexpr float FLT_EPSILON = 1e-6; //容差
+    static constexpr float EPSILON = 1e-6; //容差
     std::string tab_name_;              // 表的名称
     std::vector<Condition> conds_;      // scan的条件
     RmFileHandle *fh_;                  // 表的数据文件句柄
@@ -117,12 +117,12 @@ class SeqScanExecutor : public AbstractExecutor {
                 float lhs_val = *(float*)lhs_value;
                 float rhs_val = cond.rhs_val.float_val;
                 switch (cond.op) {
-                    case OP_EQ: return std::fabs(lhs_val - rhs_val) <= FLT_EPSILON;
-                    case OP_NE: return std::fabs(lhs_val - rhs_val) > FLT_EPSILON;
-                    case OP_LT: return rhs_val - lhs_val > FLT_EPSILON;
-                    case OP_GT: return lhs_val - rhs_val > FLT_EPSILON;
-                    case OP_LE: return lhs_val - rhs_val <= FLT_EPSILON;
-                    case OP_GE: return rhs_val - lhs_val <= FLT_EPSILON;
+                    case OP_EQ: return std::fabs(lhs_val - rhs_val) <= EPSILON;
+                    case OP_NE: return std::fabs(lhs_val - rhs_val) > EPSILON;
+                    case OP_LT: return rhs_val - lhs_val > EPSILON;
+                    case OP_GT: return lhs_val - rhs_val > EPSILON;
+                    case OP_LE: return lhs_val - rhs_val <= EPSILON;
+                    case OP_GE: return rhs_val - lhs_val <= EPSILON;
                     default: return false;
                 }
             }
@@ -156,12 +156,12 @@ class SeqScanExecutor : public AbstractExecutor {
                 float lhs_val = *(float*)lhs;
                 float rhs_val = *(float*)rhs;
                 switch (op) {
-                    case OP_EQ: return std::fabs(lhs_val - rhs_val) <= FLT_EPSILON;
-                    case OP_NE: return std::fabs(lhs_val - rhs_val) > FLT_EPSILON;
-                    case OP_LT: return rhs_val - lhs_val > FLT_EPSILON;
-                    case OP_GT: return lhs_val - rhs_val > FLT_EPSILON;
-                    case OP_LE: return lhs_val - rhs_val <= FLT_EPSILON;
-                    case OP_GE: return rhs_val - lhs_val <= FLT_EPSILON;
+                    case OP_EQ: return std::fabs(lhs_val - rhs_val) <= EPSILON;
+                    case OP_NE: return std::fabs(lhs_val - rhs_val) > EPSILON;
+                    case OP_LT: return rhs_val - lhs_val > EPSILON;
+                    case OP_GT: return lhs_val - rhs_val > EPSILON;
+                    case OP_LE: return lhs_val - rhs_val <= EPSILON;
+                    case OP_GE: return rhs_val - lhs_val <= EPSILON;
                     default: return false;
                 }
             }
