@@ -166,8 +166,20 @@ class IndexScanExecutor : public AbstractExecutor {
     std::vector<const ColMeta *> upper_col;
 
     auto ix_manager = sm_manager_->get_ix_manager();
-    auto ix_index_handle =
-        sm_manager_->ihs_.at(ix_manager->get_index_name(tab_name_, index_meta_.cols)).get();
+    std::string index_name = ix_manager->get_index_name(tab_name_, index_meta_.cols);
+
+    // 检查索引句柄是否存在，如果不存在则尝试打开索引文件
+    if (sm_manager_->ihs_.find(index_name) == sm_manager_->ihs_.end()) {
+        // 尝试打开索引文件
+        if (ix_manager->exists(tab_name_, index_meta_.cols)) {
+            auto ih = ix_manager->open_index(tab_name_, index_meta_.cols, &index_meta_);
+            sm_manager_->ihs_[index_name] = std::move(ih);
+        } else {
+            throw InternalError("Index file not found: " + index_name);
+        }
+    }
+
+    auto ix_index_handle = sm_manager_->ihs_.at(index_name).get();
 
     // 按照最左匹配原则构造上下界
     // 遍历索引的每一列，按顺序处理

@@ -420,7 +420,7 @@ void SmManager::create_index(const std::string& tab_name, const std::vector<std:
 
     
     // 将已有的数据插入到索引中
-    auto file_handle = fhs_[tab_name].get();
+    auto file_handle = fhs_.at(tab_name).get();
     auto scan = file_handle->create_scan();
     try {
         while (!scan->is_end()) {
