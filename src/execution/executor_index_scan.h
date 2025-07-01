@@ -137,28 +137,28 @@ class IndexScanExecutor : public AbstractExecutor {
 
   void beginTuple() override {
     // 进行必要的类型转换。
-    for (auto &cond : conds_) {
-      if (cond.lhs_col.tab_name == tab_name_ && cond.is_rhs_val) {
-        auto col_meta_iter =
-            std::find_if(index_meta_.cols.begin(), index_meta_.cols.end(),
-                         [&cond](ColMeta &col) { return cond.lhs_col.col_name == col.name; });
-        if (col_meta_iter == index_meta_.cols.end()) {
-          continue;
-        }
+    // for (auto &cond : conds_) {
+    //   if (cond.lhs_col.tab_name == tab_name_ && cond.is_rhs_val) {
+    //     auto col_meta_iter =
+    //         std::find_if(index_meta_.cols.begin(), index_meta_.cols.end(),
+    //                      [&cond](ColMeta &col) { return cond.lhs_col.col_name == col.name; });
+    //     if (col_meta_iter == index_meta_.cols.end()) {
+    //       continue;
+    //     }
 
-        // 使用现有的类型转换方法
-        if (col_meta_iter->type != cond.rhs_val.type) {
-          if (col_meta_iter->type == TYPE_FLOAT && cond.rhs_val.type == TYPE_INT) {
-            cond.rhs_val.float_val = static_cast<float>(cond.rhs_val.int_val);
-            cond.rhs_val.type = TYPE_FLOAT;
-          } else if (col_meta_iter->type == TYPE_INT && cond.rhs_val.type == TYPE_FLOAT) {
-            cond.rhs_val.int_val = static_cast<int>(cond.rhs_val.float_val);
-            cond.rhs_val.type = TYPE_INT;
-          }
-        }
-        cond.rhs_val.init_raw(col_meta_iter->len);
-      }
-    }
+    //     // 使用现有的类型转换方法
+    //     if (col_meta_iter->type != cond.rhs_val.type) {
+    //       if (col_meta_iter->type == TYPE_FLOAT && cond.rhs_val.type == TYPE_INT) {
+    //         cond.rhs_val.float_val = static_cast<float>(cond.rhs_val.int_val);
+    //         cond.rhs_val.type = TYPE_FLOAT;
+    //       } else if (col_meta_iter->type == TYPE_INT && cond.rhs_val.type == TYPE_FLOAT) {
+    //         cond.rhs_val.int_val = static_cast<int>(cond.rhs_val.float_val);
+    //         cond.rhs_val.type = TYPE_INT;
+    //       }
+    //     }
+    //     cond.rhs_val.init_raw(col_meta_iter->len);
+    //   }
+    // }
 
     RmRecord key_start(index_meta_.col_tot_len);
     RmRecord key_end(index_meta_.col_tot_len);

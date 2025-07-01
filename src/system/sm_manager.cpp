@@ -444,12 +444,40 @@ void SmManager::create_index(const std::string& tab_name, const std::vector<std:
         ihs_.erase(index_name);
         ix_manager_->destroy_index(tab_name, cols);
         tab.indexes.pop_back();
+        // 回滚列的索引标志
+        for (const auto& col_name : col_names) {
+            auto col_it = tab.get_col(col_name);
+            col_it->index = false; // 确保标志位被重置
+        }
         flush_meta();
         throw; // 继续抛出异常
     }
 
     // 索引条目已成功插入内存（缓冲池），现在需要将它们持久化到磁盘
     buffer_pool_manager_->flush_all_pages(ihs_[index_name]->get_fd());
+
+    // 获取当前工作目录
+    char cwd[PATH_MAX];
+    if (getcwd(cwd, sizeof(cwd)) != NULL) {
+        std::string current_path(cwd);
+        std::string tree_file = tab_name + "_" + index_name + "_tree.txt";
+        std::string full_path = current_path + "/" + tree_file;
+
+        std::cout << "Generating B+ tree structure file at: " << full_path << std::endl;
+
+        // 打印B+树结构到文件
+        ihs_[index_name]->print_tree(tree_file);
+
+        // 检查文件是否创建成功
+        std::ifstream f(tree_file.c_str());
+        if (f.good()) {
+            std::cout << "B+ tree structure file created successfully" << std::endl;
+        } else {
+            std::cout << "Failed to create B+ tree structure file" << std::endl;
+        }
+    } else {
+        std::cerr << "Failed to get current directory path" << std::endl;
+    }
 
     // 将修改后的元数据写入磁盘
     flush_meta();
@@ -475,6 +503,12 @@ void SmManager::drop_index(const std::string& tab_name, const std::vector<std::s
     if (ih_iter != ihs_.end()) {
         ix_manager_->close_index(ih_iter->second.get());
         ihs_.erase(ih_iter);
+    }
+
+    // 直接删除物理索引文件
+    std::string index_filename = tab_name + "_" + index_name + ".idx";
+    if (disk_manager_->is_file(index_filename)) {
+        remove(index_filename.c_str());
     }
 
     // 删除物理索引文件（无论元数据是否存在）

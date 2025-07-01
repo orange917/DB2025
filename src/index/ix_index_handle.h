@@ -225,6 +225,8 @@ class IxIndexHandle {
     Iid leaf_end() const;
 
     Iid leaf_begin() const;
+    
+    void print_tree(const std::string& outfile_path);
 
    private:
     // 辅助函数
