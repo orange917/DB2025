@@ -44,9 +44,9 @@ std::shared_ptr<Query> Analyze::do_analyze(std::shared_ptr<ast::TreeNode> parse)
             query->has_agg = true;
             for (auto &sv_agg_func : x->agg_funcs) {
                 AggFuncType func_type = convert_agg_func_type(sv_agg_func->func_type);
-                TabCol col = {.tab_name = "", .col_name = ""};
+                TabCol col("", "", sv_agg_func->alias);
                 if (sv_agg_func->col) {
-                    col = {.tab_name = sv_agg_func->col->tab_name, .col_name = sv_agg_func->col->col_name};
+                    col = TabCol(sv_agg_func->col->tab_name, sv_agg_func->col->col_name, sv_agg_func->alias);
                 }
                 AggFunc agg_func(func_type, col, sv_agg_func->alias);
                 query->agg_funcs.push_back(agg_func);
@@ -55,7 +55,7 @@ std::shared_ptr<Query> Analyze::do_analyze(std::shared_ptr<ast::TreeNode> parse)
         
         // 处理target list，再target list中添加上表名，例如 a.id
         for (auto &sv_sel_col : x->cols) {
-            TabCol sel_col = {.tab_name = sv_sel_col->tab_name, .col_name = sv_sel_col->col_name};
+            TabCol sel_col(sv_sel_col->tab_name, sv_sel_col->col_name, sv_sel_col->alias);
             query->cols.push_back(sel_col);
         }
         
@@ -64,7 +64,7 @@ std::shared_ptr<Query> Analyze::do_analyze(std::shared_ptr<ast::TreeNode> parse)
         if (query->cols.empty() && query->agg_funcs.empty()) {
             // select all columns
             for (auto &col : all_cols) {
-                TabCol sel_col = {.tab_name = col.tab_name, .col_name = col.name};
+                TabCol sel_col(col.tab_name, col.name, "");
                 query->cols.push_back(sel_col);
             }
         } else {
@@ -84,7 +84,7 @@ std::shared_ptr<Query> Analyze::do_analyze(std::shared_ptr<ast::TreeNode> parse)
         if (x->has_group_by && x->group_by) {
             query->has_group_by = true;
             for (auto &sv_group_col : x->group_by->cols) {
-                TabCol group_col = {.tab_name = sv_group_col->tab_name, .col_name = sv_group_col->col_name};
+                TabCol group_col(sv_group_col->tab_name, sv_group_col->col_name, "");
                 group_col = check_column(all_cols, group_col);
                 query->group_by_cols.push_back(group_col);
             }
@@ -102,7 +102,7 @@ std::shared_ptr<Query> Analyze::do_analyze(std::shared_ptr<ast::TreeNode> parse)
             query->has_order_by = true;
             for (size_t i = 0; i < x->order->cols.size(); i++) {
                 OrderByCol order_col;
-                order_col.col = {.tab_name = x->order->cols[i]->tab_name, .col_name = x->order->cols[i]->col_name};
+                order_col.col = TabCol(x->order->cols[i]->tab_name, x->order->cols[i]->col_name, "");
                 
                 // 检查排序列是否是聚合函数的别名
                 bool is_agg_alias = false;
@@ -233,7 +233,7 @@ std::shared_ptr<Query> Analyze::do_analyze(std::shared_ptr<ast::TreeNode> parse)
         }
         for (auto &set_clause : x->set_clauses) {
             SetClause clause;
-            clause.lhs = {.tab_name = x->tab_name, .col_name = set_clause->col_name};
+            clause.lhs = TabCol(x->tab_name, set_clause->col_name);
             clause.rhs = convert_sv_value(set_clause->val);
             query->set_clauses.push_back(clause);
         }
@@ -257,6 +257,7 @@ std::shared_ptr<Query> Analyze::do_analyze(std::shared_ptr<ast::TreeNode> parse)
 
 
 TabCol Analyze::check_column(const std::vector<ColMeta> &all_cols, TabCol target) {
+    std::string alias = target.alias; // 保留 alias
     if (target.tab_name.empty()) {
         // Table name not specified, infer table name from column name
         std::string tab_name;
@@ -281,8 +282,9 @@ TabCol Analyze::check_column(const std::vector<ColMeta> &all_cols, TabCol target
             }
         } else {
             throw TableNotFoundError(target.tab_name);
+        }
     }
-}
+    target.alias = alias; // 恢复 alias
     return target;
 }
 
@@ -301,19 +303,19 @@ void Analyze::get_clause(const std::vector<std::shared_ptr<ast::BinaryExpr>> &sv
         
         // 处理左操作数，可能是 Col 或 AggFunc
         if (auto lhs_col = std::dynamic_pointer_cast<ast::Col>(expr->lhs)) {
-            cond.lhs_col = {.tab_name = lhs_col->tab_name, .col_name = lhs_col->col_name};
+            cond.lhs_col = TabCol(lhs_col->tab_name, lhs_col->col_name);
             cond.is_lhs_agg = false;
         } else if (auto lhs_agg = std::dynamic_pointer_cast<ast::AggFunc>(expr->lhs)) {
             // 处理聚合函数作为左操作数
             cond.is_lhs_agg = true;
             cond.lhs_agg.func_type = convert_agg_func_type(lhs_agg->func_type);
             if (lhs_agg->col) {
-                cond.lhs_agg.col = {.tab_name = lhs_agg->col->tab_name, .col_name = lhs_agg->col->col_name};
+                cond.lhs_agg.col = TabCol(lhs_agg->col->tab_name, lhs_agg->col->col_name);
             } else {
-                cond.lhs_agg.col = {.tab_name = "", .col_name = ""}; // COUNT(*)的情况
+                cond.lhs_agg.col = TabCol("", ""); // COUNT(*)的情况
             }
             // 设置空的lhs_col表示这是聚合函数
-            cond.lhs_col = {.tab_name = "", .col_name = ""};
+            cond.lhs_col = TabCol("", "");
         } else {
             throw InternalError("Unexpected lhs type in BinaryExpr");
         }
@@ -326,19 +328,19 @@ void Analyze::get_clause(const std::vector<std::shared_ptr<ast::BinaryExpr>> &sv
         } else if (auto rhs_col = std::dynamic_pointer_cast<ast::Col>(expr->rhs)) {
             cond.is_rhs_val = false;
             cond.is_rhs_agg = false;
-            cond.rhs_col = {.tab_name = rhs_col->tab_name, .col_name = rhs_col->col_name};
+            cond.rhs_col = TabCol(rhs_col->tab_name, rhs_col->col_name);
         } else if (auto rhs_agg = std::dynamic_pointer_cast<ast::AggFunc>(expr->rhs)) {
             // 处理聚合函数作为右操作数
             cond.is_rhs_val = false;
             cond.is_rhs_agg = true;
             cond.rhs_agg.func_type = convert_agg_func_type(rhs_agg->func_type);
             if (rhs_agg->col) {
-                cond.rhs_agg.col = {.tab_name = rhs_agg->col->tab_name, .col_name = rhs_agg->col->col_name};
+                cond.rhs_agg.col = TabCol(rhs_agg->col->tab_name, rhs_agg->col->col_name);
             } else {
-                cond.rhs_agg.col = {.tab_name = "", .col_name = ""}; // COUNT(*)的情况
+                cond.rhs_agg.col = TabCol("", ""); // COUNT(*)的情况
             }
             // 设置空的rhs_col表示这是聚合函数
-            cond.rhs_col = {.tab_name = "", .col_name = ""};
+            cond.rhs_col = TabCol("", "");
         }
         conds.push_back(cond);
     }

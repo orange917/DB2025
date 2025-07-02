@@ -18,6 +18,8 @@ See the Mulan PSL v2 for more details. */
 #include "parser/ast.h"
 
 #include "parser/parser.h"
+#include "defs.h"
+#include "system/sm_manager.h"
 
 typedef enum PlanTag{
     T_Invalid = 1,
@@ -46,6 +48,7 @@ typedef enum PlanTag{
     T_Sort,
     T_Projection,
     T_Aggregation,
+    T_Agg,
 } PlanTag;
 
 // 查询执行计划
@@ -54,6 +57,8 @@ class Plan
 public:
     PlanTag tag;
     virtual ~Plan() = default;
+    // explain 输出接口
+    virtual void Explain(std::ostream& os, int indent = 0) const = 0;
 };
 
 class ScanPlan : public Plan
@@ -79,7 +84,7 @@ class ScanPlan : public Plan
         size_t len_;                               
         std::vector<Condition> fed_conds_;
         std::vector<std::string> index_col_names_;
-    
+        void Explain(std::ostream& os, int indent = 0) const override;
 };
 
 class JoinPlan : public Plan
@@ -102,6 +107,7 @@ class JoinPlan : public Plan
         std::vector<Condition> conds_;
         // future TODO: 后续可以支持的连接类型
         JoinType type;
+        void Explain(std::ostream& os, int indent = 0) const override;
 };
 
 class ProjectionPlan : public Plan
@@ -118,6 +124,7 @@ class ProjectionPlan : public Plan
         std::shared_ptr<Plan> subplan_;
         std::vector<TabCol> sel_cols_;
         int limit_val_;  // LIMIT值
+        void Explain(std::ostream& os, int indent = 0) const override;
 };
 
 class SortPlan : public Plan
@@ -134,7 +141,7 @@ class SortPlan : public Plan
         std::shared_ptr<Plan> subplan_;
         TabCol sel_col_;
         bool is_desc_;
-        
+        void Explain(std::ostream& os, int indent = 0) const override;
 };
 
 // dml语句，包括insert; delete; update; select语句　
@@ -158,6 +165,7 @@ class DMLPlan : public Plan
         std::vector<Value> values_;
         std::vector<Condition> conds_;
         std::vector<SetClause> set_clauses_;
+        void Explain(std::ostream& os, int indent = 0) const override {}
 };
 
 // ddl语句, 包括create/drop table; create/drop index;
@@ -175,6 +183,7 @@ class DDLPlan : public Plan
         std::string tab_name_;
         std::vector<std::string> tab_col_names_;
         std::vector<ColDef> cols_;
+        void Explain(std::ostream& os, int indent = 0) const override {}
 };
 
 // help; show tables; desc tables; begin; abort; commit; rollback语句对应的plan
@@ -188,6 +197,7 @@ class OtherPlan : public Plan
         }
         ~OtherPlan(){}
         std::string tab_name_;
+        void Explain(std::ostream& os, int indent = 0) const override {}
 };
 
 // Set Knob Plan
@@ -201,6 +211,7 @@ class SetKnobPlan : public Plan
         }
     ast::SetKnobType set_knob_type_;
     bool bool_value_;
+    void Explain(std::ostream& os, int indent = 0) const override {}
 };
 
 class plannerInfo{
@@ -213,4 +224,44 @@ class plannerInfo{
     std::vector<SetClause> set_clauses;
     plannerInfo(std::shared_ptr<ast::SelectStmt> parse_):parse(std::move(parse_)){}
 
+};
+
+struct OrderByCol {
+    TabCol col;      // 支持普通列排序
+    bool is_agg;     // 是否聚合排序
+    AggFunc agg;     // 聚合函数信息
+    // 可选：bool is_desc;
+    OrderByCol() : is_agg(false) {}
+};
+
+class AggPlan : public Plan
+{
+    public:
+        AggPlan(
+            std::shared_ptr<Plan> subplan,
+            std::vector<AggFunc> agg_funcs,
+            std::vector<TabCol> group_by_cols,
+            std::vector<Condition> having_conds,
+            std::vector<OrderByCol> order_by_cols,
+            std::vector<bool> order_by_directions,
+            int limit_val)
+            : subplan_(std::move(subplan)),
+              agg_funcs_(std::move(agg_funcs)),
+              group_by_cols_(std::move(group_by_cols)),
+              having_conds_(std::move(having_conds)),
+              order_by_cols_(std::move(order_by_cols)),
+              order_by_directions_(std::move(order_by_directions)),
+              limit_val_(limit_val)
+        {
+            Plan::tag = T_Agg;
+        }
+        ~AggPlan() {}
+        std::shared_ptr<Plan> subplan_;
+        std::vector<AggFunc> agg_funcs_;
+        std::vector<TabCol> group_by_cols_;
+        std::vector<Condition> having_conds_;
+        std::vector<OrderByCol> order_by_cols_;
+        std::vector<bool> order_by_directions_;
+        int limit_val_;
+        void Explain(std::ostream& os, int indent = 0) const override {}
 };

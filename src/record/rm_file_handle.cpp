@@ -269,3 +269,15 @@ void RmFileHandle::release_page_handle(RmPageHandle&page_handle) {
         disk_manager_->write_page(fd_, RM_FILE_HDR_PAGE, (char *)&file_hdr_, sizeof(file_hdr_));
     }
 }
+
+int RmFileHandle::get_records_num() {
+    int total = 0;
+    for (int page_no = RM_FIRST_RECORD_PAGE; page_no < file_hdr_.num_pages; ++page_no) {
+        RmPageHandle page_handle = fetch_page_handle(page_no);
+        if (page_handle.page_hdr) {
+            total += page_handle.page_hdr->num_records;
+            buffer_pool_manager_->unpin_page(page_handle.page->get_page_id(), false);
+        }
+    }
+    return total;
+}

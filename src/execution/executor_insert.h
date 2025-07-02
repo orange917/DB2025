@@ -65,6 +65,10 @@ class InsertExecutor : public AbstractExecutor {
         // Insert into record file
         rid_ = fh_->insert_record(rec.data, context_);
 
+        // 更新 row_count
+        tab_.row_count++;
+        sm_manager_->update_table_row_count(tab_name_, tab_.row_count);
+
         // 添加到事务的写集合中
         if (context_ != nullptr && context_->txn_ != nullptr) {
             // 创建新的写记录，记录插入操作

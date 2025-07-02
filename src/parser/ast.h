@@ -43,6 +43,7 @@ enum SetKnobType {
 
 // Base class for tree nodes
 struct TreeNode {
+    bool is_explain = false;
     virtual ~TreeNode() = default;  // enable polymorphism
 };
 
@@ -151,9 +152,10 @@ struct BoolLit : public Value {
 struct Col : public Expr {
     std::string tab_name;
     std::string col_name;
+    std::string alias;
 
-    Col(std::string tab_name_, std::string col_name_) :
-            tab_name(std::move(tab_name_)), col_name(std::move(col_name_)) {}
+    Col(std::string tab_name_, std::string col_name_, std::string alias_ = "")
+        : tab_name(std::move(tab_name_)), col_name(std::move(col_name_)), alias(std::move(alias_)) {}
 };
 
 // 添加聚合函数表达式
@@ -296,6 +298,22 @@ struct SetStmt : public TreeNode {
         set_knob_type_(type), bool_val_(bool_value) { }
 };
 
+struct TableRef {
+    std::string tab_name;
+    std::string alias;
+    TableRef(const std::string& tab, const std::string& alias_ = "") : tab_name(tab), alias(alias_) {}
+};
+
+struct TabCol {
+    std::string tab_name;
+    std::string col_name;
+    std::string alias; // 可选
+    TabCol(const std::string& t, const std::string& c, const std::string& a = "") : tab_name(t), col_name(c), alias(a) {}
+    TabCol() = default;
+};
+
+std::shared_ptr<TableRef> new_table_ref(const std::string& tab, const std::string* alias);
+
 // Semantic value
 struct SemValue {
     int sv_int;
@@ -346,6 +364,8 @@ struct SemValue {
     std::pair<std::vector<std::shared_ptr<Col>>, std::vector<std::shared_ptr<AggFunc>>> sv_mixed_selector;
     std::pair<std::shared_ptr<Col>, OrderByDir> sv_order_col_with_dir;
     std::vector<std::pair<std::shared_ptr<Col>, OrderByDir>> sv_order_col_list;
+
+    std::shared_ptr<TableRef> sv_table_ref;
 };
 
 extern std::shared_ptr<ast::TreeNode> parse_tree;

@@ -83,4 +83,6 @@ class SmManager {
     bool is_table(const std::string &tab_name) const { return db_.is_table(tab_name); }
 
     void show_index(const std::string& tab_name, Context* context);
+
+    void update_table_row_count(const std::string& tab_name, int row_count);
 };

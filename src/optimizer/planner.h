@@ -67,31 +67,3 @@ class Planner {
     CompOp convert_sv_comp_op(ast::SvCompOp op);
     Value convert_sv_value(const std::shared_ptr<ast::Value> &sv_val);
 };
-
-struct OrderByCol {
-    TabCol col;         // 排序列
-    AggFunc agg;        // 聚合函数
-    bool is_agg;        // 是否是聚合函数列
-};
-
-class AggPlan : public Plan
-{
-public:
-    AggPlan(std::shared_ptr<Plan> subplan, const std::vector<AggFunc> &agg_funcs,
-        const std::vector<TabCol> &group_by_cols,
-        const std::vector<Condition> &having_conds,
-        const std::vector<OrderByCol> &order_by_cols,
-        const std::vector<bool> &order_by_directions,
-        int limit_val)
-    : agg_funcs_(agg_funcs), group_by_cols_(group_by_cols), having_conds_(having_conds),
-    order_by_cols_(order_by_cols), order_by_directions_(order_by_directions), 
-    limit_val_(limit_val), subplan_(std::move(subplan)) {}
-
-    std::vector<AggFunc> agg_funcs_;
-    std::vector<TabCol> group_by_cols_;
-    std::vector<Condition> having_conds_;
-    std::vector<OrderByCol> order_by_cols_;
-    std::vector<bool> order_by_directions_;
-    int limit_val_;
-    std::shared_ptr<Plan> subplan_;
-};

@@ -101,11 +101,12 @@ extern int yydebug;
     NEQ = 302,                     /* NEQ  */
     GEQ = 303,                     /* GEQ  */
     T_EOF = 304,                   /* T_EOF  */
-    IDENTIFIER = 305,              /* IDENTIFIER  */
-    VALUE_STRING = 306,            /* VALUE_STRING  */
-    VALUE_INT = 307,               /* VALUE_INT  */
-    VALUE_FLOAT = 308,             /* VALUE_FLOAT  */
-    VALUE_BOOL = 309               /* VALUE_BOOL  */
+    EXPLAIN = 305,                 /* EXPLAIN  */
+    IDENTIFIER = 306,              /* IDENTIFIER  */
+    VALUE_STRING = 307,            /* VALUE_STRING  */
+    VALUE_INT = 308,               /* VALUE_INT  */
+    VALUE_FLOAT = 309,             /* VALUE_FLOAT  */
+    VALUE_BOOL = 310               /* VALUE_BOOL  */
   };
   typedef enum yytokentype yytoken_kind_t;
 #endif
@@ -114,7 +115,7 @@ extern int yydebug;
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 union YYSTYPE
 {
-#line 25 "/home/code/db2025/src/parser/yacc.y"
+#line 31 "/home/code/db2025/src/parser/yacc.y"
 
     int sv_int;
     float sv_float;
@@ -163,7 +164,10 @@ union YYSTYPE
     std::shared_ptr<JoinExpr> sv_joinexpr;
     std::vector<std::shared_ptr<JoinExpr>> sv_joinexprs;
 
-#line 167 "/home/code/db2025/src/parser/yacc.tab.h"
+    std::shared_ptr<TableRef> sv_table_ref;
+    std::shared_ptr<JoinExpr> join_expr;
+
+#line 171 "/home/code/db2025/src/parser/yacc.tab.h"
 
 };
 typedef union YYSTYPE YYSTYPE;

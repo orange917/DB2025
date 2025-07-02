@@ -86,6 +86,9 @@ class DeleteExecutor : public AbstractExecutor {
 
             // 再删除记录本身
             fh_->delete_record(rid, context_);
+            // 更新 row_count
+            tab_.row_count--;
+            sm_manager_->update_table_row_count(tab_name_, tab_.row_count);
         }
 
         return nullptr;

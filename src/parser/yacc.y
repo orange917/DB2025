@@ -1,10 +1,16 @@
 %{
-#include "ast.h"
+#include "parser/ast.h"
 #include "yacc.tab.h"
 #include <iostream>
 #include <memory>
+#include <string>
 
 int yylex(YYSTYPE *yylval, YYLTYPE *yylloc);
+
+// new_table_ref 辅助函数
+std::shared_ptr<ast::TableRef> new_table_ref(const std::string& tab, const std::string* alias) {
+    return std::make_shared<ast::TableRef>(tab, alias ? *alias : "");
+}
 
 void yyerror(YYLTYPE *locp, const char* s) {
     std::cerr << "Parser Error at line " << locp->first_line << " column " << locp->first_column << ": " << s << std::endl;
@@ -69,6 +75,9 @@ using namespace ast;
 
     std::shared_ptr<JoinExpr> sv_joinexpr;
     std::vector<std::shared_ptr<JoinExpr>> sv_joinexprs;
+
+    std::shared_ptr<TableRef> sv_table_ref;
+    std::shared_ptr<JoinExpr> join_expr;
 }
 
 // keywords
@@ -78,6 +87,7 @@ WHERE UPDATE SET SELECT INT CHAR FLOAT INDEX AND JOIN SEMI EXIT HELP TXN_BEGIN T
 COUNT MAX MIN SUM AVG GROUP HAVING LIMIT AS ORDER BY ON
 // non-keywords
 %token LEQ NEQ GEQ T_EOF
+%token EXPLAIN
 
 // type-specific tokens
 %token <sv_str> IDENTIFIER VALUE_STRING
@@ -124,12 +134,21 @@ COUNT MAX MIN SUM AVG GROUP HAVING LIMIT AS ORDER BY ON
 
 // 为终结符添加类型声明
 %type <sv_str> indexName
+%type <sv_table_ref> table_ref
+
 
 %%
 start:
         stmt ';'
     {
         parse_tree = $1;
+        YYACCEPT;
+    }
+    |   EXPLAIN stmt ';'
+    {
+        // 标记为 explain
+        if ($2) $2->is_explain = true;
+        parse_tree = $2;
         YYACCEPT;
     }
     |   HELP
@@ -400,15 +419,11 @@ col:
     }
     |   tbName '.' colName AS IDENTIFIER
     {
-        $$ = std::make_shared<Col>($1, $3);
-        // 注意：这里我们暂时忽略别名，因为Col结构中没有alias字段
-        // 在实际实现中，需要扩展Col结构以支持别名
+        $$ = std::make_shared<Col>($1, $3, $5);
     }
     |   colName AS IDENTIFIER
     {
-        $$ = std::make_shared<Col>("", $1);
-        // 注意：这里我们暂时忽略别名，因为Col结构中没有alias字段
-        // 在实际实现中，需要扩展Col结构以支持别名
+        $$ = std::make_shared<Col>("", $1, $3);
     }
     ;
 
@@ -534,6 +549,30 @@ join_clause:
     | SEMI JOIN tbName ON whereClause
     {
         $$ = std::make_shared<JoinExpr>("", $3, $5, ::SEMI_JOIN);
+    }
+    | table_ref JOIN table_ref ON expr
+    {
+        auto cond = std::dynamic_pointer_cast<ast::BinaryExpr>($5);
+        if (!cond) YYERROR;
+        std::vector<std::shared_ptr<ast::BinaryExpr>> conds;
+        conds.push_back(cond);
+        $$ = std::make_shared<JoinExpr>($1->tab_name, $3->tab_name, conds, ::INNER_JOIN);
+    }
+    | table_ref JOIN table_ref AS IDENTIFIER ON expr
+    {
+        auto cond = std::dynamic_pointer_cast<ast::BinaryExpr>($7);
+        if (!cond) YYERROR;
+        std::vector<std::shared_ptr<ast::BinaryExpr>> conds;
+        conds.push_back(cond);
+        $$ = std::make_shared<JoinExpr>($1->tab_name, $3->tab_name, conds, ::INNER_JOIN);
+    }
+    | table_ref JOIN table_ref IDENTIFIER ON expr
+    {
+        auto cond = std::dynamic_pointer_cast<ast::BinaryExpr>($6);
+        if (!cond) YYERROR;
+        std::vector<std::shared_ptr<ast::BinaryExpr>> conds;
+        conds.push_back(cond);
+        $$ = std::make_shared<JoinExpr>($1->tab_name, $3->tab_name, conds, ::INNER_JOIN);
     }
     ;
 
@@ -691,4 +730,11 @@ tbName: IDENTIFIER;
 colName: IDENTIFIER;
 
 indexName: IDENTIFIER;
+
+table_ref:
+      IDENTIFIER { $$ = ast::new_table_ref($1, nullptr); }
+    | IDENTIFIER IDENTIFIER { $$ = ast::new_table_ref($1, &$2); }
+    | IDENTIFIER AS IDENTIFIER { $$ = ast::new_table_ref($1, &$3); }
+    ;
+
 %%

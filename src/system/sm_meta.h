@@ -71,12 +71,14 @@ struct TabMeta {
     std::string name;                   // 表名称
     std::vector<ColMeta> cols;          // 表包含的字段
     std::vector<IndexMeta> indexes;     // 表上建立的索引
+    int row_count = 0;                  // 表的行数（基数）
 
     TabMeta(){}
 
     TabMeta(const TabMeta &other) {
         name = other.name;
         for(auto col : other.cols) cols.push_back(col);
+        row_count = other.row_count;
     }
 
     /* 判断当前表中是否存在名为col_name的字段 */
@@ -134,6 +136,7 @@ struct TabMeta {
         for (auto &index : tab.indexes) {
             os << index << "\n";
         }
+        os << tab.row_count << '\n';
         return os;
     }
 
@@ -151,6 +154,7 @@ struct TabMeta {
             is >> index;
             tab.indexes.push_back(index);
         }
+        is >> tab.row_count;
         return is;
     }
 };

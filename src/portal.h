@@ -25,6 +25,7 @@ See the Mulan PSL v2 for more details. */
 #include "execution/execution_sort.h"
 #include "execution/executor_aggregation.h"
 #include "common/common.h"
+#include <sstream>
 
 typedef enum portalTag{
     PORTAL_Invalid_Query = 0,
@@ -60,6 +61,13 @@ class Portal
     // 将查询执行计划转换成对应的算子树
     std::shared_ptr<PortalStmt> start(std::shared_ptr<Plan> plan, Context *context)
     {
+        // 检查是否为 EXPLAIN 查询
+        if (context && context->parse_tree && context->parse_tree->is_explain) {
+            std::ostringstream oss;
+            plan->Explain(oss, 0);
+            context->output = oss.str();
+            return nullptr; // EXPLAIN 不需要 PortalStmt
+        }
         // 这里可以将select进行拆分，例如：一个select，带有return的select等
         if (auto x = std::dynamic_pointer_cast<OtherPlan>(plan)) {
             return std::make_shared<PortalStmt>(PORTAL_CMD_UTILITY, std::vector<TabCol>(), std::unique_ptr<AbstractExecutor>(),plan);

@@ -253,6 +253,7 @@ void SmManager::create_table(const std::string& tab_name, const std::vector<ColD
         curr_offset += col_def.len;
         tab.cols.push_back(col);
     }
+    tab.row_count = 0;
 
     // 创建并打开记录文件
     int record_size = curr_offset;
@@ -568,4 +569,11 @@ void SmManager::show_index(const std::string& tab_name, Context* context) {
     
     printer.print_separator(context);
     outfile.close();
+}
+
+void SmManager::update_table_row_count(const std::string& tab_name, int row_count) {
+    std::lock_guard<std::mutex> lock(meta_mutex_);
+    if (!db_.is_table(tab_name)) return;
+    db_.get_table(tab_name).row_count = row_count;
+    flush_meta();
 }

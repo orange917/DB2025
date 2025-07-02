@@ -13,6 +13,7 @@ See the Mulan PSL v2 for more details. */
 #include "transaction/transaction.h"
 #include "transaction/concurrency/lock_manager.h"
 #include "recovery/log_manager.h"
+#include "parser/ast.h"
 
 // class TransactionManager;
 
@@ -31,8 +32,10 @@ public:
     // TransactionManager *txn_mgr_;
     LockManager *lock_mgr_;
     LogManager *log_mgr_;
-    Transaction *txn_;
-    char *data_send_;
-    int *offset_;
-    bool ellipsis_;
+    Transaction *txn_ = nullptr;
+    int *offset_ = nullptr;
+    char *data_send_ = nullptr;
+    bool ellipsis_ = false;
+    std::shared_ptr<ast::TreeNode> parse_tree;
+    std::string output;
 };

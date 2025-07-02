@@ -13,4 +13,8 @@ namespace ast {
 
 std::shared_ptr<TreeNode> parse_tree;
 
+std::shared_ptr<TableRef> new_table_ref(const std::string& tab, const std::string* alias) {
+    return std::make_shared<TableRef>(tab, alias ? *alias : "");
+}
+
 }

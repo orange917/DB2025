@@ -106,6 +106,7 @@ single_op ";"|"("|")"|","|"="|">"|"<"|"."
     yylval->sv_bool = false;
     return VALUE_BOOL;
 }
+"EXPLAIN" { return EXPLAIN; }
     /* operators */
 ">=" { return GEQ; }
 "<=" { return LEQ; }
