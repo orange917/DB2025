@@ -252,18 +252,3 @@ void BufferPoolManager::flush_all_pages(int fd) {
     }
 }
 
-void BufferPoolManager::discard_all_pages(int fd) {
-    std::scoped_lock lock{latch_};
-    for (size_t i = 0; i < pool_size_; i++) {
-        Page *page = &pages_[i];
-        if (page->get_page_id().fd == fd) {
-            // 不管 pin_count 和 is_dirty，强制移除
-            page_table_.erase(page->get_page_id());
-            replacer_->pin(i); // 从 replacer 中移除
-            page->id_.page_no = INVALID_PAGE_ID;
-            page->is_dirty_ = false;
-            page->pin_count_ = 0;
-            free_list_.push_back(i);
-        }
-    }
-}

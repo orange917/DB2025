@@ -72,15 +72,6 @@ class RmFileHandle {
         disk_manager_->set_fd2pageno(fd, file_hdr_.num_pages);
     }
 
-    ~RmFileHandle() {
-        // 1. 确保所有脏页被写回
-        buffer_pool_manager_->flush_all_pages(fd_);
-        // 2. 确保最终版本的文件头被写回
-        disk_manager_->write_page(fd_, RM_FILE_HDR_PAGE, (char *)&file_hdr_, sizeof(file_hdr_));
-        // 3. 关闭文件描述符
-        disk_manager_->close_file(fd_);
-    }
-
     RmFileHdr get_file_hdr() { return file_hdr_; }
     int GetFd() { return fd_; }
 
