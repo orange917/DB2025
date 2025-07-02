@@ -290,7 +290,11 @@ class IndexScanExecutor : public AbstractExecutor {
 
     while (!scan_->is_end()) {
       auto rcd = fh_->get_record(scan_->rid(), context_);
+      auto current_rid = scan_->rid();
       if (rcd == nullptr) { // 防止空指针
+        // 打印出导致问题的Rid
+        std::cout << "DEBUG: get_record failed for Rid(page_no=" << current_rid.page_no 
+        << ", slot_no=" << current_rid.slot_no << ")" << std::endl;
         scan_->next();
         continue;
       }

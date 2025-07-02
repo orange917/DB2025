@@ -279,31 +279,13 @@ void SmManager::create_table(const std::string& tab_name, const std::vector<ColD
  * @param {string&} tab_name 表的名称
  * @param {Context*} context
  */
-void SmManager::drop_table(const std::string& tab_name, Context* context) {
+ void SmManager::drop_table(const std::string& tab_name, Context* context) {
     std::lock_guard<std::mutex> lock(meta_mutex_);
     if(!db_.is_table(tab_name)) {
         throw TableNotFoundError(tab_name);
     }
 
-    // Step 0: 彻底删除所有相关的物理索引文件（无论元数据是否存在）
-    DIR* dir = opendir(".");
-    if (dir) {
-        struct dirent* entry;
-        std::string prefix = tab_name + "_";
-        std::string suffix = ".idx";
-        while ((entry = readdir(dir)) != nullptr) {
-            std::string fname = entry->d_name;
-            if (fname.size() > prefix.size() + suffix.size() &&
-                fname.substr(0, prefix.size()) == prefix &&
-                fname.substr(fname.size() - suffix.size()) == suffix) {
-                // 直接删除物理文件
-                remove(fname.c_str());
-            }
-        }
-        closedir(dir);
-    }
-
-    // Step 1: Clean up and delete all associated indexes (元数据)
+    // Step 1: Clean up and delete all associated indexes
     auto indexes_to_drop = db_.tabs_[tab_name].indexes;
     for (const auto& index_meta : indexes_to_drop) {
         std::vector<std::string> col_names;
@@ -313,41 +295,33 @@ void SmManager::drop_table(const std::string& tab_name, Context* context) {
         std::string index_name = ix_manager_->get_index_name(tab_name, col_names);
         auto ih_iter = ihs_.find(index_name);
         if (ih_iter != ihs_.end()) {
+            int fd = ih_iter->second->get_fd();
+            // 从缓冲池中丢弃所有索引页，不再写入磁盘
+            buffer_pool_manager_->discard_all_pages(fd);
+            // 关闭索引文件句柄
             ix_manager_->close_index(ih_iter->second.get());
             ihs_.erase(ih_iter);
         }
+        // 删除物理索引文件
         ix_manager_->destroy_index(tab_name, index_meta.cols);
     }
 
-    // Step 2: Clean up and delete the table data file.
+    // Step 2: Clean up table file handle
     auto fh_iter = fhs_.find(tab_name);
     if (fh_iter != fhs_.end()) {
-        auto file_handle = fh_iter->second.get();
-        int fd = file_handle->GetFd();
-        buffer_pool_manager_->flush_all_pages(fd);
-
-        // Clean up table data pages from buffer pool
-        auto scan = file_handle->create_scan();
-        std::set<page_id_t> pages_to_delete;
-        while (!scan->is_end()) {
-            pages_to_delete.insert(scan->rid().page_no);
-            scan->next();
-        }
-        for (const auto& page_no : pages_to_delete) {
-            buffer_pool_manager_->delete_page({fd, page_no});
-        }
-
-        rm_manager_->close_file(file_handle);
+        int fd = fh_iter->second->GetFd();
+        buffer_pool_manager_->discard_all_pages(fd);
+        rm_manager_->close_file(fh_iter->second.get());
         fhs_.erase(fh_iter);
     }
 
-    // This deletes the physical table file.
+    // Step 3: 删除物理表文件
     rm_manager_->destroy_file(tab_name);
 
-    // Step 3: Remove the table's metadata.
+    // Step 4: Remove the table's metadata.
     db_.tabs_.erase(tab_name);
 
-    // Step 4: Persist the metadata changes.
+    // Step 5: Persist the metadata changes.
     flush_meta();
 }
 
@@ -489,54 +463,65 @@ void SmManager::create_index(const std::string& tab_name, const std::vector<std:
  * @param {vector<string>&} col_names 索引包含的字段名称
  * @param {Context*} context
  */
-void SmManager::drop_index(const std::string& tab_name, const std::vector<std::string>& col_names, Context* context) {
-    std::lock_guard<std::mutex> lock(meta_mutex_);
-    TabMeta* tab = nullptr;
-    if (db_.is_table(tab_name)) {
-        tab = &db_.get_table(tab_name);
+ void SmManager::drop_index(const std::string& tab_name, const std::vector<std::string>& col_names, Context* context) {
+    // Note: This function is called by drop_table, so it doesn't lock the mutex itself.
+    // The caller (e.g., drop_table or the SQL execution engine) is responsible for locking.
+    TabMeta& tab = db_.get_table(tab_name);
+
+    // 检查索引是否存在于元数据中
+    if (!tab.is_index(col_names)) {
+        // 如果元数据中没有，可能是一个悬挂的索引文件，仍然尝试删除
+        // 但首先要检查表是否存在
+        if (!db_.is_table(tab_name)) {
+            throw TableNotFoundError(tab_name);
+        }
+        // 如果表存在但索引元数据不存在，则抛出索引未找到错误
+        throw IndexNotFoundError(tab_name, col_names);
     }
+
     // 获取索引名
     std::string index_name = ix_manager_->get_index_name(tab_name, col_names);
 
-    // 关闭并删除索引 handle
-    auto ih_iter = ihs_.find(index_name);
-    if (ih_iter != ihs_.end()) {
-        ix_manager_->close_index(ih_iter->second.get());
-        ihs_.erase(ih_iter);
-    }
+   // 关闭并删除索引 handle
+   auto ih_iter = ihs_.find(index_name);
+   if (ih_iter != ihs_.end()) {
+       // 在关闭和删除文件前，从缓冲池中刷新并删除所有相关页面
+       int fd = ih_iter->second->get_fd();
+       buffer_pool_manager_->flush_all_pages(fd);
 
-    // 直接删除物理索引文件
-    std::string index_filename = tab_name + "_" + index_name + ".idx";
-    if (disk_manager_->is_file(index_filename)) {
-        remove(index_filename.c_str());
-    }
+       ix_manager_->close_index(ih_iter->second.get());
+       ihs_.erase(ih_iter);
+   }
 
-    // 删除物理索引文件（无论元数据是否存在）
-    ix_manager_->destroy_index(tab_name, col_names);
+   // 删除物理索引文件
+   ix_manager_->destroy_index(tab_name, col_names);
 
-    // 如果元数据存在且有该索引，移除元数据
-    if (tab && tab->is_index(col_names)) {
-        auto index_iter = tab->get_index_meta(col_names);
-        tab->indexes.erase(index_iter);
-        // 更新表元数据中列的索引标记
-        for (const auto& col_name : col_names) {
-            bool still_indexed = false;
-            for (const auto& index : tab->indexes) {
-                for (const auto& idx_col : index.cols) {
-                    if (idx_col.name == col_name) {
-                        still_indexed = true;
-                        break;
-                    }
+    // 从元数据中移除索引
+    auto index_iter = tab.get_index_meta(col_names);
+    tab.indexes.erase(index_iter);
+
+    // 更新受影响列的索引标记
+    for (const auto& col_name : col_names) {
+        bool still_indexed = false;
+        // 检查此列是否被其他索引使用
+        for (const auto& other_index : tab.indexes) {
+            for (const auto& other_col : other_index.cols) {
+                if (other_col.name == col_name) {
+                    still_indexed = true;
+                    break;
                 }
-                if (still_indexed) break;
             }
-            if (!still_indexed) {
-                auto col_it = tab->get_col(col_name);
+            if (still_indexed) break;
+        }
+        // 如果没有其他索引使用此列，则更新其元数据
+        if (!still_indexed) {
+            auto col_it = tab.get_col(col_name);
+            if (col_it != tab.cols.end()) {
                 col_it->index = false;
             }
         }
-        flush_meta();
     }
+    flush_meta();
 }
 
 /**

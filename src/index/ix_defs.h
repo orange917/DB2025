@@ -148,3 +148,9 @@ public:
 
     friend bool operator!=(const Iid &x, const Iid &y) { return !(x == y); }
 };
+
+// struct Rid {
+//     int page_no;
+//     int slot_no;
+// };
+// static_assert(sizeof(Rid) == 8, "Rid size must be 8 bytes!");

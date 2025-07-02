@@ -70,34 +70,41 @@ class IxNodeHandle {
         page_hdr = reinterpret_cast<IxPageHdr *>(page->get_data());
         keys = page->get_data() + sizeof(IxPageHdr);
         rids = reinterpret_cast<Rid *>(keys + file_hdr->keys_size_);
+        std::cout << "[DEBUG] page=" << page
+                  << ", keys=" << static_cast<void*>(keys)
+                  << ", rids=" << static_cast<void*>(rids)
+                  << ", keys_size_=" << file_hdr->keys_size_
+                  << ", col_tot_len_=" << file_hdr->col_tot_len_
+                  << ", max_key_num=" << file_hdr->btree_order_ + 1
+                  << std::endl;
     }
 
-    int get_size() { return page_hdr->num_key; }
+    int get_size() const { return page_hdr->num_key; }
 
     void set_size(int size) { page_hdr->num_key = size; }
 
-    int get_max_size() { return file_hdr->btree_order_ + 1; }
+    int get_max_size() const { return file_hdr->btree_order_ + 1; }
 
-    int get_min_size() { return get_max_size() / 2; }
+    int get_min_size() const { return get_max_size() / 2; }
 
-    int key_at(int i) { return *(int *)get_key(i); }
+    int key_at(int i) const { return *(int *)get_key(i); }
 
     /* 得到第i个孩子结点的page_no */
-    page_id_t value_at(int i) { return get_rid(i)->page_no; }
+    page_id_t value_at(int i) const { return get_rid(i)->page_no; }
 
-    page_id_t get_page_no() { return page->get_page_id().page_no; }
+    page_id_t get_page_no() const { return page->get_page_id().page_no; }
 
-    PageId get_page_id() { return page->get_page_id(); }
+    PageId get_page_id() const { return page->get_page_id(); }
 
-    page_id_t get_next_leaf() { return page_hdr->next_leaf; }
+    page_id_t get_next_leaf() const { return page_hdr->next_leaf; }
 
-    page_id_t get_prev_leaf() { return page_hdr->prev_leaf; }
+    page_id_t get_prev_leaf() const { return page_hdr->prev_leaf; }
 
-    page_id_t get_parent_page_no() { return page_hdr->parent; }
+    page_id_t get_parent_page_no() const { return page_hdr->parent; }
 
-    bool is_leaf_page() { return page_hdr->is_leaf; }
+    bool is_leaf_page() const { return page_hdr->is_leaf; }
 
-    bool is_root_page() { return get_parent_page_no() == INVALID_PAGE_ID; }
+    bool is_root_page() const { return get_parent_page_no() == INVALID_PAGE_ID; }
 
     void set_next_leaf(page_id_t page_no) { page_hdr->next_leaf = page_no; }
 
@@ -105,9 +112,9 @@ class IxNodeHandle {
 
     void set_parent_page_no(page_id_t parent) { page_hdr->parent = parent; }
 
-    char *get_key(int key_idx) const { return keys + key_idx * file_hdr->col_tot_len_; }
+    char *get_key(int key_idx) const { assert(key_idx >= 0 && key_idx < get_max_size()); return keys + key_idx * file_hdr->col_tot_len_; }
 
-    Rid *get_rid(int rid_idx) const { return &rids[rid_idx]; }
+    Rid *get_rid(int rid_idx) const { assert(rid_idx >= 0 && rid_idx < get_max_size()); return &rids[rid_idx]; }
 
     void set_key(int key_idx, const char *key) { memcpy(keys + key_idx * file_hdr->col_tot_len_, key, file_hdr->col_tot_len_); }
 
@@ -125,10 +132,9 @@ class IxNodeHandle {
 
     int insert(const char *key, const Rid &value);
 
+    void insert_pair(int key_idx, const char* key, int child_page_no);
     // 用于在结点中的指定位置插入单个键值对
     void insert_pair(int pos, const char *key, const Rid &rid) { insert_pairs(pos, key, &rid, 1); }
-
-    void insert_pair(int key_idx, const char* key, int child_page_no);
 
     void erase_pair(int pos);
 
@@ -162,6 +168,8 @@ class IxNodeHandle {
         }
         throw std::runtime_error("FATAL: Child page not found in parent node. Index is likely corrupt.");
     }
+
+    const IxFileHdr* get_file_hdr() const { return file_hdr; }
 };
 
 /* B+树 */

@@ -11,8 +11,69 @@ See the Mulan PSL v2 for more details. */
 #include "errors.h"
 #include "ix_index_handle.h"
 #include <queue>
+#include <fstream>
+#include <iomanip>
+#include <sstream>
 
 #include "ix_scan.h"
+
+// 全局调试输出流
+// std::ofstream ix_debug_log("ix_debug.log", std::ios::app);
+// std::ofstream ix_debug_detail_log("ix_debug_detail.log", std::ios::app);
+
+// void debug_print_key(const char* key, const IxFileHdr* file_hdr) {
+//     for (int j = 0; j < file_hdr->col_num_; j++) {
+//         ColType type = file_hdr->col_types_[j];
+//         int len = file_hdr->col_lens_[j];
+//         if (j > 0) ix_debug_detail_log << ",";
+//         int offset = 0;
+//         for (int k = 0; k < j; k++) offset += file_hdr->col_lens_[k];
+//         switch (type) {
+//             case TYPE_INT: ix_debug_detail_log << *(int*)(key + offset); break;
+//             case TYPE_FLOAT: ix_debug_detail_log << *(float*)(key + offset); break;
+//             case TYPE_STRING: ix_debug_detail_log << "'" << std::string(key + offset, strnlen(key + offset, len)) << "'"; break;
+//             default: ix_debug_detail_log << "?";
+//         }
+//     }
+// }
+
+// void debug_print_rid(const Rid* rid) {
+//     ix_debug_detail_log << "(page_no=" << rid->page_no << ",slot_no=" << rid->slot_no << ")";
+// }
+
+// void debug_print_key_rid_array(const IxNodeHandle* node, int max_print = 20) {
+//     int sz = node->get_size();
+//     int print_head = std::min(sz, max_print);
+//     int print_tail = std::min(sz, max_print);
+//     ix_debug_detail_log << "[key_rid_array] page_no=" << node->get_page_no() << ", size=" << sz << std::endl;
+//     for (int i = 0; i < print_head; i++) {
+//         ix_debug_detail_log << "  idx=" << i << ", key=";
+//         debug_print_key(node->get_key(i), node->get_file_hdr());
+//         ix_debug_detail_log << ", rid=";
+//         debug_print_rid(node->get_rid(i));
+//         ix_debug_detail_log << ", key_ptr=" << static_cast<const void*>(node->get_key(i));
+//         ix_debug_detail_log << ", rid_ptr=" << static_cast<const void*>(node->get_rid(i));
+//         if (node->get_file_hdr()->col_num_ > 0 && node->get_file_hdr()->col_types_[0] == TYPE_INT && *(int*)node->get_key(i) == 9) {
+//             ix_debug_detail_log << "  <== key=9";
+//         }
+//         ix_debug_detail_log << std::endl;
+//     }
+//     if (sz > 2 * max_print) {
+//         ix_debug_detail_log << "  ... ..." << std::endl;
+//         for (int i = sz - print_tail; i < sz; i++) {
+//             ix_debug_detail_log << "  idx=" << i << ", key=";
+//             debug_print_key(node->get_key(i), node->get_file_hdr());
+//             ix_debug_detail_log << ", rid=";
+//             debug_print_rid(node->get_rid(i));
+//             ix_debug_detail_log << ", key_ptr=" << static_cast<const void*>(node->get_key(i));
+//             ix_debug_detail_log << ", rid_ptr=" << static_cast<const void*>(node->get_rid(i));
+//             if (node->get_file_hdr()->col_num_ > 0 && node->get_file_hdr()->col_types_[0] == TYPE_INT && *(int*)node->get_key(i) == 9) {
+//                 ix_debug_detail_log << "  <== key=9";
+//             }
+//             ix_debug_detail_log << std::endl;
+//         }
+//     }
+// }
 
 /**
  * @brief 在当前node中查找第一个>=target的key_idx
@@ -142,36 +203,43 @@ page_id_t IxNodeHandle::internal_lookup(const char *key) {
  *                      key           key_slot
  */
 void IxNodeHandle::insert_pairs(int pos, const char *key, const Rid *rid, int n) {
-    // Todo:
-    // 1. 判断pos的合法性
-    // 2. 通过key获取n个连续键值对的key值，并把n个key值插入到pos位置
-    // 3. 通过rid获取n个连续键值对的rid值，并把n个rid值插入到pos位置
-    // 4. 更新当前节点的键数量
-
-    // 确保pos的合法性
+    // ix_debug_detail_log << "[insert_pairs] call, page_no=" << get_page_no()
+    //                    << ", pos=" << pos << ", n=" << n
+    //                    << ", num_key=" << page_hdr->num_key << std::endl;
     assert(pos >= 0 && pos <= page_hdr->num_key);
-
     int num_key = page_hdr->num_key;
 
     // 如果pos不是在尾部，需要将pos及之后的数据向后移动n个位置
     if (pos < num_key) {
-        // 移动key部分
-        memmove(get_key(pos + n), get_key(pos), (num_key - pos) * file_hdr->col_tot_len_);
-
-        // 移动rid部分
-        memmove(get_rid(pos + n), get_rid(pos), (num_key - pos) * sizeof(Rid));
+        // ix_debug_detail_log << "[insert_pairs] BEFORE move, page_no=" << get_page_no() << std::endl;
+        // debug_print_key_rid_array(this);
+        // 用for循环手动搬运，避免memmove重叠覆盖
+        for (int i = num_key - 1; i >= pos; --i) {
+            assert(i + n < get_max_size());
+            assert(i < get_max_size());
+            memcpy(get_key(i + n), get_key(i), file_hdr->col_tot_len_);
+            memcpy(get_rid(i + n), get_rid(i), sizeof(Rid));
+        }
+        // ix_debug_detail_log << "[insert_pairs] AFTER move, page_no=" << get_page_no() << std::endl;
+        // debug_print_key_rid_array(this);
     }
 
     // 在pos位置插入n个key和rid
     for (int i = 0; i < n; i++) {
-        // 插入key
+        // ix_debug_detail_log << "[insert_pairs] memcpy at pos=" << (pos + i) << ", key_ptr=" << static_cast<const void*>(key + i * file_hdr->col_tot_len_) << ", rid_ptr=" << static_cast<const void*>(rid + i) << std::endl;
+        // ix_debug_detail_log << "  key=";
+        // debug_print_key(key + i * file_hdr->col_tot_len_, file_hdr);
+        // ix_debug_detail_log << ", rid=";
+        // debug_print_rid(rid + i);
+        // ix_debug_detail_log << std::endl;
         memcpy(get_key(pos + i), key + i * file_hdr->col_tot_len_, file_hdr->col_tot_len_);
-                // 插入rid
         memcpy(get_rid(pos + i), rid + i, sizeof(Rid));
     }
 
     // 更新节点的键值对数量
     page_hdr->num_key += n;
+    // ix_debug_detail_log << "[insert_pairs] AFTER memcpy, page_no=" << get_page_no() << std::endl;
+    // debug_print_key_rid_array(this);
 }
 
 /**
@@ -222,17 +290,13 @@ void IxNodeHandle::erase_pair(int pos) {
     assert(pos >= 0 && pos < page_hdr->num_key);
 
     int num_key = page_hdr->num_key;
-
-    // 如果要删除的不是最后一个键值对，需要将后面的键值对前移
+    int max_size = get_max_size();
     if (pos < num_key - 1) {
-        // 移动key部分
+        assert(pos + 1 < max_size);
+        assert(num_key - pos - 1 >= 0 && num_key - pos - 1 <= max_size);
         memmove(get_key(pos), get_key(pos + 1), (num_key - pos - 1) * file_hdr->col_tot_len_);
-
-        // 移动rid部分
         memmove(get_rid(pos), get_rid(pos + 1), (num_key - pos - 1) * sizeof(Rid));
     }
-
-    // 更新节点的键值对数量
     page_hdr->num_key--;
 }
 
@@ -395,9 +459,18 @@ IxNodeHandle *IxIndexHandle::split(IxNodeHandle *node) {
     
     if (node->is_leaf_page()) {
         int split_point = (num_key + 1) / 2; // 确保左边节点在重分配后有更多或相等的键
-        // 将原节点右半部分的键值对移动到新节点
+        // ix_debug_detail_log << "[split] leaf split, node=" << node->get_page_no()
+        //                    << " new_node=" << new_node->get_page_no()
+        //                    << ", split_point=" << split_point
+        //                    << ", num_key=" << num_key << std::endl;
+        // for (int i = split_point; i < num_key; i++) {
+        //     ix_debug_log << "  move key=";
+        //     debug_print_key(node->get_key(i), file_hdr_);
+        //     ix_debug_log << ", rid=";
+        //     debug_print_rid(node->get_rid(i));
+        //     ix_debug_log << std::endl;
+        // }
         new_node->insert_pairs(0, node->get_key(split_point), node->get_rid(split_point), num_key - split_point);
-        // 更新原节点的键值对数量
         node->set_size(split_point);
 
         // 更新叶子节点链表
@@ -424,7 +497,19 @@ IxNodeHandle *IxIndexHandle::split(IxNodeHandle *node) {
         // 要移动到新节点的子节点指针的数量
         int rid_move_count = key_move_count + 1;
 
-        // 移动后半部分的键和指针到新节点
+        // ix_debug_detail_log << "[split] internal split, node=" << node->get_page_no()
+        //                    << " new_node=" << new_node->get_page_no()
+        //                    << ", middle_idx=" << middle_idx
+        //                    << ", num_key=" << num_key
+        //                    << ", key_move_count=" << key_move_count
+        //                    << ", rid_move_count=" << rid_move_count << std::endl;
+        // for (int i = 0; i < key_move_count; i++) {
+        //     ix_debug_log << "  move key=";
+        //     debug_print_key(node->get_key(middle_idx + 1 + i), file_hdr_);
+        //     ix_debug_log << ", rid=";
+        //     debug_print_rid(node->get_rid(middle_idx + 1 + i));
+        //     ix_debug_log << std::endl;
+        // }
         memcpy(new_node->get_key(0), node->get_key(middle_idx + 1), key_move_count * file_hdr_->col_tot_len_);
         memcpy(new_node->get_rid(0), node->get_rid(middle_idx + 1), rid_move_count * sizeof(Rid));
         new_node->set_size(key_move_count);
@@ -505,7 +590,7 @@ void IxIndexHandle::insert_into_parent(IxNodeHandle *old_node, const char *key, 
     parent->insert_pair(insert_pos, key, new_node->get_page_no());
 
     // 4. 检查父节点是否需要分裂
-    if (parent->get_size() > parent->get_max_size()) {
+    if (parent->get_size() == parent->get_max_size()) {
         // 内部节点分裂，中间key需要上移
         int middle_idx = parent->get_size() / 2;
         // 使用堆分配内存来存储中间键
@@ -533,29 +618,15 @@ void IxIndexHandle::insert_into_parent(IxNodeHandle *old_node, const char *key, 
  * @brief 在内部节点中插入一个 key 和一个指向新子节点的指针
  */
 void IxNodeHandle::insert_pair(int key_idx, const char* key, int child_page_no) {
-    // 该函数用于内部节点。它在key_idx处插入一个键，在rid_idx = key_idx + 1处插入一个子页面编号。
     assert(!is_leaf_page());
     assert(key_idx >= 0 && key_idx <= page_hdr->num_key);
-
-    // 为新键腾出空间。
-    // 将从key_idx到末尾的键向右移动一个位置。
-    memmove(get_key(key_idx + 1),
-            get_key(key_idx),
-            (page_hdr->num_key - key_idx) * file_hdr->col_tot_len_);
-
-    // 为新的子指针腾出空间。
-    // 将从key_idx + 1到末尾的rids向右移动一个位置。
-    memmove(get_rid(key_idx + 2),
-            get_rid(key_idx + 1),
-            (page_hdr->num_key - key_idx) * sizeof(Rid));
-
-    // 插入新键。
+    int max_size = get_max_size();
+    assert(key_idx + 1 < max_size);
+    assert(key_idx < max_size);
+    memmove(get_key(key_idx + 1), get_key(key_idx), (page_hdr->num_key - key_idx) * file_hdr->col_tot_len_);
+    memmove(get_rid(key_idx + 2), get_rid(key_idx + 1), (page_hdr->num_key - key_idx) * sizeof(Rid));
     memcpy(get_key(key_idx), key, file_hdr->col_tot_len_);
-
-    // 插入新的子指针。
     get_rid(key_idx + 1)->page_no = child_page_no;
-
-    // 更新键计数。
     page_hdr->num_key++;
 }
 
@@ -601,8 +672,8 @@ page_id_t IxIndexHandle::insert_entry(const char *key, const Rid &value, Transac
     int size_after_insert = leaf->insert(key, value);
 
     // 3. 如果结点已满，分裂结点，并把新结点的相关信息插入父节点
-    if (size_after_insert > leaf->get_max_size()) {
-        // 分裂叶子节点
+    if (size_after_insert == leaf->get_max_size()) {
+        // 立即分裂
         IxNodeHandle *new_leaf = split(leaf);
 
         // 获取新叶子节点的第一个key作为上升key
@@ -819,9 +890,14 @@ void IxIndexHandle::redistribute(IxNodeHandle *neighbor_node, IxNodeHandle *node
 
     if (neighbor_is_prev) {
         // neighbor是前驱结点，移动neighbor的最后一个键值对到node的开头
+        int last_idx = neighbor_node->get_size() - 1;
+        // ix_debug_log << "[redistribute] move from neighbor(last_idx=" << last_idx << ") to node(0): key=";
+        // debug_print_key(neighbor_node->get_key(last_idx), file_hdr_);
+        // ix_debug_log << ", rid=";
+        // debug_print_rid(neighbor_node->get_rid(last_idx));
+        // ix_debug_log << std::endl;
 
         // 2. 从neighbor_node中移动一个键值对到node结点中
-        int last_idx = neighbor_node->get_size() - 1;
         char *last_key = neighbor_node->get_key(last_idx);
         Rid *last_rid = neighbor_node->get_rid(last_idx);
 
@@ -841,6 +917,11 @@ void IxIndexHandle::redistribute(IxNodeHandle *neighbor_node, IxNodeHandle *node
         }
     } else {
         // neighbor是后继结点，移动neighbor的第一个键值对到node的末尾
+        // ix_debug_log << "[redistribute] move from neighbor(0) to node(end): key=";
+        // debug_print_key(neighbor_node->get_key(0), file_hdr_);
+        // ix_debug_log << ", rid=";
+        // debug_print_rid(neighbor_node->get_rid(0));
+        // ix_debug_log << std::endl;
 
         // 2. 从neighbor_node中移动一个键值对到node结点中
         char *first_key = neighbor_node->get_key(0);
@@ -903,13 +984,13 @@ bool IxIndexHandle::coalesce(IxNodeHandle **neighbor_node, IxNodeHandle **node, 
 
     // 如果是叶子节点，直接移动键值对
     if ((*node)->is_leaf_page()) {
-    // 获取node的所有键值对
-    for (int i = 0; i < node_size; i++) {
-    char *key = (*node)->get_key(i);
-    Rid *rid = (*node)->get_rid(i);
-    // 将键值对插入到neighbor_node末尾
-    (*neighbor_node)->insert_pairs((*neighbor_node)->get_size(), key, rid, 1);
-    }
+    // for (int i = 0; i < node_size; i++) {
+    //     ix_debug_log << "[coalesce] move from node(key_idx=" << i << ") to neighbor(end): key=";
+    //     debug_print_key((*node)->get_key(i), file_hdr_);
+    //     ix_debug_log << ", rid=";
+    //     debug_print_rid((*node)->get_rid(i));
+    //     ix_debug_log << std::endl;
+    // }
 
     // 更新叶子节点链表
     (*neighbor_node)->set_next_leaf((*node)->get_next_leaf());
@@ -959,13 +1040,29 @@ bool IxIndexHandle::coalesce(IxNodeHandle **neighbor_node, IxNodeHandle **node, 
  * @return Rid
  * @note iid和rid存的不是一个东西，rid是上层传过来的记录位置，iid是索引内部生成的索引槽位置
  */
-Rid IxIndexHandle::get_rid(const Iid &iid) const {
+ Rid IxIndexHandle::get_rid(const Iid &iid) const {
     IxNodeHandle *node = fetch_node(iid.page_no);
     if (iid.slot_no >= node->get_size()) {
+        buffer_pool_manager_->unpin_page(node->get_page_id(), false);
+        delete node;
         throw IndexEntryNotFoundError();
     }
-    buffer_pool_manager_->unpin_page(node->get_page_id(), false);  // unpin it!
-    return *node->get_rid(iid.slot_no);
+    
+    Rid result = *node->get_rid(iid.slot_no);
+    
+    // 检查是否为w_id=9
+    if (file_hdr_->col_num_ > 0 && file_hdr_->col_types_[0] == TYPE_INT) {
+        char *key = node->get_key(iid.slot_no);
+        int key_value = *(int *)key;
+        if (key_value == 9) {
+            // std::cout << "[DEBUG-w_id=9] get_rid: iid={" << iid.page_no << ", " << iid.slot_no
+            //           << "} -> rid={" << result.page_no << ", " << result.slot_no << "}" << std::endl;
+        }
+    }
+    
+    buffer_pool_manager_->unpin_page(node->get_page_id(), false);
+    delete node;
+    return result;
 }
 
 /**
@@ -1004,6 +1101,7 @@ Iid IxIndexHandle::upper_bound(const char *key) {
     // 找到key所在的叶子节点
     std::pair<IxNodeHandle *, bool> leaf_pair = find_leaf_page(key, Operation::FIND, nullptr);
     IxNodeHandle *leaf = leaf_pair.first;
+
 
     // 在叶子节点中查找第一个大于key的位置
     int slot_no = leaf->upper_bound(key);
@@ -1206,6 +1304,9 @@ void IxIndexHandle::print_tree(const std::string& outfile_path) {
         return;
     }
 
+    // 打印file_hdr_的first_leaf_和last_leaf_
+    outfile << "[file_hdr_] first_leaf_ = " << file_hdr_->first_leaf_ << ", last_leaf_ = " << file_hdr_->last_leaf_ << std::endl;
+
     if (file_hdr_->root_page_ == IX_NO_PAGE) {
         outfile << "Empty tree" << std::endl;
         outfile.close();
@@ -1233,103 +1334,112 @@ void IxIndexHandle::print_tree(const std::string& outfile_path) {
         // 获取节点
         IxNodeHandle* node = fetch_node(page_no);
         
-        // 打印节点信息
+        // 打印节点基本信息
         outfile << "Node[" << node->get_page_no() << "] ";
+        outfile << (node->is_leaf_page() ? "(Leaf) " : "(Internal) ");
+        outfile << "parent_page_no=" << node->get_parent_page_no() << ", ";
+        outfile << "num_key=" << node->get_size();
         if (node->is_leaf_page()) {
-            outfile << "(Leaf) ";
-            outfile << "Keys(" << node->get_size() << "): ";
-            for (int i = 0; i < node->get_size(); i++) {
-                char* key = node->get_key(i);
-                outfile << "[";
-                // 根据索引的数据类型打印键值
-                for (int j = 0; j < file_hdr_->col_num_; j++) {
-                    ColType type = file_hdr_->col_types_[j];
-                    int len = file_hdr_->col_lens_[j];
-                    
-                    if (j > 0) outfile << ",";
-                    
-                    // 计算偏移
-                    int offset = 0;
-                    for (int k = 0; k < j; k++) {
-                        offset += file_hdr_->col_lens_[k];
-                    }
-                    
-                    switch (type) {
-                        case TYPE_INT: {
-                            int value = *(int*)(key + offset);
-                            outfile << value;
-                            break;
-                        }
-                        case TYPE_FLOAT: {
-                            float value = *(float*)(key + offset);
-                            outfile << value;
-                            break;
-                        }
-                        case TYPE_STRING: {
-                            std::string value(key + offset, strnlen(key + offset, len));
-                            outfile << "'" << value << "'";
-                            break;
-                        }
-                        default:
-                            outfile << "?";
-                    }
-                }
-                outfile << "] ";
-            }
-            outfile << std::endl;
-        } else {
-            outfile << "(Internal) ";
-            outfile << "Keys(" << node->get_size() << "): ";
-            for (int i = 0; i < node->get_size(); i++) {
-                char* key = node->get_key(i);
-                outfile << "[";
-                // 根据索引的数据类型打印键值
-                for (int j = 0; j < file_hdr_->col_num_; j++) {
-                    ColType type = file_hdr_->col_types_[j];
-                    int len = file_hdr_->col_lens_[j];
-                    
-                    if (j > 0) outfile << ",";
-                    
-                    // 计算偏移
-                    int offset = 0;
-                    for (int k = 0; k < j; k++) {
-                        offset += file_hdr_->col_lens_[k];
-                    }
-                    
-                    switch (type) {
-                        case TYPE_INT: {
-                            int value = *(int*)(key + offset);
-                            outfile << value;
-                            break;
-                        }
-                        case TYPE_FLOAT: {
-                            float value = *(float*)(key + offset);
-                            outfile << value;
-                            break;
-                        }
-                        case TYPE_STRING: {
-                            std::string value(key + offset, strnlen(key + offset, len));
-                            outfile << "'" << value << "'";
-                            break;
-                        }
-                        default:
-                            outfile << "?";
-                    }
-                }
-                outfile << "] ";
-            }
-            outfile << std::endl;
+            outfile << ", prev_leaf=" << node->get_prev_leaf();
+            outfile << ", next_leaf=" << node->get_next_leaf();
+        }
+        outfile << std::endl;
 
-            // 对于内部节点，添加其子节点到队列中
+        // 打印节点的key和rid
+        if (node->is_leaf_page()) {
+            outfile << "  Keys&Rids: ";
+            for (int i = 0; i < node->get_size(); i++) {
+                char* key = node->get_key(i);
+                Rid* rid = node->get_rid(i);
+                outfile << "[";
+                // 打印key
+                for (int j = 0; j < file_hdr_->col_num_; j++) {
+                    ColType type = file_hdr_->col_types_[j];
+                    int len = file_hdr_->col_lens_[j];
+                    if (j > 0) outfile << ",";
+                    int offset = 0;
+                    for (int k = 0; k < j; k++) offset += file_hdr_->col_lens_[k];
+                    switch (type) {
+                        case TYPE_INT: outfile << *(int*)(key + offset); break;
+                        case TYPE_FLOAT: outfile << *(float*)(key + offset); break;
+                        case TYPE_STRING: outfile << "'" << std::string(key + offset, strnlen(key + offset, len)) << "'"; break;
+                        default: outfile << "?";
+                    }
+                }
+                outfile << "|rid=(" << rid->page_no << "," << rid->slot_no << ")] ";
+            }
+            outfile << std::endl;
+            // 打印key范围
+            if (node->get_size() > 0) {
+                char* min_key = node->get_key(0);
+                char* max_key = node->get_key(node->get_size() - 1);
+                outfile << "  KeyRange: min=[";
+                for (int j = 0; j < file_hdr_->col_num_; j++) {
+                    ColType type = file_hdr_->col_types_[j];
+                    int len = file_hdr_->col_lens_[j];
+                    if (j > 0) outfile << ",";
+                    int offset = 0;
+                    for (int k = 0; k < j; k++) offset += file_hdr_->col_lens_[k];
+                    switch (type) {
+                        case TYPE_INT: outfile << *(int*)(min_key + offset); break;
+                        case TYPE_FLOAT: outfile << *(float*)(min_key + offset); break;
+                        case TYPE_STRING: outfile << "'" << std::string(min_key + offset, strnlen(min_key + offset, len)) << "'"; break;
+                        default: outfile << "?";
+                    }
+                }
+                outfile << "], max=[";
+                for (int j = 0; j < file_hdr_->col_num_; j++) {
+                    ColType type = file_hdr_->col_types_[j];
+                    int len = file_hdr_->col_lens_[j];
+                    if (j > 0) outfile << ",";
+                    int offset = 0;
+                    for (int k = 0; k < j; k++) offset += file_hdr_->col_lens_[k];
+                    switch (type) {
+                        case TYPE_INT: outfile << *(int*)(max_key + offset); break;
+                        case TYPE_FLOAT: outfile << *(float*)(max_key + offset); break;
+                        case TYPE_STRING: outfile << "'" << std::string(max_key + offset, strnlen(max_key + offset, len)) << "'"; break;
+                        default: outfile << "?";
+                    }
+                }
+                outfile << "]" << std::endl;
+            }
+        } else {
+            // 打印内部节点的key
+            outfile << "  Keys: ";
+            for (int i = 0; i < node->get_size(); i++) {
+                char* key = node->get_key(i);
+                outfile << "[";
+                for (int j = 0; j < file_hdr_->col_num_; j++) {
+                    ColType type = file_hdr_->col_types_[j];
+                    int len = file_hdr_->col_lens_[j];
+                    if (j > 0) outfile << ",";
+                    int offset = 0;
+                    for (int k = 0; k < j; k++) offset += file_hdr_->col_lens_[k];
+                    switch (type) {
+                        case TYPE_INT: outfile << *(int*)(key + offset); break;
+                        case TYPE_FLOAT: outfile << *(float*)(key + offset); break;
+                        case TYPE_STRING: outfile << "'" << std::string(key + offset, strnlen(key + offset, len)) << "'"; break;
+                        default: outfile << "?";
+                    }
+                }
+                outfile << "] ";
+            }
+            outfile << std::endl;
+            // 打印内部节点的所有子指针和parent_page_no
+            outfile << "  Children: ";
             for (int i = 0; i <= node->get_size(); i++) {
                 int child_page_no = node->value_at(i);
+                IxNodeHandle* child = fetch_node(child_page_no);
+                outfile << child_page_no << "(parent=" << child->get_parent_page_no() << ") ";
                 q.push({child_page_no, level + 1});
+                buffer_pool_manager_->unpin_page(child->get_page_id(), false);
+                delete child;
             }
+            outfile << std::endl;
         }
 
-        // 释放节点资源
+        outfile << std::endl;
         buffer_pool_manager_->unpin_page(node->get_page_id(), false);
-        // 使用指针删除
         delete node;
     }
 

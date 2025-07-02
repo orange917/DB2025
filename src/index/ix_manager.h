@@ -62,9 +62,6 @@ class IxManager {
         int fd = disk_manager_->open_file(ix_name);
 
         // Create file header and write to file
-        // Theoretically we have: |page_hdr| + (|attr| + |rid|) * n <= PAGE_SIZE
-        // but we reserve one slot for convenient inserting and deleting, i.e.
-        // |page_hdr| + (|attr| + |rid|) * (n + 1) <= PAGE_SIZE
         int col_tot_len = 0;
         int col_num = index_cols.size();
         for(auto& col: index_cols) {
@@ -73,31 +70,28 @@ class IxManager {
         if (col_tot_len > IX_MAX_COL_LEN) {
             throw InvalidColLengthError(col_tot_len);
         }
-        // 根据 |page_hdr| + (|attr| + |rid|) * (n + 1) <= PAGE_SIZE 求得n的最大值btree_order
-        // 即 n <= btree_order，那么btree_order就是每个结点最多可插入的键值对数量（实际还多留了一个空位，但其不可插入）
+        // 正确计算btree_order和keys_size，确保每页空间足够
         int btree_order = static_cast<int>((PAGE_SIZE - sizeof(IxPageHdr)) / (col_tot_len + sizeof(Rid)) - 1);
+        int keys_size = (btree_order + 1) * col_tot_len;
         assert(btree_order > 2);
 
-        // Create file header and write to file
         IxFileHdr* fhdr = new IxFileHdr(IX_NO_PAGE, IX_INIT_NUM_PAGES, IX_INIT_ROOT_PAGE,
-                                col_num, col_tot_len, btree_order, (btree_order + 1) * col_tot_len,
+                                col_num, col_tot_len, btree_order, keys_size,
                                 IX_INIT_ROOT_PAGE, IX_INIT_ROOT_PAGE);
         for(int i = 0; i < col_num; ++i) {
             fhdr->col_types_.push_back(index_cols[i].type);
             fhdr->col_lens_.push_back(index_cols[i].len);
         }
         fhdr->update_tot_len();
-        
         char* data = new char[PAGE_SIZE];
         memset(data, 0, PAGE_SIZE);
         fhdr->serialize(data);
         disk_manager_->write_page(fd, IX_FILE_HDR_PAGE, data, PAGE_SIZE);
         delete[] data;
 
-        char page_buf[PAGE_SIZE];  // 在内存中初始化page_buf中的内容，然后将其写入磁盘
+        char page_buf[PAGE_SIZE];
         memset(page_buf, 0, PAGE_SIZE);
-        // 注意leaf header页号为1，也标记为叶子结点，其前一个/后一个叶子均指向root node
-        // Create leaf list header page and write to file
+        // leaf header
         {
             memset(page_buf, 0, PAGE_SIZE);
             auto phdr = reinterpret_cast<IxPageHdr *>(page_buf);
@@ -111,8 +105,7 @@ class IxManager {
             };
             disk_manager_->write_page(fd, IX_LEAF_HEADER_PAGE, page_buf, PAGE_SIZE);
         }
-        // 注意root node页号为2，也标记为叶子结点，其前一个/后一个叶子均指向leaf header
-        // Create root node and write to file
+        // root node
         {
             memset(page_buf, 0, PAGE_SIZE);
             auto phdr = reinterpret_cast<IxPageHdr *>(page_buf);
@@ -124,13 +117,9 @@ class IxManager {
                 .prev_leaf = IX_LEAF_HEADER_PAGE,
                 .next_leaf = IX_LEAF_HEADER_PAGE,
             };
-            // Must write PAGE_SIZE here in case of future fetch_node()
             disk_manager_->write_page(fd, IX_INIT_ROOT_PAGE, page_buf, PAGE_SIZE);
         }
-
-        disk_manager_->set_fd2pageno(fd, IX_INIT_NUM_PAGES - 1);  // DEBUG
-
-        // Close index file
+        disk_manager_->set_fd2pageno(fd, IX_INIT_NUM_PAGES - 1);
         disk_manager_->close_file(fd);
     }
 
