@@ -362,12 +362,12 @@ class IndexScanExecutor : public AbstractExecutor {
         }
 
         switch (cond.op) {
-            case OP_EQ: return std::abs(lhs_float - rhs_float) < epsilon;
-            case OP_NE: return std::abs(lhs_float - rhs_float) > epsilon;
-            case OP_LT: return lhs_float < rhs_float;
-            case OP_GT: return lhs_float > rhs_float;
-            case OP_LE: return lhs_float <= rhs_float;
-            case OP_GE: return lhs_float >= rhs_float;
+          case OP_EQ: return std::fabs(lhs_val - rhs_val) <= epsilon;
+          case OP_NE: return std::fabs(lhs_val - rhs_val) > epsilon;
+          case OP_LT: return rhs_val - lhs_val > epsilon;
+          case OP_GT: return lhs_val - rhs_val > epsilon;
+          case OP_LE: return lhs_val - rhs_val <= epsilon;
+          case OP_GE: return rhs_val - lhs_val <= epsilon;
             default: return false;
         }
     }
