@@ -14,6 +14,7 @@ See the Mulan PSL v2 for more details. */
 #include <fstream>
 #include <iomanip>
 #include <sstream>
+#include <iostream> 
 
 #include "ix_scan.h"
 
@@ -75,6 +76,35 @@ See the Mulan PSL v2 for more details. */
 //     }
 // }
 
+void debug_print_key_value(const char* key, const IxFileHdr* file_hdr) {
+    if (key == nullptr) {
+        std::cout << "null";
+        return;
+    }
+    // Assuming single column for simplicity, as in the warehouse example
+    if (file_hdr->col_num_ > 0) {
+        switch (file_hdr->col_types_[0]) {
+            case TYPE_INT:
+                std::cout << "INT: " << *(int*)key;
+                break;
+            case TYPE_FLOAT:
+                std::cout << "FLOAT: " << *(float*)key;
+                break;
+            case TYPE_STRING:
+                std::cout << "STRING: '" << std::string(key, strnlen(key, file_hdr->col_lens_[0])) << "'";
+                break;
+            default:
+                std::cout << "UNKNOWN";
+        }
+        // Also print raw hex to see the byte representation
+        std::cout << " (hex: 0x" << std::hex;
+        for(int i = 0; i < file_hdr->col_lens_[0]; ++i) {
+            std::cout << (int)(unsigned char)key[i];
+        }
+        std::cout << std::dec << ")";
+    }
+}
+
 /**
  * @brief 在当前node中查找第一个>=target的key_idx
  *
@@ -106,14 +136,17 @@ int IxNodeHandle::lower_bound(const char *target) const {
  * @return key_idx，范围为[1,num_key)，如果返回的key_idx=num_key，则表示target大于等于最后一个key
  * @note 注意此处的范围从1开始
  */
-int IxNodeHandle::upper_bound(const char *target) const {
+ int IxNodeHandle::upper_bound(const char *target) const {
     // Todo:
     // 查找当前节点中第一个大于target的key，并返回key的位置给上层
     // 提示: 可以采用多种查找方式：顺序遍历、二分查找等；使用ix_compare()函数进行比较
     // 注意：此处的范围从1开始
     
     // 采用二分查找方法查找第一个大于target的key
-    int left = 1;  // 从1开始，符合B+树内部节点的要求
+    int left = 0;  // B+树内部节点key[0]作为哨兵，并不存储实际数据，因此内部节点查找范围是[1, num_key)
+    if (!is_leaf_page()) {
+        left = 1;
+    }
     int right = page_hdr->num_key;
     while (left < right) {
         int mid = left + (right - left) / 2;
@@ -1074,6 +1107,11 @@ bool IxIndexHandle::coalesce(IxNodeHandle **neighbor_node, IxNodeHandle **node, 
  * 可用*(int *)key转换回去
  */
 Iid IxIndexHandle::lower_bound(const char *key) {
+    // --- DEBUG STATEMENTS START ---
+    std::cout << "\n[DEBUG] IxIndexHandle::lower_bound called with key: ";
+    debug_print_key_value(key, file_hdr_);
+    std::cout << std::endl;
+    // --- DEBUG STATEMENTS END ---
     // 找到key所在的叶子节点
     std::pair<IxNodeHandle *, bool> leaf_pair = find_leaf_page(key, Operation::FIND, nullptr);
     IxNodeHandle *leaf = leaf_pair.first;
@@ -1098,6 +1136,11 @@ Iid IxIndexHandle::lower_bound(const char *key) {
  * @return Iid
  */
 Iid IxIndexHandle::upper_bound(const char *key) {
+     // --- DEBUG STATEMENTS START ---
+     std::cout << "\n[DEBUG] IxIndexHandle::upper_bound called with key: ";
+     debug_print_key_value(key, file_hdr_);
+     std::cout << std::endl;
+     // --- DEBUG STATEMENTS END ---
     // 找到key所在的叶子节点
     std::pair<IxNodeHandle *, bool> leaf_pair = find_leaf_page(key, Operation::FIND, nullptr);
     IxNodeHandle *leaf = leaf_pair.first;
@@ -1260,6 +1303,15 @@ void IxIndexHandle::maintain_child(IxNodeHandle *node, int child_idx) {
 
 std::unique_ptr<IxScan> IxIndexHandle::create_scan(const char* lower_key, const char* upper_key,
     bool lower_inclusive, bool upper_inclusive) {
+        // --- DEBUG STATEMENTS START ---
+    std::cout << "\n[DEBUG] IxIndexHandle::create_scan called." << std::endl;
+    std::cout << "  - Index Column Type: " << (file_hdr_->col_types_[0] == TYPE_FLOAT ? "FLOAT" : "OTHER") << std::endl;
+    std::cout << "  - lower_key: ";
+    debug_print_key_value(lower_key, file_hdr_);
+    std::cout << "  (inclusive: " << std::boolalpha << lower_inclusive << ")" << std::endl;
+    std::cout << "  - upper_key: ";
+    debug_print_key_value(upper_key, file_hdr_);
+    std::cout << "  (inclusive: " << std::boolalpha << upper_inclusive << ")" << std::endl;
     // 找到范围的起始位置
     Iid begin_iid, end_iid;
 
