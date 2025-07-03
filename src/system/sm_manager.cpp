@@ -350,7 +350,7 @@ void SmManager::drop_table(const std::string& tab_name, Context* context) {
  * @param {vector<string>&} col_names 索引包含的字段名称
  * @param {Context*} context
  */
-void SmManager::create_index(const std::string& tab_name, const std::vector<std::string>& col_names, Context* context) {
+ void SmManager::create_index(const std::string& tab_name, const std::vector<std::string>& col_names, Context* context, bool is_unique) {
     std::lock_guard<std::mutex> lock(meta_mutex_);
     // 检查表是否存在
     if(!db_.is_table(tab_name)) {
@@ -391,7 +391,7 @@ void SmManager::create_index(const std::string& tab_name, const std::vector<std:
     index_meta.cols = cols;
     index_meta.col_num = cols.size();
     index_meta.col_tot_len = 0;
-    index_meta.unique = true; // 唯一索引
+    index_meta.unique = is_unique;
     for(const auto& col : cols) {
         index_meta.col_tot_len += col.len;
     }
@@ -407,7 +407,13 @@ void SmManager::create_index(const std::string& tab_name, const std::vector<std:
     // 添加索引到表的索引列表
     tab.indexes.push_back(index_meta);
 
-    
+
+    // 如果在事务中，记录DDL操作用于回滚
+    if (context->txn_ != nullptr && context->txn_->get_txn_mode() == true && context->txn_->get_state() != TransactionState::ABORTED) {
+        auto ddl_record = new DdlRecord(DdlType::CREATE_INDEX, tab_name, col_names, is_unique);
+        context->txn_->add_ddl_record(ddl_record);
+    }
+
     // 将已有的数据插入到索引中
     auto file_handle = fhs_[tab_name].get();
     auto scan = file_handle->create_scan();
@@ -428,15 +434,15 @@ void SmManager::create_index(const std::string& tab_name, const std::vector<std:
             }
             scan->next();
         }
-    } catch (const std::exception& e) {
-        // [DEBUG] Print the caught exception message
+    } catch (const UniqueIndexViolationError& e) {
         std::cerr << "[DEBUG] Caught exception in create_index: " << e.what() << std::endl;
-        // 回滚：删除索引文件和元数据
-        ihs_.erase(index_name);
-        ix_manager_->destroy_index(tab_name, cols);
-        tab.indexes.pop_back();
-        flush_meta();
-        throw; // 继续抛出异常
+        // if (context->txn_ == nullptr || context->txn_->get_txn_mode() == false) {
+            // 回滚：删除索引文件和元数据
+            ihs_.erase(index_name);
+            ix_manager_->destroy_index(tab_name, cols);
+            tab.indexes.pop_back();
+            flush_meta();
+            throw; // 继续抛出异常
     }
 
     // 索引条目已成功插入内存（缓冲池），现在需要将它们持久化到磁盘
@@ -471,9 +477,18 @@ void SmManager::drop_index(const std::string& tab_name, const std::vector<std::s
     if (!tab.is_index(col_names)) {
         throw IndexNotFoundError(tab_name, col_names);
     }
-    
+
     // 获取索引元数据
     auto index_iter = tab.get_index_meta(col_names);
+    bool is_unique = index_iter->unique;
+
+    // 如果在事务中，记录DDL操作用于回滚
+    if (context->txn_ != nullptr && context->txn_->get_txn_mode() == true && context->txn_->get_state() != TransactionState::ABORTED) {
+        auto ddl_record = new DdlRecord(DdlType::DROP_INDEX, tab_name, col_names, is_unique);
+        context->txn_->add_ddl_record(ddl_record);
+    }
+    
+    
     // 先拷贝一份索引的 cols
     std::vector<ColMeta> index_cols = index_iter->cols;
     

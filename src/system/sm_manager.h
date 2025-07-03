@@ -74,7 +74,7 @@ class SmManager {
 
     void drop_table(const std::string& tab_name, Context* context);
 
-    void create_index(const std::string& tab_name, const std::vector<std::string>& col_names, Context* context);
+    void create_index(const std::string& tab_name, const std::vector<std::string>& col_names, Context* context, bool is_unique = true);
 
     void drop_index(const std::string& tab_name, const std::vector<std::string>& col_names, Context* context);
     

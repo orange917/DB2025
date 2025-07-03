@@ -25,6 +25,12 @@ enum class IsolationLevel { READ_UNCOMMITTED, REPEATABLE_READ, READ_COMMITTED, S
 /* 事务写操作类型，包括插入、删除、更新三种操作 */
 enum class WType { INSERT_TUPLE = 0, DELETE_TUPLE, UPDATE_TUPLE};
 
+// 事务的索引方面的类型
+enum class DdlType{
+    CREATE_INDEX,
+    DROP_INDEX,
+};
+
 /**
  * @brief 事务的写操作记录，用于事务的回滚
  * INSERT
@@ -63,6 +69,16 @@ class WriteRecord {
     std::string tab_name_;
     Rid rid_;
     RmRecord record_;
+};
+
+struct DdlRecord {
+    DdlType ddl_type_;
+    std::string tab_name_;
+    std::vector<std::string> col_names_;
+    bool is_unique_;
+
+    DdlRecord(DdlType ddl_type, const std::string& tab_name, const std::vector<std::string>& col_names, bool is_unique = false) // 修改构造函数
+        : ddl_type_(ddl_type), tab_name_(tab_name), col_names_(col_names), is_unique_(is_unique) {}
 };
 
 /* 多粒度锁，加锁对象的类型，包括记录和表 */

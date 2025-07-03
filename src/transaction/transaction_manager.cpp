@@ -108,6 +108,28 @@ void TransactionManager::abort(Transaction * txn, LogManager *log_manager) {
 
     Context context(lock_manager_, log_manager, txn);
 
+    // 更新事务状态为已终止
+    txn->set_state(TransactionState::ABORTED);
+    
+     // 回滚DDL操作
+     auto ddl_set = txn->get_ddl_set();
+     while (!ddl_set->empty()) {
+        auto ddl_record = ddl_set->back();
+        ddl_set->pop_back(); // 先弹出记录，再尝试补偿
+        try {
+            if (ddl_record->ddl_type_ == DdlType::CREATE_INDEX) {
+                sm_manager_->drop_index(ddl_record->tab_name_, ddl_record->col_names_, &context);
+            } else if (ddl_record->ddl_type_ == DdlType::DROP_INDEX) {
+               // 传递记录的 is_unique_ 属性
+               sm_manager_->create_index(ddl_record->tab_name_, ddl_record->col_names_, &context, ddl_record->is_unique_);
+            }
+        } catch (const std::exception& e) {
+            // 记录补偿操作失败的日志，但在abort期间不应重新抛出异常，避免中断回滚
+            std::cerr << "Abort: Failed to compensate DDL operation. Error: " << e.what() << std::endl;
+        }
+        delete ddl_record;
+    }
+    
     // 回滚所有写操作
     auto write_set = txn->get_write_set();
     while (!write_set->empty()) {
@@ -128,9 +150,6 @@ void TransactionManager::abort(Transaction * txn, LogManager *log_manager) {
         // 释放写记录资源
         delete record;
     }
-
-    // 更新事务状态为已终止
-    txn->set_state(TransactionState::ABORTED);
 
     // 如果有日志管理器，将日志刷入磁盘
     if (log_manager != nullptr) {
