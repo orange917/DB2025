@@ -56,6 +56,8 @@ class Plan
 {
 public:
     PlanTag tag;
+    Plan() = default;
+    Plan(PlanTag tag_) : tag(tag_) {}
     virtual ~Plan() = default;
     // explain 输出接口
     virtual void Explain(std::ostream& os, int indent = 0) const = 0;
@@ -127,22 +129,21 @@ class ProjectionPlan : public Plan
         void Explain(std::ostream& os, int indent = 0) const override;
 };
 
-class SortPlan : public Plan
-{
+class SortPlan : public Plan {
     public:
-        SortPlan(PlanTag tag, std::shared_ptr<Plan> subplan, TabCol sel_col, bool is_desc)
-        {
-            Plan::tag = tag;
-            subplan_ = std::move(subplan);
-            sel_col_ = sel_col;
-            is_desc_ = is_desc;
-        }
-        ~SortPlan(){}
         std::shared_ptr<Plan> subplan_;
-        TabCol sel_col_;
-        bool is_desc_;
-        void Explain(std::ostream& os, int indent = 0) const override;
-};
+        std::vector<TabCol> order_by_cols_;
+        std::vector<bool> is_desc_;
+        int limit_val_;
+    
+        // 多列排序+limit构造函数
+        SortPlan(std::shared_ptr<Plan> subplan, const std::vector<TabCol>& order_by, const std::vector<bool>& is_desc, int limit_val)
+            : subplan_(std::move(subplan)), order_by_cols_(order_by), is_desc_(is_desc), limit_val_(limit_val) {
+            Plan::tag = T_Sort;
+        }
+    
+        void Explain(std::ostream& os, int indent) const override;
+    };
 
 // dml语句，包括insert; delete; update; select语句　
 class DMLPlan : public Plan

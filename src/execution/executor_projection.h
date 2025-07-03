@@ -25,13 +25,11 @@ class ProjectionExecutor : public AbstractExecutor {
     int current_count_;                             // 当前已返回的记录数
 
    public:
-   ProjectionExecutor(std::unique_ptr<AbstractExecutor> prev, const std::vector<TabCol>& sel_cols, int limit_val = -1) {
-        if (!prev) {
+   ProjectionExecutor(std::unique_ptr<AbstractExecutor> prev, const std::vector<TabCol>& sel_cols, int limit_val = -1) :
+        prev_(std::move(prev)), limit_val_(limit_val), current_count_(0) {
+        if (!prev_) {
             throw InternalError("ProjectionExecutor: prev is null");
         }
-        prev_ = std::move(prev);
-        limit_val_ = limit_val;
-        current_count_ = 0;
 
         auto &prev_cols = prev_->cols();
         if (prev_cols.empty()) {
@@ -39,6 +37,11 @@ class ProjectionExecutor : public AbstractExecutor {
         }
 
         size_t curr_offset = 0;
+
+        if (prev_cols.empty()) {
+            throw InternalError("ProjectionExecutor: prev has no columns");
+        }
+
         for (auto &sel_col : sel_cols) {
             auto pos = get_col(prev_cols, sel_col);
             sel_idxs_.push_back(pos - prev_cols.begin());

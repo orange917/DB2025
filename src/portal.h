@@ -180,7 +180,7 @@ class Portal
             return join;
         } else if(auto x = std::dynamic_pointer_cast<SortPlan>(plan)) {
             return std::make_unique<SortExecutor>(convert_plan_executor(x->subplan_, context), 
-                                            x->sel_col_, x->is_desc_);
+                                            x->order_by_cols_, x->is_desc_, x->limit_val_);
         } else if(auto x = std::dynamic_pointer_cast<AggPlan>(plan)) {
             std::unique_ptr<AbstractExecutor> sub_executor = convert_plan_executor(x->subplan_, context);
             return std::make_unique<AggregationExecutor>(

@@ -426,44 +426,24 @@ std::shared_ptr<Plan> Planner::make_one_rel(std::shared_ptr<Query> query)
 }
 
 
-std::shared_ptr<Plan> Planner::generate_sort_plan(std::shared_ptr<Query> query, std::shared_ptr<Plan> plan)
-{
-    auto x = std::dynamic_pointer_cast<ast::SelectStmt>(query->parse);
-    if(!x->has_sort) {
+std::shared_ptr<Plan> Planner::generate_sort_plan(std::shared_ptr<Query> query, std::shared_ptr<Plan> plan) {
+    if (query->order_by_cols.empty()) {
         return plan;
     }
-    
-    // 对于多列排序，我们需要创建多个SortPlan
-    std::shared_ptr<Plan> current_plan = plan;
-    
-    // 从后往前处理，这样第一个排序列会成为最外层的排序
-    for (int i = x->order->cols.size() - 1; i >= 0; i--) {
-        std::vector<std::string> tables = query->tables;
-        std::vector<ColMeta> all_cols;
-        for (auto &sel_tab_name : tables) {
-            const auto &sel_tab_cols = sm_manager_->db_.get_table(sel_tab_name).cols;
-            all_cols.insert(all_cols.end(), sel_tab_cols.begin(), sel_tab_cols.end());
+
+    std::vector<TabCol> order_by_cols;
+    for (const auto& order_by_item : query->order_by_cols) {
+        // order_by_item is of type OrderByCol, not a pointer.
+        // We only handle non-aggregate columns for sorting here.
+        if (!order_by_item.is_agg) {
+            order_by_cols.push_back(order_by_item.col);
         }
-        
-        TabCol sel_col;
-        for (auto &col : all_cols) {
-            if(col.name.compare(x->order->cols[i]->col_name) == 0) {
-                sel_col = TabCol(col.tab_name, col.name);
-                break;
-            }
-        }
-        
-        // 添加调试信息
-        // std::cout << "SortPlan: Ordering by column '" << x->order->cols[i]->col_name << "'" << std::endl;
-        // std::cout << "SortPlan: Selected column: " << sel_col.tab_name << "." << sel_col.col_name << std::endl;
-        // std::cout << "SortPlan: Sort direction: " << (x->order->orderby_dirs[i] == ast::OrderBy_DESC ? "DESC" : "ASC") << std::endl;
-        
-        current_plan = std::make_shared<SortPlan>(T_Sort, current_plan, sel_col, 
-                                                x->order->orderby_dirs[i] == ast::OrderBy_DESC);
     }
-    
-    return current_plan;
+
+    // The is_desc information is in query->order_by_directions
+    return std::make_shared<SortPlan>(std::move(plan), order_by_cols, query->order_by_directions, query->limit_val);
 }
+
 
 
 /**
@@ -731,9 +711,18 @@ void ProjectionPlan::Explain(std::ostream& os, int indent) const {
 }
 
 void SortPlan::Explain(std::ostream& os, int indent) const {
-    print_indent(os, indent);
-    os << "Sort(col=" << sel_col_.tab_name << "." << sel_col_.col_name;
-    if (!sel_col_.alias.empty()) os << " AS " << sel_col_.alias;
-    os << (is_desc_ ? ",desc" : ",asc") << ")\n";
-    if (subplan_) subplan_->Explain(os, indent + 1);
+    os << std::string(indent, ' ') << "Sort";
+    if (limit_val_ != -1) {
+        os << " (limit=" << limit_val_ << ")";
+    }
+    os << std::endl;
+    os << std::string(indent + 2, ' ') << "-> Sort By (";
+    for (size_t i = 0; i < order_by_cols_.size(); ++i) {
+        os << order_by_cols_[i].col_name << (is_desc_[i] ? " desc" : " asc");
+        if (i != order_by_cols_.size() - 1) {
+            os << ", ";
+        }
+    }
+    os << ")" << std::endl;
+    subplan_->Explain(os, indent + 2);
 }

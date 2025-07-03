@@ -20,7 +20,6 @@ class SortExecutor : public AbstractExecutor {
     std::unique_ptr<AbstractExecutor> prev_;
     ColMeta cols_;                              // 框架中只支持一个键排序，需要自行修改数据结构支持多个键排序
     size_t tuple_num;
-    bool is_desc_;
     std::vector<size_t> used_tuple;
     std::unique_ptr<RmRecord> current_tuple;
     std::vector<ColMeta> cols_meta_;            // 添加列元数据
@@ -31,30 +30,32 @@ class SortExecutor : public AbstractExecutor {
     size_t current_idx_;                        // 当前记录索引
     bool is_initialized_;                       // 是否已初始化
 
-   public:
-    SortExecutor(std::unique_ptr<AbstractExecutor> prev, TabCol sel_cols, bool is_desc) {
-        prev_ = std::move(prev);
-        
-        // 使用正确的方法获取列信息
-        auto col_iter = get_col(prev_->cols(), sel_cols);
-        cols_ = *col_iter;
-        
-        is_desc_ = is_desc;
-        tuple_num = 0;
-        used_tuple.clear();
-        
+    std::vector<ColMeta> order_by_cols_;
+    std::vector<bool> is_desc_;
+    int limit_val_;
+
+    public:
+    SortExecutor(std::unique_ptr<AbstractExecutor> prev, const std::vector<TabCol>& order_by,
+                 const std::vector<bool>& is_desc, int limit_val)
+        : prev_(std::move(prev)), limit_val_(limit_val), current_idx_(0), is_initialized_(false) {
         // 复制子执行器的列元数据
         cols_meta_ = prev_->cols();
         len_ = prev_->tupleLen();
-        
-        // 初始化排序相关变量
-        current_idx_ = 0;
-        is_initialized_ = false;
-        
-        // // 添加调试信息
-        // std::cout << "SortExecutor: Sorting by column " << sel_cols.tab_name << "." << sel_cols.col_name << std::endl;
-        // std::cout << "SortExecutor: Column offset: " << cols_.offset << ", type: " << cols_.type << ", len: " << cols_.len << std::endl;
-        // std::cout << "SortExecutor: Sort direction: " << (is_desc_ ? "DESC" : "ASC") << std::endl;
+
+        // 确保 is_desc 和 order_by 的大小匹配
+        if (order_by.size() != is_desc.size()) {
+            throw InternalError("SortExecutor: order_by and is_desc size mismatch");
+        }
+
+        // 获取所有排序列的 ColMeta，并按顺序存储 is_desc
+        for (size_t i = 0; i < order_by.size(); ++i) {
+            auto col_iter = get_col(prev_->cols(), order_by[i]);
+            if (col_iter == prev_->cols().end()) {
+                throw InternalError("SortExecutor: order by column not found");
+            }
+            order_by_cols_.push_back(*col_iter);
+            is_desc_.push_back(is_desc[i]);
+        }
     }
 
     void beginTuple() override { 
@@ -116,11 +117,13 @@ private:
         sorted_records_.clear();
         
         // 从子执行器获取所有记录
-        for (prev_->beginTuple(); !prev_->is_end(); prev_->nextTuple()) {
+        prev_->beginTuple();
+        while (!prev_->is_end()) {
             auto record = prev_->Next();
             if (record) {
                 sorted_records_.push_back(std::move(record));
             }
+            prev_->nextTuple();
         }
         
         // 添加调试信息
@@ -133,38 +136,45 @@ private:
                  });
         
         std::cout << "SortExecutor: Sorting completed" << std::endl;
+
+        if (limit_val_ > 0 && sorted_records_.size() > limit_val_) {
+            sorted_records_.resize(limit_val_);
+        }
     }
     
     bool compare_records(const std::unique_ptr<RmRecord>& a, const std::unique_ptr<RmRecord>& b) {
-        // 获取排序列的值
-        const char* a_val = a->data + cols_.offset;
-        const char* b_val = b->data + cols_.offset;
-        
-        // 根据列类型进行比较
-        switch (cols_.type) {
-            case TYPE_INT: {
-                int a_int = *(int*)a_val;
-                int b_int = *(int*)b_val;
-                return is_desc_ ? (a_int > b_int) : (a_int < b_int);
+        for (size_t i = 0; i < order_by_cols_.size(); ++i) {
+            const ColMeta& col = order_by_cols_[i];
+            const char* a_val = a->data + col.offset;
+            const char* b_val = b->data + col.offset;
+            int cmp = 0;
+            switch (col.type) {
+                case TYPE_INT: {
+                    int a_int = *(int*)a_val;
+                    int b_int = *(int*)b_val;
+                    if (a_int < b_int) cmp = -1;
+                    else if (a_int > b_int) cmp = 1;
+                    break;
+                }
+                case TYPE_FLOAT: {
+                    float a_float = *(float*)a_val;
+                    float b_float = *(float*)b_val;
+                    if (a_float < b_float) cmp = -1;
+                    else if (a_float > b_float) cmp = 1;
+                    break;
+                }
+                case TYPE_STRING: {
+                    cmp = memcmp(a_val, b_val, col.len);
+                    break;
+                }
+                default:
+                    break;
             }
-            case TYPE_FLOAT: {
-                float a_float = *(float*)a_val;
-                float b_float = *(float*)b_val;
-                return is_desc_ ? (a_float > b_float) : (a_float < b_float);
+            if (cmp != 0) {
+                // 升序: cmp<0 返回true; 降序: cmp>0 返回true
+                return is_desc_[i] ? (cmp > 0) : (cmp < 0);
             }
-            case TYPE_STRING: {
-                // 修复字符串比较：去除尾部的空格，使用正确的长度
-                std::string a_str(a_val, cols_.len);
-                std::string b_str(b_val, cols_.len);
-                
-                // 去除尾部的空格
-                a_str.erase(a_str.find_last_not_of(' ') + 1);
-                b_str.erase(b_str.find_last_not_of(' ') + 1);
-                
-                return is_desc_ ? (a_str > b_str) : (a_str < b_str);
-            }
-            default:
-                return false;
         }
+        return false; // 全部相等
     }
 };
