@@ -30,6 +30,7 @@ See the Mulan PSL v2 for more details. */
 #include "record/rm_defs.h"
 #include "system/sm.h"
 #include "system/sm_meta.h"
+#include <cmath>
 
 class IndexScanExecutor : public AbstractExecutor {
  private:
@@ -362,12 +363,12 @@ class IndexScanExecutor : public AbstractExecutor {
         }
 
         switch (cond.op) {
-          case OP_EQ: return std::fabs(lhs_val - rhs_val) <= epsilon;
-          case OP_NE: return std::fabs(lhs_val - rhs_val) > epsilon;
-          case OP_LT: return rhs_val - lhs_val > epsilon;
-          case OP_GT: return lhs_val - rhs_val > epsilon;
-          case OP_LE: return lhs_val - rhs_val <= epsilon;
-          case OP_GE: return rhs_val - lhs_val <= epsilon;
+          case OP_EQ: return std::fabs(lhs_float - rhs_float) <= epsilon;
+          case OP_NE: return std::fabs(lhs_float - rhs_float) > epsilon;
+          case OP_LT: return rhs_float - lhs_float > epsilon;
+          case OP_GT: return lhs_float - rhs_float > epsilon;
+          case OP_LE: return lhs_float - rhs_float <= epsilon;
+          case OP_GE: return rhs_float - lhs_float <= epsilon;
             default: return false;
         }
     }
