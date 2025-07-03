@@ -454,9 +454,9 @@ std::shared_ptr<Plan> Planner::generate_sort_plan(std::shared_ptr<Query> query, 
         }
         
         // 添加调试信息
-        std::cout << "SortPlan: Ordering by column '" << x->order->cols[i]->col_name << "'" << std::endl;
-        std::cout << "SortPlan: Selected column: " << sel_col.tab_name << "." << sel_col.col_name << std::endl;
-        std::cout << "SortPlan: Sort direction: " << (x->order->orderby_dirs[i] == ast::OrderBy_DESC ? "DESC" : "ASC") << std::endl;
+        // std::cout << "SortPlan: Ordering by column '" << x->order->cols[i]->col_name << "'" << std::endl;
+        // std::cout << "SortPlan: Selected column: " << sel_col.tab_name << "." << sel_col.col_name << std::endl;
+        // std::cout << "SortPlan: Sort direction: " << (x->order->orderby_dirs[i] == ast::OrderBy_DESC ? "DESC" : "ASC") << std::endl;
         
         current_plan = std::make_shared<SortPlan>(T_Sort, current_plan, sel_col, 
                                                 x->order->orderby_dirs[i] == ast::OrderBy_DESC);

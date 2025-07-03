@@ -51,10 +51,10 @@ class SortExecutor : public AbstractExecutor {
         current_idx_ = 0;
         is_initialized_ = false;
         
-        // 添加调试信息
-        std::cout << "SortExecutor: Sorting by column " << sel_cols.tab_name << "." << sel_cols.col_name << std::endl;
-        std::cout << "SortExecutor: Column offset: " << cols_.offset << ", type: " << cols_.type << ", len: " << cols_.len << std::endl;
-        std::cout << "SortExecutor: Sort direction: " << (is_desc_ ? "DESC" : "ASC") << std::endl;
+        // // 添加调试信息
+        // std::cout << "SortExecutor: Sorting by column " << sel_cols.tab_name << "." << sel_cols.col_name << std::endl;
+        // std::cout << "SortExecutor: Column offset: " << cols_.offset << ", type: " << cols_.type << ", len: " << cols_.len << std::endl;
+        // std::cout << "SortExecutor: Sort direction: " << (is_desc_ ? "DESC" : "ASC") << std::endl;
     }
 
     void beginTuple() override { 

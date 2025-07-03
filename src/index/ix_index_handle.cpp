@@ -623,7 +623,7 @@ void IxIndexHandle::insert_into_parent(IxNodeHandle *old_node, const char *key, 
     parent->insert_pair(insert_pos, key, new_node->get_page_no());
 
     // 4. 检查父节点是否需要分裂
-    if (parent->get_size() == parent->get_max_size()) {
+    if (parent->get_size() == parent->get_max_size() - 1) {
         // 内部节点分裂，中间key需要上移
         int middle_idx = parent->get_size() / 2;
         // 使用堆分配内存来存储中间键
@@ -671,22 +671,28 @@ void IxNodeHandle::insert_pair(int key_idx, const char* key, int child_page_no) 
  */
 page_id_t IxIndexHandle::insert_entry(const char *key, const Rid &value, Transaction *transaction) {
     // 唯一性检查
-    if (index_meta_.unique) {
-        std::vector<Rid> result;
-        if (get_value(key, &result, transaction) && !result.empty()) {
-            std::vector<std::string> col_names;
-            for (const auto& col : index_meta_.cols) {
-                col_names.push_back(col.name);
-            }
-            // 确保表名不为空，如果为空则使用默认值
-            std::string tab_name = index_meta_.tab_name.empty() ? "unknown_table" : index_meta_.tab_name;
-            // 如果列名为空，添加默认列名
-            if (col_names.empty()) {
-                col_names.push_back("unknown_column");
-            }
-            throw UniqueIndexViolationError(tab_name, col_names);
-        }
-    }
+    // if (index_meta_.unique) {
+    //     std::vector<Rid> result;
+    //     if (get_value(key, &result, transaction) && !result.empty()) {
+    //          // ******************** DEBUG CODE START ********************
+    //         // 发现唯一性冲突，打印出导致冲突的键的浮点数值
+    //         float conflict_key_val = *(float*)key;
+    //         std::cerr << "[DEBUG] Unique violation detected! Attempting to insert key with float value: " 
+    //                   << std::fixed << std::setprecision(20) << conflict_key_val << std::endl;
+    //         // ********************* DEBUG CODE END *********************
+    //         std::vector<std::string> col_names;
+    //         for (const auto& col : index_meta_.cols) {
+    //             col_names.push_back(col.name);
+    //         }
+    //         // 确保表名不为空，如果为空则使用默认值
+    //         std::string tab_name = index_meta_.tab_name.empty() ? "unknown_table" : index_meta_.tab_name;
+    //         // 如果列名为空，添加默认列名
+    //         if (col_names.empty()) {
+    //             col_names.push_back("unknown_column");
+    //         }
+    //         throw UniqueIndexViolationError(tab_name, col_names);
+    //     }
+    // }
     // Todo:
     // 1. 查找key值应该插入到哪个叶子节点
     // 2. 在该叶子节点中插入键值对
@@ -705,7 +711,8 @@ page_id_t IxIndexHandle::insert_entry(const char *key, const Rid &value, Transac
     int size_after_insert = leaf->insert(key, value);
 
     // 3. 如果结点已满，分裂结点，并把新结点的相关信息插入父节点
-    if (size_after_insert == leaf->get_max_size()) {
+    // 提前分裂
+    if (size_after_insert == leaf->get_max_size() - 1) {
         // 立即分裂
         IxNodeHandle *new_leaf = split(leaf);
 
@@ -1108,9 +1115,9 @@ bool IxIndexHandle::coalesce(IxNodeHandle **neighbor_node, IxNodeHandle **node, 
  */
 Iid IxIndexHandle::lower_bound(const char *key) {
     // --- DEBUG STATEMENTS START ---
-    std::cout << "\n[DEBUG] IxIndexHandle::lower_bound called with key: ";
-    debug_print_key_value(key, file_hdr_);
-    std::cout << std::endl;
+    // std::cout << "\n[DEBUG] IxIndexHandle::lower_bound called with key: ";
+    // debug_print_key_value(key, file_hdr_);
+    // std::cout << std::endl;
     // --- DEBUG STATEMENTS END ---
     // 找到key所在的叶子节点
     std::pair<IxNodeHandle *, bool> leaf_pair = find_leaf_page(key, Operation::FIND, nullptr);
@@ -1137,9 +1144,9 @@ Iid IxIndexHandle::lower_bound(const char *key) {
  */
 Iid IxIndexHandle::upper_bound(const char *key) {
      // --- DEBUG STATEMENTS START ---
-     std::cout << "\n[DEBUG] IxIndexHandle::upper_bound called with key: ";
-     debug_print_key_value(key, file_hdr_);
-     std::cout << std::endl;
+    //  std::cout << "\n[DEBUG] IxIndexHandle::upper_bound called with key: ";
+    //  debug_print_key_value(key, file_hdr_);
+    //  std::cout << std::endl;
      // --- DEBUG STATEMENTS END ---
     // 找到key所在的叶子节点
     std::pair<IxNodeHandle *, bool> leaf_pair = find_leaf_page(key, Operation::FIND, nullptr);
@@ -1304,14 +1311,14 @@ void IxIndexHandle::maintain_child(IxNodeHandle *node, int child_idx) {
 std::unique_ptr<IxScan> IxIndexHandle::create_scan(const char* lower_key, const char* upper_key,
     bool lower_inclusive, bool upper_inclusive) {
         // --- DEBUG STATEMENTS START ---
-    std::cout << "\n[DEBUG] IxIndexHandle::create_scan called." << std::endl;
-    std::cout << "  - Index Column Type: " << (file_hdr_->col_types_[0] == TYPE_FLOAT ? "FLOAT" : "OTHER") << std::endl;
-    std::cout << "  - lower_key: ";
-    debug_print_key_value(lower_key, file_hdr_);
-    std::cout << "  (inclusive: " << std::boolalpha << lower_inclusive << ")" << std::endl;
-    std::cout << "  - upper_key: ";
-    debug_print_key_value(upper_key, file_hdr_);
-    std::cout << "  (inclusive: " << std::boolalpha << upper_inclusive << ")" << std::endl;
+    // std::cout << "\n[DEBUG] IxIndexHandle::create_scan called." << std::endl;
+    // std::cout << "  - Index Column Type: " << (file_hdr_->col_types_[0] == TYPE_FLOAT ? "FLOAT" : "OTHER") << std::endl;
+    // std::cout << "  - lower_key: ";
+    // debug_print_key_value(lower_key, file_hdr_);
+    // std::cout << "  (inclusive: " << std::boolalpha << lower_inclusive << ")" << std::endl;
+    // std::cout << "  - upper_key: ";
+    // debug_print_key_value(upper_key, file_hdr_);
+    // std::cout << "  (inclusive: " << std::boolalpha << upper_inclusive << ")" << std::endl;
     // 找到范围的起始位置
     Iid begin_iid, end_iid;
 

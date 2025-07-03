@@ -310,7 +310,7 @@ void SmManager::drop_table(const std::string& tab_name, Context* context) {
         ix_manager_->destroy_index(tab_name, index_meta.cols);
 
         // 删除物理文件
-        std::remove(index_name.c_str());
+        // std::remove(index_name.c_str());
     }
 
     // Step 2: Clean up and delete the table data file.
@@ -429,6 +429,8 @@ void SmManager::create_index(const std::string& tab_name, const std::vector<std:
             scan->next();
         }
     } catch (const std::exception& e) {
+        // [DEBUG] Print the caught exception message
+        std::cerr << "[DEBUG] Caught exception in create_index: " << e.what() << std::endl;
         // 回滚：删除索引文件和元数据
         ihs_.erase(index_name);
         ix_manager_->destroy_index(tab_name, cols);
