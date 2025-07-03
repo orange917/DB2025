@@ -305,9 +305,12 @@ void SmManager::drop_table(const std::string& tab_name, Context* context) {
             ix_manager_->close_index(ih_iter->second.get());
             ihs_.erase(ih_iter);
         }
-        
+
         // This is the crucial step to delete the physical index file.
         ix_manager_->destroy_index(tab_name, index_meta.cols);
+
+        // 删除物理文件
+        std::remove(index_name.c_str());
     }
 
     // Step 2: Clean up and delete the table data file.
@@ -436,6 +439,12 @@ void SmManager::create_index(const std::string& tab_name, const std::vector<std:
 
     // 索引条目已成功插入内存（缓冲池），现在需要将它们持久化到磁盘
     buffer_pool_manager_->flush_all_pages(ihs_[index_name]->get_fd());
+
+    // 调用ix_index_handle的print_tree方法，打印B+树结构到文件
+    {
+        std::string outfile_path = "bptree_" + index_name + ".txt";
+        ihs_[index_name]->print_tree(outfile_path);
+    }
 
     // 将修改后的元数据写入磁盘
     flush_meta();

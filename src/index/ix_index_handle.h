@@ -70,13 +70,21 @@ class IxNodeHandle {
         page_hdr = reinterpret_cast<IxPageHdr *>(page->get_data());
         keys = page->get_data() + sizeof(IxPageHdr);
         rids = reinterpret_cast<Rid *>(keys + file_hdr->keys_size_);
-        std::cout << "[DEBUG] page=" << page
-                  << ", keys=" << static_cast<void*>(keys)
-                  << ", rids=" << static_cast<void*>(rids)
-                  << ", keys_size_=" << file_hdr->keys_size_
-                  << ", col_tot_len_=" << file_hdr->col_tot_len_
-                  << ", max_key_num=" << file_hdr->btree_order_ + 1
-                  << std::endl;
+        if (page_hdr->num_key > 0) { // 只有在节点不为空时才打印
+            std::cout << "[DEBUG] page=" << page
+                      << ", keys_size_=" << file_hdr->keys_size_
+                      << ", col_tot_len_=" << file_hdr->col_tot_len_
+                      << ", max_key_num=" << file_hdr->btree_order_ + 1;
+            // 根据第一列的类型来决定如何打印第一个 key
+            if (file_hdr->col_types_[0] == TYPE_INT) {
+                std::cout << ", first_key(int)=" << *(int*)(keys);
+            } else if (file_hdr->col_types_[0] == TYPE_FLOAT) {
+                std::cout << ", first_key(float)=" << *(float*)(keys);
+            } else {
+                std::cout << ", first_key(str)=...";
+            }
+            std::cout << std::endl;
+        }
     }
 
     int get_size() const { return page_hdr->num_key; }
