@@ -313,8 +313,8 @@ class IndexScanExecutor : public AbstractExecutor {
     // std::cout << "rid = " << scan_->rid() << std::endl;
   
     while (!scan_->is_end()) {
+      auto rcd = fh_->get_record(scan_->rid(), context_);
       auto current_rid = scan_->rid();
-      auto rcd = fh_->get_record(current_rid, context_);
       if (rcd == nullptr) { // 防止空指针
         // 打印出导致问题的Rid
         std::cout << "DEBUG: get_record failed for Rid(page_no=" << current_rid.page_no 
@@ -333,18 +333,15 @@ class IndexScanExecutor : public AbstractExecutor {
   }
 
   void nextTuple() override {
-    scan_->next();
-    while (!scan_->is_end()) {
+    for (scan_->next(); !scan_->is_end(); scan_->next()) {
       auto rcd = fh_->get_record(scan_->rid(), context_);
       if (rcd == nullptr) { // 防止空指针
-        scan_->next();
         continue;
       }
       if (eval_conds(rcd.get(), cols_)) {
         rid_ = scan_->rid();
         break;
       }
-      scan_->next();
     }
   }
 

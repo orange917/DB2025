@@ -1090,14 +1090,14 @@ bool IxIndexHandle::coalesce(IxNodeHandle **neighbor_node, IxNodeHandle **node, 
     Rid result = *node->get_rid(iid.slot_no);
     
     // 检查是否为w_id=9
-    if (file_hdr_->col_num_ > 0 && file_hdr_->col_types_[0] == TYPE_INT) {
-        char *key = node->get_key(iid.slot_no);
-        int key_value = *(int *)key;
-        if (key_value == 9) {
-            // std::cout << "[DEBUG-w_id=9] get_rid: iid={" << iid.page_no << ", " << iid.slot_no
-            //           << "} -> rid={" << result.page_no << ", " << result.slot_no << "}" << std::endl;
-        }
-    }
+    // if (file_hdr_->col_num_ > 0 && file_hdr_->col_types_[0] == TYPE_INT) {
+    //     char *key = node->get_key(iid.slot_no);
+    //     int key_value = *(int *)key;
+    //     if (key_value == 9) {
+    //         // std::cout << "[DEBUG-w_id=9] get_rid: iid={" << iid.page_no << ", " << iid.slot_no
+    //         //           << "} -> rid={" << result.page_no << ", " << result.slot_no << "}" << std::endl;
+    //     }
+    // }
     
     buffer_pool_manager_->unpin_page(node->get_page_id(), false);
     delete node;
@@ -1127,6 +1127,12 @@ Iid IxIndexHandle::lower_bound(const char *key) {
 
     // 创建Iid
     Iid iid = {.page_no = leaf->get_page_no(), .slot_no = slot_no};
+
+    // 如果已经超出当前叶子节点，且不是最后一个叶子节点，则移动到下一个叶子节点的开头
+    if (slot_no >= leaf->get_size() && leaf->get_next_leaf() != IX_NO_PAGE) {
+        iid.page_no = leaf->get_next_leaf();
+        iid.slot_no = 0;
+    }
 
     // 释放叶子节点资源
     buffer_pool_manager_->unpin_page(leaf->get_page_id(), false);
@@ -1162,7 +1168,7 @@ Iid IxIndexHandle::upper_bound(const char *key) {
     if (slot_no >= leaf->get_size() && leaf->get_next_leaf() != IX_NO_PAGE) {
         // 获取下一个叶子节点
         iid.page_no = leaf->get_next_leaf();
-        iid.slot_no = 0;
+        iid.slot_no = 1;
     }
 
     // 释放叶子节点资源
