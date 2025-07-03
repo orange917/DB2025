@@ -346,6 +346,32 @@ class IndexScanExecutor : public AbstractExecutor {
     auto lhs_col = get_col(cols, cond.lhs_col);
     const char *lhs_value = rec->data + lhs_col->offset;
 
+    // 增加浮点数比较的容差
+    if (lhs_col->type == TYPE_FLOAT) {
+        float lhs_float;
+        memcpy(&lhs_float, lhs_value, sizeof(float));
+        float rhs_float;
+        constexpr float epsilon = 1e-6; // 定义一个小的容差值
+
+        if (cond.is_rhs_val) {
+            memcpy(&rhs_float, cond.rhs_val.raw->data, sizeof(float));
+        } else {
+            auto rhs_col = get_col(cols, cond.rhs_col);
+            const char *rhs_value = rec->data + rhs_col->offset;
+            memcpy(&rhs_float, rhs_value, sizeof(float));
+        }
+
+        switch (cond.op) {
+            case OP_EQ: return std::abs(lhs_float - rhs_float) < epsilon;
+            case OP_NE: return std::abs(lhs_float - rhs_float) > epsilon;
+            case OP_LT: return lhs_float < rhs_float;
+            case OP_GT: return lhs_float > rhs_float;
+            case OP_LE: return lhs_float <= rhs_float;
+            case OP_GE: return lhs_float >= rhs_float;
+            default: return false;
+        }
+    }
+
     // 根据右操作数是值还是列，进行处理
     if (cond.is_rhs_val) {
       // 右操作数是字面值

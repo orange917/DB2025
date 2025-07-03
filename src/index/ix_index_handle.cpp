@@ -623,7 +623,7 @@ void IxIndexHandle::insert_into_parent(IxNodeHandle *old_node, const char *key, 
     parent->insert_pair(insert_pos, key, new_node->get_page_no());
 
     // 4. 检查父节点是否需要分裂
-    if (parent->get_size() == parent->get_max_size() - 1) {
+    if (parent->get_size() == parent->get_max_size()) {
         // 内部节点分裂，中间key需要上移
         int middle_idx = parent->get_size() / 2;
         // 使用堆分配内存来存储中间键
@@ -711,8 +711,7 @@ page_id_t IxIndexHandle::insert_entry(const char *key, const Rid &value, Transac
     int size_after_insert = leaf->insert(key, value);
 
     // 3. 如果结点已满，分裂结点，并把新结点的相关信息插入父节点
-    // 提前分裂
-    if (size_after_insert == leaf->get_max_size() - 1) {
+    if (size_after_insert == leaf->get_max_size()) {
         // 立即分裂
         IxNodeHandle *new_leaf = split(leaf);
 
