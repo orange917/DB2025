@@ -671,28 +671,28 @@ void IxNodeHandle::insert_pair(int key_idx, const char* key, int child_page_no) 
  */
 page_id_t IxIndexHandle::insert_entry(const char *key, const Rid &value, Transaction *transaction) {
     // 唯一性检查
-    // if (index_meta_.unique) {
-    //     std::vector<Rid> result;
-    //     if (get_value(key, &result, transaction) && !result.empty()) {
-    //          // ******************** DEBUG CODE START ********************
-    //         // 发现唯一性冲突，打印出导致冲突的键的浮点数值
-    //         float conflict_key_val = *(float*)key;
-    //         std::cerr << "[DEBUG] Unique violation detected! Attempting to insert key with float value: " 
-    //                   << std::fixed << std::setprecision(20) << conflict_key_val << std::endl;
-    //         // ********************* DEBUG CODE END *********************
-    //         std::vector<std::string> col_names;
-    //         for (const auto& col : index_meta_.cols) {
-    //             col_names.push_back(col.name);
-    //         }
-    //         // 确保表名不为空，如果为空则使用默认值
-    //         std::string tab_name = index_meta_.tab_name.empty() ? "unknown_table" : index_meta_.tab_name;
-    //         // 如果列名为空，添加默认列名
-    //         if (col_names.empty()) {
-    //             col_names.push_back("unknown_column");
-    //         }
-    //         throw UniqueIndexViolationError(tab_name, col_names);
-    //     }
-    // }
+    if (index_meta_.unique) {
+        std::vector<Rid> result;
+        if (get_value(key, &result, transaction) && !result.empty()) {
+             // ******************** DEBUG CODE START ********************
+            // 发现唯一性冲突，打印出导致冲突的键的浮点数值
+            float conflict_key_val = *(float*)key;
+            std::cerr << "[DEBUG] Unique violation detected! Attempting to insert key with float value: " 
+                      << std::fixed << std::setprecision(20) << conflict_key_val << std::endl;
+            // ********************* DEBUG CODE END *********************
+            std::vector<std::string> col_names;
+            for (const auto& col : index_meta_.cols) {
+                col_names.push_back(col.name);
+            }
+            // 确保表名不为空，如果为空则使用默认值
+            std::string tab_name = index_meta_.tab_name.empty() ? "unknown_table" : index_meta_.tab_name;
+            // 如果列名为空，添加默认列名
+            if (col_names.empty()) {
+                col_names.push_back("unknown_column");
+            }
+            throw UniqueIndexViolationError(tab_name, col_names);
+        }
+    }
     // Todo:
     // 1. 查找key值应该插入到哪个叶子节点
     // 2. 在该叶子节点中插入键值对

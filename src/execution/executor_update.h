@@ -116,7 +116,7 @@ public:
                 val.init_raw(col->len);
                 memcpy(data_ptr, val.raw->data, col->len);
             }
-            // 先做唯一性检查（只对unique索引，且新旧key不同才查）
+            // 先做唯一性检查（只对新旧key不同才查）
             for (auto &index : tab_.indexes) {
                 if (!index.unique) continue;
                 auto ih = sm_manager_->ihs_.at(sm_manager_->get_ix_manager()->get_index_name(tab_name_, index.cols)).get();
@@ -138,56 +138,71 @@ public:
                 }
                 delete[] new_key; delete[] old_key;
             }
-            // 先删除所有索引的旧key
+            // 只有当索引列被修改时，才更新索引
             for (auto &index : tab_.indexes) {
                 auto ih = sm_manager_->ihs_.at(sm_manager_->get_ix_manager()->get_index_name(tab_name_, index.cols)).get();
+                char* new_key = new char[index.col_tot_len];
                 char* old_key = new char[index.col_tot_len];
                 int offset = 0;
                 for (size_t j = 0; j < index.col_num; ++j) {
+                    memcpy(new_key + offset, new_record.data + index.cols[j].offset, index.cols[j].len);
                     memcpy(old_key + offset, old_record.data + index.cols[j].offset, index.cols[j].len);
                     offset += index.cols[j].len;
                 }
+
+                // 如果索引键没有变化，则跳过此索引
+                if (memcmp(new_key, old_key, index.col_tot_len) == 0) {
+                    delete[] new_key;
+                    delete[] old_key;
+                    continue;
+                }
+
+                // 索引键有变化，先删除旧的，再插入新的
                 ih->delete_entry(old_key, context_ ? context_->txn_ : nullptr);
+                // 注意：这里直接插入 new_key，而不是在后面的循环中做
+                ih->insert_entry(new_key, rid, context_ ? context_->txn_ : nullptr);
+
+                delete[] new_key;
                 delete[] old_key;
             }
             // 写主表新数据
             fh_->update_record(rid, new_record.data, context_);
             // 插入所有索引的新key，异常要回滚
-            bool index_ok = true;
-            try {
-                for (auto &index : tab_.indexes) {
-                    auto ih = sm_manager_->ihs_.at(sm_manager_->get_ix_manager()->get_index_name(tab_name_, index.cols)).get();
-                    char* new_key = new char[index.col_tot_len];
-                    int offset = 0;
-                    for (size_t j = 0; j < index.col_num; ++j) {
-                        memcpy(new_key + offset, new_record.data + index.cols[j].offset, index.cols[j].len);
-                        offset += index.cols[j].len;
-                    }
-                    ih->insert_entry(new_key, rid, context_ ? context_->txn_ : nullptr);
-                    delete[] new_key;
-                }
-            } catch (...) {
-                index_ok = false;
-            }
-            if (!index_ok) {
-                // 回滚主表和索引
-                fh_->update_record(rid, old_record.data, context_);
-                for (auto &index : tab_.indexes) {
-                    auto ih = sm_manager_->ihs_.at(sm_manager_->get_ix_manager()->get_index_name(tab_name_, index.cols)).get();
-                    char* new_key = new char[index.col_tot_len];
-                    char* old_key = new char[index.col_tot_len];
-                    int offset = 0;
-                    for (size_t j = 0; j < index.col_num; ++j) {
-                        memcpy(new_key + offset, new_record.data + index.cols[j].offset, index.cols[j].len);
-                        memcpy(old_key + offset, old_record.data + index.cols[j].offset, index.cols[j].len);
-                        offset += index.cols[j].len;
-                    }
-                    ih->delete_entry(new_key, context_ ? context_->txn_ : nullptr);
-                    ih->insert_entry(old_key, rid, context_ ? context_->txn_ : nullptr);
-                    delete[] new_key; delete[] old_key;
-                }
-                throw;
-            }
+            // bool index_ok = true;
+            // try {
+            //     for (auto &index : tab_.indexes) {
+            //         auto ih = sm_manager_->ihs_.at(sm_manager_->get_ix_manager()->get_index_name(tab_name_, index.cols)).get();
+            //         char* new_key = new char[index.col_tot_len];
+            //         int offset = 0;
+            //         for (size_t j = 0; j < index.col_num; ++j) {
+            //             memcpy(new_key + offset, new_record.data + index.cols[j].offset, index.cols[j].len);
+            //             offset += index.cols[j].len;
+            //         }
+            //         ih->insert_entry(new_key, rid, context_ ? context_->txn_ : nullptr);
+            //         delete[] new_key;
+            //     }
+            // } catch (...) {
+            //     index_ok = false;
+            // }
+            // if (!index_ok) {
+            //     // 回滚主表和索引
+            //     fh_->update_record(rid, old_record.data, context_);
+            //     for (auto &index : tab_.indexes) {
+            //         auto ih = sm_manager_->ihs_.at(sm_manager_->get_ix_manager()->get_index_name(tab_name_, index.cols)).get();
+            //         char* new_key = new char[index.col_tot_len];
+            //         char* old_key = new char[index.col_tot_len];
+            //         int offset = 0;
+            //         for (size_t j = 0; j < index.col_num; ++j) {
+            //             memcpy(new_key + offset, new_record.data + index.cols[j].offset, index.cols[j].len);
+            //             memcpy(old_key + offset, old_record.data + index.cols[j].offset, index.cols[j].len);
+            //             offset += index.cols[j].len;
+            //         }
+            //         ih->delete_entry(new_key, context_ ? context_->txn_ : nullptr);
+            //         ih->insert_entry(old_key, rid, context_ ? context_->txn_ : nullptr);
+            //         delete[] new_key; delete[] old_key;
+            //     }
+            //     throw;
+            // }
             // 事务日志
             if (context_ != nullptr && context_->txn_ != nullptr) {
                 RmRecord record_copy(old_record.size);
