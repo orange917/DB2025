@@ -144,9 +144,9 @@ int IxNodeHandle::lower_bound(const char *target) const {
     
     // 采用二分查找方法查找第一个大于target的key
     int left = 0;  // B+树内部节点key[0]作为哨兵，并不存储实际数据，因此内部节点查找范围是[1, num_key)
-    if (!is_leaf_page()) {
-        left = 1;
-    }
+    // if (!is_leaf_page()) {
+    //     left = 1;
+    // }
     int right = page_hdr->num_key;
     while (left < right) {
         int mid = left + (right - left) / 2;

@@ -267,31 +267,54 @@ class IndexScanExecutor : public AbstractExecutor {
         }
     }
 
+    // // ----------------- DEBUG OUTPUT START -----------------
+    // std::cout << "[DEBUG] IndexScanExecutor::beginTuple" << std::endl;
+    // std::cout << "  Index: " << index_name << std::endl;
+    // std::cout << "  Lower-bound key hex: 0x" << std::hex;
+    // for(int i = 0; i < index_meta_.col_tot_len; ++i) {
+    //     std::cout << std::setw(2) << std::setfill('0') << (int)(unsigned char)key_start.data[i];
+    // }
+    // std::cout << std::dec << std::endl;
+    // std::cout << "  Upper-bound key hex: 0x" << std::hex;
+    // for(int i = 0; i < index_meta_.col_tot_len; ++i) {
+    //     std::cout << std::setw(2) << std::setfill('0') << (int)(unsigned char)key_end.data[i];
+    // }
+    // std::cout << std::dec << std::endl;
+    // // ----------------- DEBUG OUTPUT END -----------------
+  
     // 初始化 ix_scan 所需要的参数
     Iid lower_Iid;
     Iid upper_Iid;  
 
     // 确定扫描范围
+    auto ih = sm_manager_->ihs_.at(index_name).get();
     if (lower_col.empty()) {
         // 没有下界条件，从第一个叶子节点开始
-        lower_Iid = ix_index_handle->leaf_begin();
+        lower_Iid = ih->leaf_begin();
     } else {
-        lower_Iid = ix_index_handle->lower_bound(key_start.data);
+        lower_Iid = ih->lower_bound(key_start.data);
     }
 
     if (upper_col.empty()) {
         // 没有上界条件，扫描到最后一个叶子节点结束
-        upper_Iid = ix_index_handle->leaf_end();
+        upper_Iid = ih->leaf_end();
     } else {
-        upper_Iid = ix_index_handle->upper_bound(key_end.data);
+        upper_Iid = ih->upper_bound(key_end.data);
     }
+
+    // ----------------- DEBUG OUTPUT START -----------------
+    std::cout << "  Lower Iid: page_no=" << lower_Iid.page_no << ", slot_no=" << lower_Iid.slot_no << std::endl;
+    std::cout << "  Upper Iid: page_no=" << upper_Iid.page_no << ", slot_no=" << upper_Iid.slot_no << std::endl;
+    // ----------------- DEBUG OUTPUT END -----------------
 
     // 初始化 索引表扫描操作接口
     scan_ = std::make_unique<IxScan>(ix_index_handle, lower_Iid, upper_Iid, sm_manager_->get_bpm());
 
+    // std::cout << "rid = " << scan_->rid() << std::endl;
+  
     while (!scan_->is_end()) {
-      auto rcd = fh_->get_record(scan_->rid(), context_);
       auto current_rid = scan_->rid();
+      auto rcd = fh_->get_record(current_rid, context_);
       if (rcd == nullptr) { // 防止空指针
         // 打印出导致问题的Rid
         std::cout << "DEBUG: get_record failed for Rid(page_no=" << current_rid.page_no 
@@ -310,15 +333,18 @@ class IndexScanExecutor : public AbstractExecutor {
   }
 
   void nextTuple() override {
-    for (scan_->next(); !scan_->is_end(); scan_->next()) {
+    scan_->next();
+    while (!scan_->is_end()) {
       auto rcd = fh_->get_record(scan_->rid(), context_);
       if (rcd == nullptr) { // 防止空指针
+        scan_->next();
         continue;
       }
       if (eval_conds(rcd.get(), cols_)) {
         rid_ = scan_->rid();
         break;
       }
+      scan_->next();
     }
   }
 
