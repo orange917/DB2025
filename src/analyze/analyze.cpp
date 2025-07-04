@@ -179,7 +179,12 @@ std::shared_ptr<Query> Analyze::do_analyze(std::shared_ptr<ast::TreeNode> parse)
                     }
                 }
                 if (!found_in_group_by) {
-                    std::cout << "failure" << std::endl;
+                    std::fstream outfile;
+                    outfile.open("output.txt", std::ios::out | std::ios::app);
+                    if (outfile.is_open()) {
+                        outfile << "failure" << std::endl;
+                        outfile.close();
+                    }
                     throw InternalError("Column '" + sel_col.col_name + "' must appear in GROUP BY clause or be used in an aggregate function");
                 }
             }
@@ -196,7 +201,12 @@ std::shared_ptr<Query> Analyze::do_analyze(std::shared_ptr<ast::TreeNode> parse)
                         }
                     }
                     if (!found_in_group_by) {
-                        std::cout << "failure" << std::endl;
+                        std::fstream outfile;
+                        outfile.open("output.txt", std::ios::out | std::ios::app);
+                        if (outfile.is_open()) {
+                            outfile << "failure" << std::endl;
+                            outfile.close();
+                        }
                         throw InternalError("Column '" + cond.lhs_col.col_name + "' in HAVING clause must appear in GROUP BY clause or be used in an aggregate function");
                     }
                 }
@@ -211,7 +221,12 @@ std::shared_ptr<Query> Analyze::do_analyze(std::shared_ptr<ast::TreeNode> parse)
                         }
                     }
                     if (!found_in_group_by) {
-                        std::cout << "failure" << std::endl;
+                        std::fstream outfile;
+                        outfile.open("output.txt", std::ios::out | std::ios::app);
+                        if (outfile.is_open()) {
+                            outfile << "failure" << std::endl;
+                            outfile.close();
+                        }
                         throw InternalError("Column '" + cond.rhs_col.col_name + "' in HAVING clause must appear in GROUP BY clause or be used in an aggregate function");
                     }
                 }
@@ -221,7 +236,12 @@ std::shared_ptr<Query> Analyze::do_analyze(std::shared_ptr<ast::TreeNode> parse)
         // 检查2：WHERE 子句中不能用聚集函数作为条件表达式
         for (const auto& cond : query->conds) {
             if (cond.is_lhs_agg || cond.is_rhs_agg) {
-                std::cout << "failure" << std::endl;
+                std::fstream outfile;
+                outfile.open("output.txt", std::ios::out | std::ios::app);
+                if (outfile.is_open()) {
+                    outfile << "failure" << std::endl;
+                    outfile.close();
+                }
                 throw InternalError("Aggregate functions are not allowed in WHERE clause");
             }
         }
