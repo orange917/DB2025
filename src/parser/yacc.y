@@ -76,7 +76,8 @@ using namespace ast;
     std::shared_ptr<JoinExpr> sv_joinexpr;
     std::vector<std::shared_ptr<JoinExpr>> sv_joinexprs;
 
-    std::shared_ptr<TableRef> sv_table_ref;
+    std::shared_ptr<ast::TableRef> sv_table_ref;
+    std::vector<std::shared_ptr<ast::TableRef>> sv_table_refs;
     std::shared_ptr<JoinExpr> join_expr;
 }
 
@@ -136,6 +137,8 @@ COUNT MAX MIN SUM AVG GROUP HAVING LIMIT AS ORDER BY ON
 %type <sv_str> indexName
 %type <sv_table_ref> table_ref
 
+// 添加 table_ref_list 类型  
+%type <sv_table_refs> table_ref_list
 
 %%
 start:
@@ -288,15 +291,15 @@ dml:
     {
         $$ = std::make_shared<UpdateStmt>($2, $4, $5);
     }
-    |   SELECT selector FROM tableListWithJoin join_expr_list optWhereClause opt_group_by_clause opt_having_clause opt_order_clause opt_limit_clause
+    |   SELECT selector FROM table_ref_list join_expr_list optWhereClause opt_group_by_clause opt_having_clause opt_order_clause opt_limit_clause
     {
         $$ = std::make_shared<SelectStmt>($2, std::vector<std::shared_ptr<AggFunc>>(), $4, $6, $9, $7, $8, $10, $5);
     }
-    |   SELECT agg_func_list FROM tableListWithJoin join_expr_list optWhereClause opt_group_by_clause opt_having_clause opt_order_clause opt_limit_clause
+    |   SELECT agg_func_list FROM table_ref_list join_expr_list optWhereClause opt_group_by_clause opt_having_clause opt_order_clause opt_limit_clause
     {
         $$ = std::make_shared<SelectStmt>(std::vector<std::shared_ptr<Col>>(), $2, $4, $6, $9, $7, $8, $10, $5);
     }
-    |   SELECT mixed_selector FROM tableListWithJoin join_expr_list optWhereClause opt_group_by_clause opt_having_clause opt_order_clause opt_limit_clause
+    |   SELECT mixed_selector FROM table_ref_list join_expr_list optWhereClause opt_group_by_clause opt_having_clause opt_order_clause opt_limit_clause
     {
         $$ = std::make_shared<SelectStmt>($2.first, $2.second, $4, $6, $9, $7, $8, $10, $5);
     }
@@ -529,6 +532,17 @@ tableListWithJoin:
     }
     ;
 
+table_ref_list:
+        table_ref
+    {
+        $$ = std::vector<std::shared_ptr<ast::TableRef>>{$1};
+    }
+    |   table_ref_list ',' table_ref
+    {
+        $$.push_back($3);
+    }
+    ;
+
 join_expr_list:
         /* epsilon */
     {
@@ -542,37 +556,13 @@ join_expr_list:
     ;
 
 join_clause:
-    JOIN tbName ON whereClause
+    JOIN table_ref ON whereClause
     {
-        $$ = std::make_shared<JoinExpr>("", $2, $4, ::INNER_JOIN);
+        $$ = std::make_shared<JoinExpr>("", $2->tab_name, $4, ::INNER_JOIN, "", $2->alias);
     }
-    | SEMI JOIN tbName ON whereClause
+    | SEMI JOIN table_ref ON whereClause
     {
-        $$ = std::make_shared<JoinExpr>("", $3, $5, ::SEMI_JOIN);
-    }
-    | table_ref JOIN table_ref ON expr
-    {
-        auto cond = std::dynamic_pointer_cast<ast::BinaryExpr>($5);
-        if (!cond) YYERROR;
-        std::vector<std::shared_ptr<ast::BinaryExpr>> conds;
-        conds.push_back(cond);
-        $$ = std::make_shared<JoinExpr>($1->tab_name, $3->tab_name, conds, ::INNER_JOIN);
-    }
-    | table_ref JOIN table_ref AS IDENTIFIER ON expr
-    {
-        auto cond = std::dynamic_pointer_cast<ast::BinaryExpr>($7);
-        if (!cond) YYERROR;
-        std::vector<std::shared_ptr<ast::BinaryExpr>> conds;
-        conds.push_back(cond);
-        $$ = std::make_shared<JoinExpr>($1->tab_name, $3->tab_name, conds, ::INNER_JOIN);
-    }
-    | table_ref JOIN table_ref IDENTIFIER ON expr
-    {
-        auto cond = std::dynamic_pointer_cast<ast::BinaryExpr>($6);
-        if (!cond) YYERROR;
-        std::vector<std::shared_ptr<ast::BinaryExpr>> conds;
-        conds.push_back(cond);
-        $$ = std::make_shared<JoinExpr>($1->tab_name, $3->tab_name, conds, ::INNER_JOIN);
+        $$ = std::make_shared<JoinExpr>("", $3->tab_name, $5, ::SEMI_JOIN, "", $3->alias);
     }
     ;
 

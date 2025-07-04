@@ -164,10 +164,11 @@ union YYSTYPE
     std::shared_ptr<JoinExpr> sv_joinexpr;
     std::vector<std::shared_ptr<JoinExpr>> sv_joinexprs;
 
-    std::shared_ptr<TableRef> sv_table_ref;
+    std::shared_ptr<ast::TableRef> sv_table_ref;
+    std::vector<std::shared_ptr<ast::TableRef>> sv_table_refs;
     std::shared_ptr<JoinExpr> join_expr;
 
-#line 171 "/home/code/db2025/src/parser/yacc.tab.h"
+#line 172 "/home/code/db2025/src/parser/yacc.tab.h"
 
 };
 typedef union YYSTYPE YYSTYPE;

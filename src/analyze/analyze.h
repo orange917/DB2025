@@ -56,6 +56,9 @@ class Query{
     // 添加连接表达式支持
     std::vector<std::shared_ptr<ast::JoinExpr>> jointree;  // 连接表达式树
     bool has_join;  // 是否有连接
+    bool is_select_all;  // 是否为select *
+    std::map<std::string, std::string> table_to_alias;  // 真实表名到别名的映射
+    std::map<std::string, std::vector<TabCol>> table_projections;  // 投影下推：每个表需要的列
 
     Query(){
         has_agg = false;
@@ -64,6 +67,7 @@ class Query{
         has_limit = false;
         has_order_by = false;
         has_join = false;
+        is_select_all = false;
         limit_val = -1;
     }
 
@@ -82,7 +86,7 @@ public:
 private:
     TabCol check_column(const std::vector<ColMeta> &all_cols, TabCol target);
     void get_all_cols(const std::vector<std::string> &tab_names, std::vector<ColMeta> &all_cols);
-    void get_clause(const std::vector<std::shared_ptr<ast::BinaryExpr>> &sv_conds, std::vector<Condition> &conds);
+    void get_clause(const std::vector<std::shared_ptr<ast::BinaryExpr>> &sv_conds, std::vector<Condition> &conds, const std::map<std::string, std::string>& alias_to_table = {});
     void check_clause(const std::vector<std::string> &tab_names, std::vector<Condition> &conds);
     Value convert_sv_value(const std::shared_ptr<ast::Value> &sv_val);
     CompOp convert_sv_comp_op(ast::SvCompOp op);

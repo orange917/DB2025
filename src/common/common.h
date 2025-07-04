@@ -21,12 +21,14 @@ See the Mulan PSL v2 for more details. */
 
 
 struct TabCol {
-    std::string tab_name;
+    std::string tab_name;        // 真实表名（用于查询执行）
     std::string col_name;
-    std::string alias;
+    std::string alias;           // 列别名
+    std::string original_tab_name; // 原始表名（用于显示，可能是别名）
 
     TabCol() = default;
-    TabCol(const std::string& t, const std::string& c, const std::string& a = "") : tab_name(t), col_name(c), alias(a) {}
+    TabCol(const std::string& t, const std::string& c, const std::string& a = "") : tab_name(t), col_name(c), alias(a), original_tab_name(t) {}
+    TabCol(const std::string& t, const std::string& c, const std::string& a, const std::string& orig_t) : tab_name(t), col_name(c), alias(a), original_tab_name(orig_t) {}
 
     friend bool operator<(const TabCol &x, const TabCol &y) {
         return std::make_pair(x.tab_name, x.col_name) < std::make_pair(y.tab_name, y.col_name);

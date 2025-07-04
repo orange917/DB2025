@@ -149,6 +149,12 @@ struct BoolLit : public Value {
     BoolLit(bool val_) : val(val_) {}
 };
 
+struct TableRef {
+    std::string tab_name;
+    std::string alias;
+    TableRef(const std::string& tab, const std::string& alias_ = "") : tab_name(tab), alias(alias_) {}
+};
+
 struct Col : public Expr {
     std::string tab_name;
     std::string col_name;
@@ -223,12 +229,17 @@ struct UpdateStmt : public TreeNode {
 struct JoinExpr : public TreeNode {
     std::string left;
     std::string right;
+    std::string left_alias;   // 左表别名
+    std::string right_alias;  // 右表别名
     std::vector<std::shared_ptr<BinaryExpr>> conds;
     JoinType type;
 
     JoinExpr(std::string left_, std::string right_,
-               std::vector<std::shared_ptr<BinaryExpr>> conds_, JoinType type_) :
-            left(std::move(left_)), right(std::move(right_)), conds(std::move(conds_)), type(type_) {}
+               std::vector<std::shared_ptr<BinaryExpr>> conds_, JoinType type_,
+               std::string left_alias_ = "", std::string right_alias_ = "") :
+            left(std::move(left_)), right(std::move(right_)), 
+            left_alias(std::move(left_alias_)), right_alias(std::move(right_alias_)),
+            conds(std::move(conds_)), type(type_) {}
 };
 
 // 添加分组子句
@@ -255,7 +266,8 @@ struct Limit : public TreeNode {
 struct SelectStmt : public TreeNode {
     std::vector<std::shared_ptr<Col>> cols;
     std::vector<std::shared_ptr<AggFunc>> agg_funcs;  // 添加聚合函数列表
-    std::vector<std::string> tabs;
+    std::vector<std::string> tabs;  // 保留为兼容性
+    std::vector<std::shared_ptr<ast::TableRef>> table_refs;  // 新增：支持表别名
     std::vector<std::shared_ptr<BinaryExpr>> conds;
     std::vector<std::shared_ptr<JoinExpr>> jointree;
     
@@ -270,6 +282,7 @@ struct SelectStmt : public TreeNode {
     bool has_limit;
     std::shared_ptr<Limit> limit;
 
+    // 兼容性构造函数  
     SelectStmt(std::vector<std::shared_ptr<Col>> cols_,
                std::vector<std::shared_ptr<AggFunc>> agg_funcs_,
                std::vector<std::string> tabs_,
@@ -286,6 +299,33 @@ struct SelectStmt : public TreeNode {
                 has_group_by = (bool)group_by;
                 has_having = (bool)having;
                 has_limit = (bool)limit;
+                // 为兼容性从 tabs 创建 table_refs
+                for (const auto& tab : tabs) {
+                    table_refs.push_back(std::make_shared<ast::TableRef>(tab, ""));
+                }
+            }
+            
+    // 新构造函数：支持表别名
+    SelectStmt(std::vector<std::shared_ptr<Col>> cols_,
+               std::vector<std::shared_ptr<AggFunc>> agg_funcs_,
+               std::vector<std::shared_ptr<ast::TableRef>> table_refs_,
+               std::vector<std::shared_ptr<BinaryExpr>> conds_,
+               std::shared_ptr<OrderBy> order_,
+               std::shared_ptr<GroupBy> group_by_ = nullptr,
+               std::shared_ptr<Having> having_ = nullptr,
+               std::shared_ptr<Limit> limit_ = nullptr,
+               std::vector<std::shared_ptr<JoinExpr>> jointree_ = std::vector<std::shared_ptr<JoinExpr>>()) :
+            cols(std::move(cols_)), agg_funcs(std::move(agg_funcs_)), table_refs(std::move(table_refs_)), 
+            conds(std::move(conds_)), order(std::move(order_)), group_by(std::move(group_by_)),
+            having(std::move(having_)), limit(std::move(limit_)), jointree(std::move(jointree_)) {
+                has_sort = (bool)order;
+                has_group_by = (bool)group_by;
+                has_having = (bool)having;
+                has_limit = (bool)limit;
+                // 为兼容性从 table_refs 创建 tabs
+                for (const auto& table_ref : table_refs) {
+                    tabs.push_back(table_ref->tab_name);
+                }
             }
 };
 
@@ -296,12 +336,6 @@ struct SetStmt : public TreeNode {
 
     SetStmt(SetKnobType &type, bool bool_value) : 
         set_knob_type_(type), bool_val_(bool_value) { }
-};
-
-struct TableRef {
-    std::string tab_name;
-    std::string alias;
-    TableRef(const std::string& tab, const std::string& alias_ = "") : tab_name(tab), alias(alias_) {}
 };
 
 struct TabCol {
@@ -365,7 +399,8 @@ struct SemValue {
     std::pair<std::shared_ptr<Col>, OrderByDir> sv_order_col_with_dir;
     std::vector<std::pair<std::shared_ptr<Col>, OrderByDir>> sv_order_col_list;
 
-    std::shared_ptr<TableRef> sv_table_ref;
+    std::shared_ptr<ast::TableRef> sv_table_ref;
+    std::vector<std::shared_ptr<ast::TableRef>> sv_table_refs;
 };
 
 extern std::shared_ptr<ast::TreeNode> parse_tree;

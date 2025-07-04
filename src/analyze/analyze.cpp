@@ -22,8 +22,14 @@ std::shared_ptr<Query> Analyze::do_analyze(std::shared_ptr<ast::TreeNode> parse)
     std::shared_ptr<Query> query = std::make_shared<Query>();
     if (auto x = std::dynamic_pointer_cast<ast::SelectStmt>(parse))
     {
-        // 处理表名
-        query->tables = std::move(x->tabs);
+        // 处理表名 - 优先使用 table_refs 如果有别名信息
+        if (!x->table_refs.empty()) {
+            for (const auto& table_ref : x->table_refs) {
+                query->tables.push_back(table_ref->tab_name);
+            }
+        } else {
+            query->tables = std::move(x->tabs);
+        }
 
         // 处理连接表达式 - 从表名中提取连接信息
         // 由于语法分析器的限制，我们需要在这里处理连接表达式
@@ -53,16 +59,48 @@ std::shared_ptr<Query> Analyze::do_analyze(std::shared_ptr<ast::TreeNode> parse)
             }
         }
         
+        // 创建别名映射
+        std::map<std::string, std::string> alias_to_table;
+        if (!x->table_refs.empty()) {
+            for (const auto& table_ref : x->table_refs) {
+                if (!table_ref->alias.empty()) {
+                    alias_to_table[table_ref->alias] = table_ref->tab_name;
+                    query->table_to_alias[table_ref->tab_name] = table_ref->alias;
+                }
+            }
+        }
+        
+        // 处理 JOIN 中的别名映射
+        if (!x->jointree.empty()) {
+            for (const auto& join_expr : x->jointree) {
+                if (!join_expr->right_alias.empty()) {
+                    alias_to_table[join_expr->right_alias] = join_expr->right;
+                    query->table_to_alias[join_expr->right] = join_expr->right_alias;
+                }
+                if (!join_expr->left_alias.empty()) {
+                    alias_to_table[join_expr->left_alias] = join_expr->left;
+                    query->table_to_alias[join_expr->left] = join_expr->left_alias;
+                }
+            }
+        }
+        
         // 处理target list，再target list中添加上表名，例如 a.id
         for (auto &sv_sel_col : x->cols) {
-            TabCol sel_col(sv_sel_col->tab_name, sv_sel_col->col_name, sv_sel_col->alias);
+            std::string original_tab_name = sv_sel_col->tab_name;
+            std::string actual_tab_name = original_tab_name;
+            // 如果使用的是别名，需要解析为实际表名
+            if (!actual_tab_name.empty() && alias_to_table.find(actual_tab_name) != alias_to_table.end()) {
+                actual_tab_name = alias_to_table[actual_tab_name];
+            }
+            TabCol sel_col(actual_tab_name, sv_sel_col->col_name, sv_sel_col->alias, original_tab_name);
             query->cols.push_back(sel_col);
         }
         
         std::vector<ColMeta> all_cols;
         get_all_cols(query->tables, all_cols);
         if (query->cols.empty() && query->agg_funcs.empty()) {
-            // select all columns
+            // select all columns (select *)
+            query->is_select_all = true;
             for (auto &col : all_cols) {
                 TabCol sel_col(col.tab_name, col.name, "");
                 query->cols.push_back(sel_col);
@@ -136,7 +174,7 @@ std::shared_ptr<Query> Analyze::do_analyze(std::shared_ptr<ast::TreeNode> parse)
         }
         
         //处理where条件
-        get_clause(x->conds, query->conds);
+        get_clause(x->conds, query->conds, alias_to_table);
         check_clause(query->tables, query->conds);
         
         // 处理连接表达式
@@ -316,14 +354,20 @@ void Analyze::get_all_cols(const std::vector<std::string> &tab_names, std::vecto
     }
 }
 
-void Analyze::get_clause(const std::vector<std::shared_ptr<ast::BinaryExpr>> &sv_conds, std::vector<Condition> &conds) {
+void Analyze::get_clause(const std::vector<std::shared_ptr<ast::BinaryExpr>> &sv_conds, std::vector<Condition> &conds, const std::map<std::string, std::string>& alias_to_table) {
     conds.clear();
     for (auto &expr : sv_conds) {
         Condition cond;
         
         // 处理左操作数，可能是 Col 或 AggFunc
         if (auto lhs_col = std::dynamic_pointer_cast<ast::Col>(expr->lhs)) {
-            cond.lhs_col = TabCol(lhs_col->tab_name, lhs_col->col_name);
+            std::string original_tab_name = lhs_col->tab_name;
+            std::string tab_name = original_tab_name;
+            // 解析别名
+            if (!tab_name.empty() && alias_to_table.find(tab_name) != alias_to_table.end()) {
+                tab_name = alias_to_table.at(tab_name);
+            }
+            cond.lhs_col = TabCol(tab_name, lhs_col->col_name, "", original_tab_name);
             cond.is_lhs_agg = false;
         } else if (auto lhs_agg = std::dynamic_pointer_cast<ast::AggFunc>(expr->lhs)) {
             // 处理聚合函数作为左操作数
@@ -348,7 +392,13 @@ void Analyze::get_clause(const std::vector<std::shared_ptr<ast::BinaryExpr>> &sv
         } else if (auto rhs_col = std::dynamic_pointer_cast<ast::Col>(expr->rhs)) {
             cond.is_rhs_val = false;
             cond.is_rhs_agg = false;
-            cond.rhs_col = TabCol(rhs_col->tab_name, rhs_col->col_name);
+            std::string original_tab_name = rhs_col->tab_name;
+            std::string tab_name = original_tab_name;
+            // 解析别名
+            if (!tab_name.empty() && alias_to_table.find(tab_name) != alias_to_table.end()) {
+                tab_name = alias_to_table.at(tab_name);
+            }
+            cond.rhs_col = TabCol(tab_name, rhs_col->col_name, "", original_tab_name);
         } else if (auto rhs_agg = std::dynamic_pointer_cast<ast::AggFunc>(expr->rhs)) {
             // 处理聚合函数作为右操作数
             cond.is_rhs_val = false;

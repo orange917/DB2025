@@ -49,6 +49,7 @@ typedef enum PlanTag{
     T_Projection,
     T_Aggregation,
     T_Agg,
+    T_Filter,
 } PlanTag;
 
 // 查询执行计划
@@ -66,10 +67,11 @@ public:
 class ScanPlan : public Plan
 {
     public:
-        ScanPlan(PlanTag tag, SmManager *sm_manager, std::string tab_name, std::vector<Condition> conds, std::vector<std::string> index_col_names)
+        ScanPlan(PlanTag tag, SmManager *sm_manager, std::string tab_name, std::vector<Condition> conds, std::vector<std::string> index_col_names, std::string original_tab_name = "")
         {
             Plan::tag = tag;
             tab_name_ = std::move(tab_name);
+            original_tab_name_ = original_tab_name.empty() ? tab_name_ : std::move(original_tab_name);
             conds_ = std::move(conds);
             TabMeta &tab = sm_manager->db_.get_table(tab_name_);
             cols_ = tab.cols;
@@ -81,11 +83,27 @@ class ScanPlan : public Plan
         ~ScanPlan(){}
         // 以下变量同ScanExecutor中的变量
         std::string tab_name_;                     
+        std::string original_tab_name_;            // 原始表名（可能是别名）
         std::vector<ColMeta> cols_;                
         std::vector<Condition> conds_;             
         size_t len_;                               
         std::vector<Condition> fed_conds_;
         std::vector<std::string> index_col_names_;
+        void Explain(std::ostream& os, int indent = 0) const override;
+};
+
+class FilterPlan : public Plan
+{
+    public:
+        FilterPlan(std::shared_ptr<Plan> subplan, std::vector<Condition> conds)
+        {
+            Plan::tag = T_Filter;
+            subplan_ = std::move(subplan);
+            conds_ = std::move(conds);
+        }
+        ~FilterPlan(){}
+        std::shared_ptr<Plan> subplan_;
+        std::vector<Condition> conds_;
         void Explain(std::ostream& os, int indent = 0) const override;
 };
 
@@ -115,17 +133,19 @@ class JoinPlan : public Plan
 class ProjectionPlan : public Plan
 {
     public:
-        ProjectionPlan(PlanTag tag, std::shared_ptr<Plan> subplan, std::vector<TabCol> sel_cols, int limit_val = -1)
+        ProjectionPlan(PlanTag tag, std::shared_ptr<Plan> subplan, std::vector<TabCol> sel_cols, int limit_val = -1, bool is_select_all = false)
         {
             Plan::tag = tag;
             subplan_ = std::move(subplan);
             sel_cols_ = std::move(sel_cols);
             limit_val_ = limit_val;
+            is_select_all_ = is_select_all;
         }
         ~ProjectionPlan(){}
         std::shared_ptr<Plan> subplan_;
         std::vector<TabCol> sel_cols_;
         int limit_val_;  // LIMIT值
+        bool is_select_all_;  // 是否为select *
         void Explain(std::ostream& os, int indent = 0) const override;
 };
 
@@ -166,7 +186,11 @@ class DMLPlan : public Plan
         std::vector<Value> values_;
         std::vector<Condition> conds_;
         std::vector<SetClause> set_clauses_;
-        void Explain(std::ostream& os, int indent = 0) const override {}
+        void Explain(std::ostream& os, int indent = 0) const override {
+            if (tag == T_select && subplan_) {
+                subplan_->Explain(os, indent);
+            }
+        }
 };
 
 // ddl语句, 包括create/drop table; create/drop index;

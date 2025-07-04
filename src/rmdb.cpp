@@ -132,10 +132,21 @@ void *client_handler(void *sock_fd) {
                     pthread_mutex_unlock(buffer_mutex);
                     // 优化器
                     std::shared_ptr<Plan> plan = optimizer->plan_query(query, context);
+                    // 设置parse_tree以支持EXPLAIN输出
+                    context->parse_tree = ast::parse_tree;
                     // portal
                     std::shared_ptr<PortalStmt> portalStmt = portal->start(plan, context);
-                    portal->run(portalStmt, ql_manager.get(), &txn_id, context);
-                    portal->drop();
+                   
+                    if (portalStmt == nullptr) {
+                        // EXPLAIN 查询：portal->start() 已经设置了 context->output 并返回了 nullptr
+                        std::string explain_output = context->output;
+                        memcpy(data_send, explain_output.c_str(), explain_output.size());
+                        data_send[explain_output.size()] = '\0';
+                        offset = explain_output.size();
+                    } else {
+                        portal->run(portalStmt, ql_manager.get(), &txn_id, context);
+                        portal->drop();
+                    }
                 } catch (TransactionAbortException &e) {
                     // 事务需要回滚，需要把abort信息返回给客户端并写入output.txt文件中
                     std::string str = "abort\n";
