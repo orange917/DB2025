@@ -15,6 +15,7 @@ See the Mulan PSL v2 for more details. */
 #include <signal.h>
 #include <unistd.h>
 #include <atomic>
+#include <fstream>
 
 #include "errors.h"
 #include "optimizer/optimizer.h"
@@ -143,6 +144,12 @@ void *client_handler(void *sock_fd) {
                         memcpy(data_send, explain_output.c_str(), explain_output.size());
                         data_send[explain_output.size()] = '\0';
                         offset = explain_output.size();
+                        
+                        // 将EXPLAIN输出写入output.txt文件
+                        std::fstream outfile;
+                        outfile.open("output.txt", std::ios::out | std::ios::app);
+                        outfile << explain_output;
+                        outfile.close();
                     } else {
                         portal->run(portalStmt, ql_manager.get(), &txn_id, context);
                         portal->drop();
