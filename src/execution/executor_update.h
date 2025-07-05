@@ -16,6 +16,7 @@ See the Mulan PSL v2 for more details. */
 #include "system/sm.h"
 #include "system/sm_meta.h"
 #include "index/ix_manager.h"
+#include "analyze/analyze.h"
 
 class UpdateExecutor : public AbstractExecutor {
    private:
@@ -27,6 +28,7 @@ class UpdateExecutor : public AbstractExecutor {
     std::vector<SetClause> set_clauses_;
     std::unique_ptr<AbstractExecutor> scanner_;
     SmManager *sm_manager_;
+    Analyze *analyzer_;  // 添加分析器用于表达式求值
 
     // Helper function to evaluate conditions on a record
     bool eval_conds(const RmRecord *record, const std::vector<ColMeta> &cols) {
@@ -82,6 +84,11 @@ public:
         conds_ = std::move(conds);
         scanner_ = std::move(scanner);
         AbstractExecutor::context_ = context;
+        analyzer_ = new Analyze(sm_manager);  // 创建分析器实例
+    }
+
+    ~UpdateExecutor() {
+        delete analyzer_;
     }
 
     std::unique_ptr<RmRecord> Next() override {
@@ -100,7 +107,11 @@ public:
             for (const auto &set_clause : set_clauses_) {
                 auto col = get_col(tab_.cols, set_clause.lhs);
                 char *data_ptr = new_record.data + col->offset;
-                Value val = set_clause.rhs;
+                
+                // 使用表达式求值
+                Value val = analyzer_->evaluate_expr(set_clause.rhs, &old_record, tab_.cols);
+                
+                // 类型转换
                 if (col->type != val.type) {
                     if (col->type == TYPE_FLOAT && val.type == TYPE_INT) {
                         val.float_val = static_cast<float>(val.int_val);
@@ -167,42 +178,6 @@ public:
             }
             // 写主表新数据
             fh_->update_record(rid, new_record.data, context_);
-            // 插入所有索引的新key，异常要回滚
-            // bool index_ok = true;
-            // try {
-            //     for (auto &index : tab_.indexes) {
-            //         auto ih = sm_manager_->ihs_.at(sm_manager_->get_ix_manager()->get_index_name(tab_name_, index.cols)).get();
-            //         char* new_key = new char[index.col_tot_len];
-            //         int offset = 0;
-            //         for (size_t j = 0; j < index.col_num; ++j) {
-            //             memcpy(new_key + offset, new_record.data + index.cols[j].offset, index.cols[j].len);
-            //             offset += index.cols[j].len;
-            //         }
-            //         ih->insert_entry(new_key, rid, context_ ? context_->txn_ : nullptr);
-            //         delete[] new_key;
-            //     }
-            // } catch (...) {
-            //     index_ok = false;
-            // }
-            // if (!index_ok) {
-            //     // 回滚主表和索引
-            //     fh_->update_record(rid, old_record.data, context_);
-            //     for (auto &index : tab_.indexes) {
-            //         auto ih = sm_manager_->ihs_.at(sm_manager_->get_ix_manager()->get_index_name(tab_name_, index.cols)).get();
-            //         char* new_key = new char[index.col_tot_len];
-            //         char* old_key = new char[index.col_tot_len];
-            //         int offset = 0;
-            //         for (size_t j = 0; j < index.col_num; ++j) {
-            //             memcpy(new_key + offset, new_record.data + index.cols[j].offset, index.cols[j].len);
-            //             memcpy(old_key + offset, old_record.data + index.cols[j].offset, index.cols[j].len);
-            //             offset += index.cols[j].len;
-            //         }
-            //         ih->delete_entry(new_key, context_ ? context_->txn_ : nullptr);
-            //         ih->insert_entry(old_key, rid, context_ ? context_->txn_ : nullptr);
-            //         delete[] new_key; delete[] old_key;
-            //     }
-            //     throw;
-            // }
             // 事务日志
             if (context_ != nullptr && context_->txn_ != nullptr) {
                 RmRecord record_copy(old_record.size);

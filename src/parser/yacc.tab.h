@@ -106,7 +106,8 @@ extern int yydebug;
     VALUE_STRING = 307,            /* VALUE_STRING  */
     VALUE_INT = 308,               /* VALUE_INT  */
     VALUE_FLOAT = 309,             /* VALUE_FLOAT  */
-    VALUE_BOOL = 310               /* VALUE_BOOL  */
+    VALUE_BOOL = 310,              /* VALUE_BOOL  */
+    UMINUS = 311                   /* UMINUS  */
   };
   typedef enum yytokentype yytoken_kind_t;
 #endif
@@ -168,7 +169,7 @@ union YYSTYPE
     std::vector<std::shared_ptr<ast::TableRef>> sv_table_refs;
     std::shared_ptr<JoinExpr> join_expr;
 
-#line 172 "/home/code/db2025/src/parser/yacc.tab.h"
+#line 173 "/home/code/db2025/src/parser/yacc.tab.h"
 
 };
 typedef union YYSTYPE YYSTYPE;

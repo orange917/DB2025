@@ -23,7 +23,8 @@ enum SvType {
 };
 
 enum SvCompOp {
-    SV_OP_EQ, SV_OP_NE, SV_OP_LT, SV_OP_GT, SV_OP_LE, SV_OP_GE
+    SV_OP_EQ, SV_OP_NE, SV_OP_LT, SV_OP_GT, SV_OP_LE, SV_OP_GE,
+    SV_OP_ADD, SV_OP_SUB, SV_OP_MUL, SV_OP_DIV
 };
 
 // 添加聚合函数类型枚举
@@ -176,9 +177,9 @@ struct AggFunc : public Expr {
 
 struct SetClause : public TreeNode {
     std::string col_name;
-    std::shared_ptr<Value> val;
+    std::shared_ptr<TreeNode> val;
 
-    SetClause(std::string col_name_, std::shared_ptr<Value> val_) :
+    SetClause(std::string col_name_, std::shared_ptr<TreeNode> val_) :
             col_name(std::move(col_name_)), val(std::move(val_)) {}
 };
 

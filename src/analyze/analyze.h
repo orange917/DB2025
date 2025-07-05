@@ -83,6 +83,13 @@ public:
 
     std::shared_ptr<Query> do_analyze(std::shared_ptr<ast::TreeNode> root);
 
+    // 将表达式求值函数改为公有
+    Value evaluate_expr(const std::shared_ptr<ast::TreeNode> &expr, const RmRecord *record, const std::vector<ColMeta> &cols);
+    Value evaluate_binary_expr(const std::shared_ptr<ast::BinaryExpr> &binary_expr, const RmRecord *record, const std::vector<ColMeta> &cols);
+    
+    // 添加get_col函数声明
+    const ColMeta* get_col(const std::vector<ColMeta> &cols, const TabCol &target);
+
 private:
     TabCol check_column(const std::vector<ColMeta> &all_cols, TabCol target);
     void get_all_cols(const std::vector<std::string> &tab_names, std::vector<ColMeta> &all_cols);

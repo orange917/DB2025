@@ -102,7 +102,7 @@ COUNT MAX MIN SUM AVG GROUP HAVING LIMIT AS ORDER BY ON
 %type <sv_fields> fieldList
 %type <sv_type_len> type
 %type <sv_comp_op> op
-%type <sv_expr> expr
+%type <sv_node> expr
 %type <sv_val> value
 %type <sv_vals> valueList
 %type <sv_str> tbName colName
@@ -139,6 +139,10 @@ COUNT MAX MIN SUM AVG GROUP HAVING LIMIT AS ORDER BY ON
 
 // 添加 table_ref_list 类型  
 %type <sv_table_refs> table_ref_list
+
+%left '+' '-'
+%left '*' '/'
+%right UMINUS
 
 %%
 start:
@@ -382,13 +386,13 @@ value:
 condition:
         col op expr
     {
-        $$ = std::make_shared<BinaryExpr>($1, $2, $3);
+        $$ = std::make_shared<BinaryExpr>($1, $2, std::static_pointer_cast<Expr>($3));
     }
     |   agg_func op expr
     {
         // 创建一个临时的 Col 对象来存储聚合函数信息
         // 这里需要修改 BinaryExpr 结构以支持聚合函数作为左操作数
-        $$ = std::make_shared<BinaryExpr>($1, $2, $3);
+        $$ = std::make_shared<BinaryExpr>($1, $2, std::static_pointer_cast<Expr>($3));
     }
     ;
 
@@ -471,20 +475,47 @@ op:
 expr:
         value
     {
-        $$ = std::static_pointer_cast<Expr>($1);
+        $$ = $1;
     }
     |   col
     {
-        $$ = std::static_pointer_cast<Expr>($1);
+        $$ = $1;
     }
     |   agg_func
     {
-        $$ = std::static_pointer_cast<Expr>($1);
+        $$ = $1;
     }
     |   '(' dml ')'
     {
         // 子查询：将SELECT语句包装为表达式
-        $$ = std::static_pointer_cast<Expr>($2);
+        $$ = $2;
+    }
+    |   expr '+' expr
+    {
+        // BinaryExpr是TreeNode的子类
+        $$ = std::make_shared<BinaryExpr>(std::static_pointer_cast<Expr>($1), SV_OP_ADD, std::static_pointer_cast<Expr>($3));
+    }
+    |   expr '-' expr
+    {
+        $$ = std::make_shared<BinaryExpr>(std::static_pointer_cast<Expr>($1), SV_OP_SUB, std::static_pointer_cast<Expr>($3));
+    }
+    |   expr '*' expr
+    {
+        $$ = std::make_shared<BinaryExpr>(std::static_pointer_cast<Expr>($1), SV_OP_MUL, std::static_pointer_cast<Expr>($3));
+    }
+    |   expr '/' expr
+    {
+        $$ = std::make_shared<BinaryExpr>(std::static_pointer_cast<Expr>($1), SV_OP_DIV, std::static_pointer_cast<Expr>($3));
+    }
+    |   '-' expr %prec UMINUS
+    {
+        // 负号表达式，创建一个0减去expr的表达式
+        auto zero = std::make_shared<IntLit>(0);
+        $$ = std::make_shared<BinaryExpr>(zero, SV_OP_SUB, std::static_pointer_cast<Expr>($2));
+    }
+    |   '(' expr ')'
+    {
+        $$ = $2;
     }
     ;
 
@@ -500,7 +531,7 @@ setClauses:
     ;
 
 setClause:
-        colName '=' value
+        colName '=' expr
     {
         $$ = std::make_shared<SetClause>($1, $3);
     }

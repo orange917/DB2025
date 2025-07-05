@@ -292,7 +292,7 @@ std::shared_ptr<Query> Analyze::do_analyze(std::shared_ptr<ast::TreeNode> parse)
         for (auto &set_clause : x->set_clauses) {
             SetClause clause;
             clause.lhs = TabCol(x->tab_name, set_clause->col_name);
-            clause.rhs = convert_sv_value(set_clause->val);
+            clause.rhs = set_clause->val;  // 直接使用表达式
             query->set_clauses.push_back(clause);
         }
         get_clause(x->conds, query->conds);
@@ -352,6 +352,16 @@ void Analyze::get_all_cols(const std::vector<std::string> &tab_names, std::vecto
         const auto &sel_tab_cols = sm_manager_->db_.get_table(sel_tab_name).cols;
         all_cols.insert(all_cols.end(), sel_tab_cols.begin(), sel_tab_cols.end());
     }
+}
+
+// 添加get_col辅助函数
+const ColMeta* Analyze::get_col(const std::vector<ColMeta> &cols, const TabCol &target) {
+    for (const auto &col : cols) {
+        if ((target.tab_name.empty() || col.tab_name == target.tab_name) && col.name == target.col_name) {
+            return &col;
+        }
+    }
+    throw ColumnNotFoundError(target.col_name);
 }
 
 void Analyze::get_clause(const std::vector<std::shared_ptr<ast::BinaryExpr>> &sv_conds, std::vector<Condition> &conds, const std::map<std::string, std::string>& alias_to_table) {
@@ -490,4 +500,119 @@ AggFuncType Analyze::convert_agg_func_type(ast::AggFuncType sv_agg_func_type) {
         {ast::AGG_SUM, AGG_SUM}, {ast::AGG_AVG, AGG_AVG},
     };
     return m.at(sv_agg_func_type);
+}
+
+// 表达式求值函数实现
+Value Analyze::evaluate_expr(const std::shared_ptr<ast::TreeNode> &expr, const RmRecord *record, const std::vector<ColMeta> &cols) {
+    if (auto value = std::dynamic_pointer_cast<ast::Value>(expr)) {
+        // 字面值
+        return convert_sv_value(value);
+    } else if (auto col = std::dynamic_pointer_cast<ast::Col>(expr)) {
+        // 列引用，从当前记录中获取值
+        auto col_meta = get_col(cols, TabCol(col->tab_name, col->col_name));
+        const char *data = record->data + col_meta->offset;
+        
+        Value result;
+        switch (col_meta->type) {
+            case TYPE_INT:
+                result.set_int(*(int*)data);
+                break;
+            case TYPE_FLOAT:
+                result.set_float(*(float*)data);
+                break;
+            case TYPE_STRING:
+                result.set_str(std::string(data, col_meta->len));
+                break;
+            default:
+                throw InternalError("Unsupported column type in expression");
+        }
+        return result;
+    } else if (auto binary_expr = std::dynamic_pointer_cast<ast::BinaryExpr>(expr)) {
+        // 二元表达式
+        return evaluate_binary_expr(binary_expr, record, cols);
+    } else {
+        throw InternalError("Unsupported expression type");
+    }
+}
+
+Value Analyze::evaluate_binary_expr(const std::shared_ptr<ast::BinaryExpr> &binary_expr, const RmRecord *record, const std::vector<ColMeta> &cols) {
+    Value left_val = evaluate_expr(binary_expr->lhs, record, cols);
+    Value right_val = evaluate_expr(binary_expr->rhs, record, cols);
+    
+    Value result;
+    
+    switch (binary_expr->op) {
+        case ast::SV_OP_ADD:
+            if (left_val.type == TYPE_INT && right_val.type == TYPE_INT) {
+                result.set_int(left_val.int_val + right_val.int_val);
+            } else if (left_val.type == TYPE_FLOAT && right_val.type == TYPE_FLOAT) {
+                result.set_float(left_val.float_val + right_val.float_val);
+            } else if (left_val.type == TYPE_INT && right_val.type == TYPE_FLOAT) {
+                result.set_float(static_cast<float>(left_val.int_val) + right_val.float_val);
+            } else if (left_val.type == TYPE_FLOAT && right_val.type == TYPE_INT) {
+                result.set_float(left_val.float_val + static_cast<float>(right_val.int_val));
+            } else {
+                throw IncompatibleTypeError(coltype2str(left_val.type), coltype2str(right_val.type));
+            }
+            break;
+            
+        case ast::SV_OP_SUB:
+            if (left_val.type == TYPE_INT && right_val.type == TYPE_INT) {
+                result.set_int(left_val.int_val - right_val.int_val);
+            } else if (left_val.type == TYPE_FLOAT && right_val.type == TYPE_FLOAT) {
+                result.set_float(left_val.float_val - right_val.float_val);
+            } else if (left_val.type == TYPE_INT && right_val.type == TYPE_FLOAT) {
+                result.set_float(static_cast<float>(left_val.int_val) - right_val.float_val);
+            } else if (left_val.type == TYPE_FLOAT && right_val.type == TYPE_INT) {
+                result.set_float(left_val.float_val - static_cast<float>(right_val.int_val));
+            } else {
+                throw IncompatibleTypeError(coltype2str(left_val.type), coltype2str(right_val.type));
+            }
+            break;
+            
+        case ast::SV_OP_MUL:
+            if (left_val.type == TYPE_INT && right_val.type == TYPE_INT) {
+                result.set_int(left_val.int_val * right_val.int_val);
+            } else if (left_val.type == TYPE_FLOAT && right_val.type == TYPE_FLOAT) {
+                result.set_float(left_val.float_val * right_val.float_val);
+            } else if (left_val.type == TYPE_INT && right_val.type == TYPE_FLOAT) {
+                result.set_float(static_cast<float>(left_val.int_val) * right_val.float_val);
+            } else if (left_val.type == TYPE_FLOAT && right_val.type == TYPE_INT) {
+                result.set_float(left_val.float_val * static_cast<float>(right_val.int_val));
+            } else {
+                throw IncompatibleTypeError(coltype2str(left_val.type), coltype2str(right_val.type));
+            }
+            break;
+            
+        case ast::SV_OP_DIV:
+            if (left_val.type == TYPE_INT && right_val.type == TYPE_INT) {
+                if (right_val.int_val == 0) {
+                    throw InternalError("Division by zero");
+                }
+                result.set_float(static_cast<float>(left_val.int_val) / static_cast<float>(right_val.int_val));
+            } else if (left_val.type == TYPE_FLOAT && right_val.type == TYPE_FLOAT) {
+                if (right_val.float_val == 0.0f) {
+                    throw InternalError("Division by zero");
+                }
+                result.set_float(left_val.float_val / right_val.float_val);
+            } else if (left_val.type == TYPE_INT && right_val.type == TYPE_FLOAT) {
+                if (right_val.float_val == 0.0f) {
+                    throw InternalError("Division by zero");
+                }
+                result.set_float(static_cast<float>(left_val.int_val) / right_val.float_val);
+            } else if (left_val.type == TYPE_FLOAT && right_val.type == TYPE_INT) {
+                if (right_val.int_val == 0) {
+                    throw InternalError("Division by zero");
+                }
+                result.set_float(left_val.float_val / static_cast<float>(right_val.int_val));
+            } else {
+                throw IncompatibleTypeError(coltype2str(left_val.type), coltype2str(right_val.type));
+            }
+            break;
+            
+        default:
+            throw InternalError("Unsupported binary operator in expression");
+    }
+    
+    return result;
 }

@@ -118,5 +118,5 @@ struct Condition {
 
 struct SetClause {
     TabCol lhs;
-    Value rhs;
+    std::shared_ptr<ast::TreeNode> rhs;  // 改为支持TreeNode
 };
