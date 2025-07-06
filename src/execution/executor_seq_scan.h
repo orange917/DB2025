@@ -57,7 +57,17 @@ class SeqScanExecutor : public AbstractExecutor {
         // 寻找第一个满足条件的元组
         while (!scan_->is_end()) {
             auto current_rid = scan_->rid();
-            if (eval_conds(fh_->get_record(current_rid, context_).get(), cols_)) {
+            
+            // 获取记录，根据并发控制模式选择不同的方法
+            std::unique_ptr<RmRecord> record;
+            if (context_ && context_->txn_mgr_ && 
+                context_->txn_mgr_->get_concurrency_mode() == ConcurrencyMode::MVCC) {
+                record = fh_->get_record_mvcc(current_rid, context_);
+            } else {
+                record = fh_->get_record(current_rid, context_);
+            }
+            
+            if (record && eval_conds(record.get(), cols_)) {
                 rid_ = current_rid;
                 return;
             }
@@ -71,9 +81,19 @@ class SeqScanExecutor : public AbstractExecutor {
         // 检查一下是否满足条件
         while(!scan_->is_end())
         {
-            auto Rid = scan_->rid();
-            if (eval_conds(fh_->get_record(Rid, context_).get(), cols_)) {
-                rid_ = Rid;
+            auto current_rid = scan_->rid();
+            
+            // 获取记录，根据并发控制模式选择不同的方法
+            std::unique_ptr<RmRecord> record;
+            if (context_ && context_->txn_mgr_ && 
+                context_->txn_mgr_->get_concurrency_mode() == ConcurrencyMode::MVCC) {
+                record = fh_->get_record_mvcc(current_rid, context_);
+            } else {
+                record = fh_->get_record(current_rid, context_);
+            }
+            
+            if (record && eval_conds(record.get(), cols_)) {
+                rid_ = current_rid;
                 return;
             }
             scan_->next();  // 继续查找下一个记录
@@ -87,10 +107,14 @@ class SeqScanExecutor : public AbstractExecutor {
 
     std::unique_ptr<RmRecord> Next() override {
         auto rec = rid();
-
-        auto record = fh_->get_record(rec, context_);
-
-        return record;
+        
+        // 根据并发控制模式选择不同的方法获取记录
+        if (context_ && context_->txn_mgr_ && 
+            context_->txn_mgr_->get_concurrency_mode() == ConcurrencyMode::MVCC) {
+            return fh_->get_record_mvcc(rec, context_);
+        } else {
+            return fh_->get_record(rec, context_);
+        }
     }
 
     // 条件判断函数

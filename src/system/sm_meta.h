@@ -165,8 +165,9 @@ class DbMeta {
     friend class SmManager;
 
    private:
-    std::string name_;                      // 数据库名称
-    std::map<std::string, TabMeta> tabs_;   // 数据库中包含的表
+    std::string name_;                               // 数据库名称
+    std::map<std::string, TabMeta> tabs_;            // 该数据库中所有表的元数据
+    timestamp_t next_timestamp_{0};                  // 下一个可用的时间戳
 
    public:
     // DbMeta(std::string name) : name_(name) {}
@@ -190,17 +191,17 @@ class DbMeta {
 
     // 重载操作符 <<
     friend std::ostream &operator<<(std::ostream &os, const DbMeta &db_meta) {
-        os << db_meta.name_ << '\n' << db_meta.tabs_.size() << '\n';
+        os << db_meta.name_ << " " << db_meta.tabs_.size() << " " << db_meta.next_timestamp_ << std::endl;
         for (auto &entry : db_meta.tabs_) {
-            os << entry.second << '\n';
+            os << entry.second;
         }
         return os;
     }
 
     friend std::istream &operator>>(std::istream &is, DbMeta &db_meta) {
-        size_t n;
-        is >> db_meta.name_ >> n;
-        for (size_t i = 0; i < n; i++) {
+        int tab_num;
+        is >> db_meta.name_ >> tab_num >> db_meta.next_timestamp_;
+        for (int i = 0; i < tab_num; i++) {
             TabMeta tab;
             is >> tab;
             db_meta.tabs_[tab.name] = tab;

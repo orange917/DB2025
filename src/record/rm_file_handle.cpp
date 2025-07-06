@@ -13,8 +13,12 @@ See the Mulan PSL v2 for more details. */
 #include "rm_defs.h"
 #include "storage/page.h"
 #include "transaction/txn_defs.h"
+#include "transaction/transaction_manager.h"
+#include "execution/execution_common.h"
+#include "system/sm_manager.h"
 #include <cstddef>
 #include <memory>
+#include <optional>
 #include <defs.h>
 #include <iostream>
 
@@ -81,6 +85,12 @@ Rid RmFileHandle::insert_record(char* buf, Context* context) {
 
         return rid;
     }
+    
+    // 如果没有找到空闲槽位，返回无效的Rid
+    Rid invalid_rid;
+    invalid_rid.page_no = -1;
+    invalid_rid.slot_no = -1;
+    return invalid_rid;
 }
 
 /**
@@ -280,4 +290,100 @@ int RmFileHandle::get_records_num() {
         }
     }
     return total;
+}
+
+/**
+ * @description: 获取当前表中记录号为rid的记录（支持MVCC）
+ * @param {Rid&} rid 记录号，指定记录的位置
+ * @param {Context*} context
+ * @return {unique_ptr<RmRecord>} rid对应的记录对象指针
+ */
+std::unique_ptr<RmRecord> RmFileHandle::get_record_mvcc(const Rid& rid, Context* context) const {
+    if (context == nullptr || context->txn_ == nullptr) {
+        // 如果没有事务上下文，则使用普通的get_record
+        return get_record(rid, context);
+    }
+
+    // 获取事务管理器
+    TransactionManager* txn_manager = context->txn_mgr_;
+    if (txn_manager == nullptr || txn_manager->get_concurrency_mode() != ConcurrencyMode::MVCC) {
+        // 如果不是MVCC模式，则使用普通的get_record
+        return get_record(rid, context);
+    }
+
+    // 获取当前事务
+    Transaction* txn = context->txn_;
+    
+    // 获取记录所在的页面
+    RmPageHandle page_handle = fetch_page_handle(rid.page_no);
+    if (page_handle.page == nullptr) {
+        return nullptr;
+    }
+
+    // 获取记录数据
+    auto record = std::make_unique<RmRecord>(file_hdr_.record_size);
+    record->size = file_hdr_.record_size;
+    memcpy(record->data, page_handle.get_slot(rid.slot_no), file_hdr_.record_size);
+    
+    // 获取元组元数据（时间戳和删除标记）
+    TupleMeta tuple_meta;
+    // 假设元组元数据存储在记录的前面
+    memcpy(&tuple_meta, record->data, sizeof(TupleMeta));
+    
+    // 检查写-写冲突
+    if (IsWriteWriteConflict(tuple_meta.ts_, txn)) {
+        // 存在写-写冲突，事务需要回滚
+        buffer_pool_manager_->unpin_page(page_handle.page->get_page_id(), false);
+        throw TransactionAbortException(txn->get_transaction_id(), AbortReason::UPGRADE_CONFLICT);
+    }
+    
+    // 获取版本链
+    std::vector<UndoLog> undo_logs;
+    std::optional<UndoLink> undo_link = txn_manager->GetUndoLink(rid);
+    
+    // 收集所有可见的撤销日志
+    while (undo_link.has_value()) {
+        auto log_opt = txn_manager->GetUndoLogOptional(*undo_link);
+        if (log_opt.has_value()) {
+            UndoLog log = *log_opt;
+            // 只收集时间戳小于等于事务开始时间戳的日志
+            if (log.ts_ <= txn->get_start_ts()) {
+                undo_logs.push_back(log);
+            }
+            undo_link = log.prev_version_;
+        } else {
+            break;
+        }
+    }
+    
+    // 获取表的元数据
+    const TabMeta* tab_meta = nullptr;
+    if (!context->tab_name_.empty() && context->sm_manager_ != nullptr) {
+        try {
+            // 获取表元数据的引用
+            TabMeta& tab_meta_ref = context->sm_manager_->db_.get_table(context->tab_name_);
+            // 使用指向引用的指针
+            tab_meta = &tab_meta_ref;
+        } catch (const TableNotFoundError& e) {
+            // 表不存在，忽略错误
+        }
+    }
+    
+    // 释放页面
+    buffer_pool_manager_->unpin_page(page_handle.page->get_page_id(), false);
+    
+    // 如果没有表元数据或没有撤销日志，直接返回原始记录
+    if (tab_meta == nullptr || undo_logs.empty()) {
+        return record;
+    }
+    
+    // 根据撤销日志重建元组
+    auto reconstructed_record = ReconstructTuple(tab_meta, *record, tuple_meta, undo_logs);
+    
+    // 如果元组不可见，返回nullptr
+    if (!reconstructed_record.has_value()) {
+        return nullptr;
+    }
+    
+    return std::make_unique<RmRecord>(*reconstructed_record);
 }

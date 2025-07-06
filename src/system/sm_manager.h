@@ -85,4 +85,8 @@ class SmManager {
     void show_index(const std::string& tab_name, Context* context);
 
     void update_table_row_count(const std::string& tab_name, int row_count);
+
+    timestamp_t get_start_timestamp() { return db_.next_timestamp_; }
+
+    void set_next_timestamp(timestamp_t ts) { db_.next_timestamp_ = ts; }
 };

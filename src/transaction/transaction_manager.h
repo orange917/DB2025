@@ -53,9 +53,14 @@ public:
         sm_manager_ = sm_manager;
         lock_manager_ = lock_manager;
         concurrency_mode_ = concurrency_mode;
+        // 从SmManager获取持久化的时间戳作为初始值
+        next_timestamp_.store(sm_manager_->get_start_timestamp());
     }
     
-    ~TransactionManager() = default;
+    ~TransactionManager() {
+        // 在析构时，将最新的时间戳写回SmManager，以便持久化
+        sm_manager_->set_next_timestamp(next_timestamp_.load());
+    }
 
     Transaction* begin(Transaction* txn, LogManager* log_manager);
 
@@ -141,11 +146,12 @@ public:
     /** 存储表堆中每个元组的先前版本。 */
     std::unordered_map<page_id_t, std::shared_ptr<PageVersionInfo>> version_info_;
 
+    timestamp_t get_next_timestamp() { return next_timestamp_.load(); }
 
 private:
     ConcurrencyMode concurrency_mode_;      // 事务使用的并发控制算法，目前只需要考虑2PL
     std::atomic<txn_id_t> next_txn_id_{0};  // 用于分发事务ID
-    std::atomic<timestamp_t> next_timestamp_{0};    // 用于分发事务时间戳
+    std::atomic<timestamp_t> next_timestamp_;    // 用于分发事务时间戳
     std::mutex latch_;  // 用于txn_map的并发
     SmManager *sm_manager_;
     LockManager *lock_manager_;

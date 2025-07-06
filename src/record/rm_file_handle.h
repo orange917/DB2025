@@ -83,6 +83,9 @@ class RmFileHandle {
 
     std::unique_ptr<RmRecord> get_record_without_lock(const Rid &rid, Context *context) const;
     std::unique_ptr<RmRecord> get_record(const Rid &rid, Context *context) const;
+    
+    // 支持MVCC的记录读取
+    std::unique_ptr<RmRecord> get_record_mvcc(const Rid &rid, Context *context) const;
 
     Rid insert_record(char *buf, Context *context);
 

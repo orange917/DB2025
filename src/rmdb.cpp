@@ -58,6 +58,8 @@ void sigint_handler(int signo) {
 
 // 判断当前正在执行的是显式事务还是单条SQL语句的事务，并更新事务ID
 void SetTransaction(txn_id_t *txn_id, Context *context) {
+    context->txn_mgr_ = txn_manager.get(); // 设置事务管理器
+    context->sm_manager_ = sm_manager.get(); // 设置系统管理器
     context->txn_ = txn_manager->get_transaction(*txn_id);
     if(context->txn_ == nullptr || context->txn_->get_state() == TransactionState::COMMITTED ||
         context->txn_->get_state() == TransactionState::ABORTED) {
@@ -307,6 +309,10 @@ int main(int argc, char **argv) {
         }
         // Open database
         sm_manager->open_db(db_name);
+
+        // 设置并发控制模式为MVCC
+        txn_manager->set_concurrency_mode(ConcurrencyMode::MVCC);
+        std::cout << "Concurrency mode set to MVCC" << std::endl;
 
         // recovery database
         recovery->analyze();

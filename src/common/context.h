@@ -15,7 +15,8 @@ See the Mulan PSL v2 for more details. */
 #include "recovery/log_manager.h"
 #include "parser/ast.h"
 
-// class TransactionManager;
+class TransactionManager;
+class SmManager;
 
 // used for data_send
 static int const_offset = -1;
@@ -29,7 +30,8 @@ public:
             ellipsis_ = false;
           }
 
-    // TransactionManager *txn_mgr_;
+    TransactionManager *txn_mgr_ = nullptr;
+    SmManager *sm_manager_ = nullptr;
     LockManager *lock_mgr_;
     LogManager *log_mgr_;
     Transaction *txn_ = nullptr;
@@ -38,4 +40,5 @@ public:
     bool ellipsis_ = false;
     std::shared_ptr<ast::TreeNode> parse_tree;
     std::string output;
+    std::string tab_name_; // 当前操作的表名
 };

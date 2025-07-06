@@ -17,6 +17,8 @@ See the Mulan PSL v2 for more details. */
 #include "system/sm_meta.h"
 #include "index/ix_manager.h"
 #include "analyze/analyze.h"
+#include "transaction/transaction_manager.h" // For MVCC
+#include "transaction/transaction.h"         // For MVCC
 
 class UpdateExecutor : public AbstractExecutor {
    private:
@@ -72,6 +74,28 @@ class UpdateExecutor : public AbstractExecutor {
         }
     }
 
+    // Helper function to create a Value object from a raw record field
+    Value get_value_from_record(const RmRecord* record, const ColMeta& col) {
+        Value val;
+        val.type = col.type;
+        const char* field_ptr = record->data + col.offset;
+        switch (col.type) {
+            case TYPE_INT:
+                val.int_val = *reinterpret_cast<const int*>(field_ptr);
+                break;
+            case TYPE_FLOAT:
+                val.float_val = *reinterpret_cast<const float*>(field_ptr);
+                break;
+            case TYPE_STRING:
+                val.str_val = std::string(field_ptr, col.len);
+                break;
+            default:
+                // Should not happen with a valid schema
+                throw std::runtime_error("Unsupported column type for undo log creation.");
+        }
+        return val;
+    }
+
 public:
     UpdateExecutor(SmManager *sm_manager, const std::string &tab_name,
                    std::vector<SetClause> set_clauses, std::vector<Condition> conds,
@@ -92,26 +116,67 @@ public:
     }
 
     std::unique_ptr<RmRecord> Next() override {
+        // MVCC Check: Ensure we are in a transaction
+        if (context_ == nullptr || context_->txn_ == nullptr || context_->txn_mgr_ == nullptr) {
+            // Fallback or error for non-transactional updates, which shouldn't happen with MVCC.
+            // For simplicity, we'll just throw an error.
+            throw std::runtime_error("MVCC updates must be performed within a transaction.");
+        }
+        auto txn = context_->txn_;
+        auto txn_mgr = context_->txn_mgr_;
+
         // 1. 收集所有满足条件的 rid
         rids_.clear();
         for (scanner_->beginTuple(); !scanner_->is_end(); scanner_->nextTuple()) {
             rids_.push_back(scanner_->rid());
         }
-        // 2. 对 rids_ 做 update（用你前面写的 update 逻辑即可）
+
+        // 2. 对 rids_ 做 update
         for (const Rid &rid : rids_) {
-            std::unique_ptr<RmRecord> record_ptr = fh_->get_record(rid, context_);
-            if (!record_ptr) continue;
-            RmRecord &old_record = *record_ptr;
-            // 生成新记录（先拷贝原数据，再根据 set_clauses 修改）
+            // Get the visible version of the record for the current transaction.
+            // This also performs the write-write conflict check.
+            auto old_record_ptr = fh_->get_record_mvcc(rid, context_);
+            if (!old_record_ptr) {
+                // Record is not visible to this transaction (e.g., created by a concurrent uncommitted txn,
+                // or deleted by a committed txn). Skip it.
+                continue;
+            }
+            RmRecord &old_record = *old_record_ptr;
+
+            // Create an UndoLog to store the old version.
+            TupleMeta old_meta;
+            memcpy(&old_meta, old_record.data, sizeof(TupleMeta));
+
+            UndoLog undo_log;
+            undo_log.ts_ = old_meta.ts_;
+            undo_log.is_deleted_ = old_meta.is_deleted_;
+            for(const auto& col : tab_.cols) {
+                undo_log.tuple_.push_back(get_value_from_record(&old_record, col));
+                undo_log.modified_fields_.push_back(true); // For simplicity, save all fields
+            }
+            
+            // Link the new undo log to the previous version chain.
+            auto prev_undo_link = txn_mgr->GetUndoLink(rid);
+            if(prev_undo_link.has_value()) {
+                undo_log.prev_version_ = *prev_undo_link;
+            }
+            auto new_undo_link = txn->AppendUndoLog(std::move(undo_log));
+
+            // Generate the new record version.
             RmRecord new_record = old_record;
+            // First, update the tuple's meta with the new version info.
+            TupleMeta new_meta;
+            new_meta.ts_ = txn->get_start_ts(); // Use start_ts as a temporary marker. This will be updated to commit_ts on commit.
+            new_meta.is_deleted_ = false;
+            memcpy(new_record.data, &new_meta, sizeof(TupleMeta));
+            
+            // Second, apply the new values from the SET clauses.
             for (const auto &set_clause : set_clauses_) {
                 auto col = get_col(tab_.cols, set_clause.lhs);
                 char *data_ptr = new_record.data + col->offset;
                 
-                // 使用表达式求值
                 Value val = analyzer_->evaluate_expr(set_clause.rhs, &old_record, tab_.cols);
                 
-                // 类型转换
                 if (col->type != val.type) {
                     if (col->type == TYPE_FLOAT && val.type == TYPE_INT) {
                         val.float_val = static_cast<float>(val.int_val);
@@ -127,7 +192,8 @@ public:
                 val.init_raw(col->len);
                 memcpy(data_ptr, val.raw->data, col->len);
             }
-            // 先做唯一性检查（只对新旧key不同才查）
+
+            // Update unique indexes check
             for (auto &index : tab_.indexes) {
                 if (!index.unique) continue;
                 auto ih = sm_manager_->ihs_.at(sm_manager_->get_ix_manager()->get_index_name(tab_name_, index.cols)).get();
@@ -141,7 +207,7 @@ public:
                 }
                 if (memcmp(new_key, old_key, index.col_tot_len) != 0) {
                     std::vector<Rid> rids;
-                    ih->get_value(new_key, &rids, context_ ? context_->txn_ : nullptr);
+                    ih->get_value(new_key, &rids, context_->txn_);
                     if (!rids.empty()) {
                         delete[] new_key; delete[] old_key;
                         throw UniqueIndexViolationError(tab_name_, {});
@@ -149,7 +215,8 @@ public:
                 }
                 delete[] new_key; delete[] old_key;
             }
-            // 只有当索引列被修改时，才更新索引
+
+            // Update indexes
             for (auto &index : tab_.indexes) {
                 auto ih = sm_manager_->ihs_.at(sm_manager_->get_ix_manager()->get_index_name(tab_name_, index.cols)).get();
                 char* new_key = new char[index.col_tot_len];
@@ -161,30 +228,25 @@ public:
                     offset += index.cols[j].len;
                 }
 
-                // 如果索引键没有变化，则跳过此索引
                 if (memcmp(new_key, old_key, index.col_tot_len) == 0) {
-                    delete[] new_key;
-                    delete[] old_key;
+                    delete[] new_key; delete[] old_key;
                     continue;
                 }
 
-                // 索引键有变化，先删除旧的，再插入新的
-                ih->delete_entry(old_key, context_ ? context_->txn_ : nullptr);
-                // 注意：这里直接插入 new_key，而不是在后面的循环中做
-                ih->insert_entry(new_key, rid, context_ ? context_->txn_ : nullptr);
+                ih->delete_entry(old_key, context_->txn_);
+                ih->insert_entry(new_key, rid, context_->txn_);
 
                 delete[] new_key;
                 delete[] old_key;
             }
-            // 写主表新数据
+
+            // Write the new version to the main table (in-place update)
             fh_->update_record(rid, new_record.data, context_);
-            // 事务日志
-            if (context_ != nullptr && context_->txn_ != nullptr) {
-                RmRecord record_copy(old_record.size);
-                memcpy(record_copy.data, old_record.data, old_record.size);
-                WriteRecord* write_record = new WriteRecord(WType::UPDATE_TUPLE, tab_name_, rid, record_copy);
-                context_->txn_->append_write_record(write_record);
-            }
+            
+            // Point the tuple to the new head of its version chain
+            txn_mgr->UpdateUndoLink(rid, std::make_optional(new_undo_link));
+            
+            // The old WriteRecord logic is now replaced by the UndoLog mechanism
         }
         return nullptr;
     }
