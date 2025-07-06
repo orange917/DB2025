@@ -189,6 +189,8 @@ void QlManager::select_from(std::unique_ptr<AbstractExecutor> executorTreeRoot, 
         
         // 用于存储每一列转换后的字符串值
         std::vector<std::string> columns;
+        // 注意：在MVCC模式下，执行器返回的记录可能是ReconstructTuple的结果，
+        // 它已经不包含TupleMeta了，所以不需要额外的偏移量
         // 遍历所有列，将每列的数据转换为字符串格式
         for (auto &col : executorTreeRoot->cols()) {
             std::string col_str;

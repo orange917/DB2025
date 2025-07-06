@@ -79,14 +79,9 @@ class UpdateExecutor : public AbstractExecutor {
         Value val;
         val.type = col.type;
         
-        // 在MVCC模式下，需要考虑TupleMeta的偏移量
-        int tuple_data_offset = 0;
-        if (context_ != nullptr && context_->txn_mgr_ != nullptr && 
-            context_->txn_mgr_->get_concurrency_mode() == ConcurrencyMode::MVCC) {
-            tuple_data_offset = sizeof(TupleMeta);
-        }
-        
-        const char* field_ptr = record->data + tuple_data_offset + col.offset;
+        // 注意：在MVCC模式下，get_record_mvcc返回的记录已经是ReconstructTuple的结果，
+        // 不包含TupleMeta，所以不需要额外的偏移量
+        const char* field_ptr = record->data + col.offset;
         switch (col.type) {
             case TYPE_INT:
                 val.int_val = *reinterpret_cast<const int*>(field_ptr);
@@ -151,9 +146,11 @@ public:
             }
             RmRecord &old_record = *old_record_ptr;
 
-            // Create an UndoLog to store the old version.
+            // 注意：old_record是通过get_record_mvcc返回的，已经是ReconstructTuple的结果，
+            // 不包含TupleMeta。我们需要从文件中读取原始记录来获取TupleMeta
+            auto raw_record = fh_->get_record(rid, context_);
             TupleMeta old_meta;
-            memcpy(&old_meta, old_record.data, sizeof(TupleMeta));
+            memcpy(&old_meta, raw_record->data, sizeof(TupleMeta));
 
             UndoLog undo_log;
             undo_log.ts_ = old_meta.ts_;
@@ -171,19 +168,16 @@ public:
             auto new_undo_link = txn->AppendUndoLog(std::move(undo_log));
 
             // Generate the new record version.
-            RmRecord new_record = old_record;
+            RmRecord new_record = *raw_record;
             // First, update the tuple's meta with the new version info.
             TupleMeta new_meta;
             new_meta.ts_ = txn->get_start_ts(); // Use start_ts as a temporary marker. This will be updated to commit_ts on commit.
             new_meta.is_deleted_ = false;
             memcpy(new_record.data, &new_meta, sizeof(TupleMeta));
             
-            // 在MVCC模式下，需要考虑TupleMeta的偏移量
-            int tuple_data_offset = 0;
-            if (context_ != nullptr && context_->txn_mgr_ != nullptr && 
-                context_->txn_mgr_->get_concurrency_mode() == ConcurrencyMode::MVCC) {
-                tuple_data_offset = sizeof(TupleMeta);
-            }
+            // 注意：new_record仍然包含TupleMeta（它是从get_record_mvcc获取的原始记录的副本），
+            // 所以在更新时仍需要跳过TupleMeta
+            int tuple_data_offset = sizeof(TupleMeta);
             
             // Second, apply the new values from the SET clauses.
             for (const auto &set_clause : set_clauses_) {
@@ -217,7 +211,7 @@ public:
                 int offset = 0;
                 for (size_t j = 0; j < index.col_num; ++j) {
                     memcpy(new_key + offset, new_record.data + tuple_data_offset + index.cols[j].offset, index.cols[j].len);
-                    memcpy(old_key + offset, old_record.data + tuple_data_offset + index.cols[j].offset, index.cols[j].len);
+                    memcpy(old_key + offset, old_record.data + index.cols[j].offset, index.cols[j].len);  // old_record没有TupleMeta
                     offset += index.cols[j].len;
                 }
                 if (memcmp(new_key, old_key, index.col_tot_len) != 0) {
@@ -239,7 +233,7 @@ public:
                 int offset = 0;
                 for (size_t j = 0; j < index.col_num; ++j) {
                     memcpy(new_key + offset, new_record.data + tuple_data_offset + index.cols[j].offset, index.cols[j].len);
-                    memcpy(old_key + offset, old_record.data + tuple_data_offset + index.cols[j].offset, index.cols[j].len);
+                    memcpy(old_key + offset, old_record.data + index.cols[j].offset, index.cols[j].len);  // old_record没有TupleMeta
                     offset += index.cols[j].len;
                 }
 
@@ -259,7 +253,10 @@ public:
             fh_->update_record(rid, new_record.data, context_);
             
             // Point the tuple to the new head of its version chain
-            txn_mgr->UpdateUndoLink(rid, std::make_optional(new_undo_link));
+            VersionUndoLink version_link;
+            version_link.prev_ = new_undo_link;
+            version_link.in_progress_ = true;
+            txn_mgr->UpdateVersionLink(rid, std::make_optional(version_link));
             
             // The old WriteRecord logic is now replaced by the UndoLog mechanism
         }

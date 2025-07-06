@@ -47,7 +47,15 @@ class InsertExecutor : public AbstractExecutor {
             context_->txn_mgr_->get_concurrency_mode() == ConcurrencyMode::MVCC) {
             // 在记录前面设置TupleMeta
             TupleMeta meta;
-            meta.ts_ = context_->txn_->get_start_ts();
+            
+            // 如果有事务上下文，使用事务的开始时间戳；否则使用时间戳0
+            if (context_->txn_ != nullptr) {
+                meta.ts_ = context_->txn_->get_start_ts();
+            } else {
+                // 对于非事务的INSERT（自动提交），使用时间戳0
+                meta.ts_ = 0;
+            }
+            
             meta.is_deleted_ = false;
             memcpy(rec.data, &meta, sizeof(TupleMeta));
             tuple_data_offset = sizeof(TupleMeta);

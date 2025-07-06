@@ -132,14 +132,9 @@ class SeqScanExecutor : public AbstractExecutor {
         // 获取左操作数值
         auto lhs_col = get_col(cols, cond.lhs_col);
         
-        // 在MVCC模式下，需要跳过TupleMeta结构体
-        int tuple_data_offset = 0;
-        if (context_ && context_->txn_mgr_ && 
-            context_->txn_mgr_->get_concurrency_mode() == ConcurrencyMode::MVCC) {
-            tuple_data_offset = sizeof(TupleMeta);
-        }
-        
-        const char *lhs_value = rec->data + tuple_data_offset + lhs_col->offset;
+        // 注意：在MVCC模式下，通过get_record_mvcc返回的记录已经是ReconstructTuple的结果，
+        // 不包含TupleMeta，所以不需要额外的偏移量
+        const char *lhs_value = rec->data + lhs_col->offset;
 
         // 根据右操作数是值还是列，进行处理
         if (cond.is_rhs_val) {
@@ -163,7 +158,7 @@ class SeqScanExecutor : public AbstractExecutor {
         } else {
             // 右操作数也是列
             auto rhs_col = get_col(cols, cond.rhs_col);
-            const char *rhs_value = rec->data + tuple_data_offset + rhs_col->offset;
+            const char *rhs_value = rec->data + rhs_col->offset;
             return compare_values(lhs_col->type, lhs_value, rhs_value, cond.op, lhs_col->len);
         }
     }

@@ -293,7 +293,7 @@ std::shared_ptr<Query> Analyze::do_analyze(std::shared_ptr<ast::TreeNode> parse)
         for (auto &set_clause : x->set_clauses) {
             SetClause clause;
             clause.lhs = TabCol(x->tab_name, set_clause->col_name);
-            clause.rhs = set_clause->val;  // 直接使用表达式
+            clause.rhs = set_clause->val;  // 使用现有的val成员，它已经支持表达式
             query->set_clauses.push_back(clause);
         }
         get_clause(x->conds, query->conds);

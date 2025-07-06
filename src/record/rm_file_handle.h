@@ -18,6 +18,7 @@ See the Mulan PSL v2 for more details. */
 #include "common/context.h"
 #include "rm_defs.h"
 #include "rm_scan.h"
+#include "transaction/transaction.h"
 
 class RmManager;
 
@@ -120,4 +121,7 @@ class RmFileHandle {
     RmPageHandle create_page_handle();
 
     void release_page_handle(RmPageHandle &page_handle);
+    
+    // MVCC相关的辅助函数
+    std::unique_ptr<RmRecord> ReconstructTupleFromUndoLog(const UndoLog& undo_log) const;
 };

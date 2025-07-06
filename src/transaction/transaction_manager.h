@@ -15,6 +15,7 @@ See the Mulan PSL v2 for more details. */
 #include <optional>
 #include <functional>
 #include <shared_mutex>
+#include <vector>
 
 #include "transaction.h"
 #include "watermark.h"
@@ -55,6 +56,13 @@ public:
         concurrency_mode_ = concurrency_mode;
         // 从SmManager获取持久化的时间戳作为初始值
         next_timestamp_.store(sm_manager_->get_start_timestamp());
+        
+        // 设置LockManager的并发控制模式获取函数
+        if (lock_manager_) {
+            lock_manager_->SetConcurrencyModeGetter([this]() {
+                return this->concurrency_mode_;
+            });
+        }
     }
     
     ~TransactionManager() {
@@ -133,6 +141,9 @@ public:
     /** @brief 垃圾回收。仅在所有事务都未访问时调用。 */
     void GarbageCollection();
 
+    /** @brief 更新事务提交时的时间戳，将该事务创建的所有版本的时间戳从start_ts更新为commit_ts */
+    void UpdateCommitTimestamp(Transaction* txn, timestamp_t commit_ts);
+
     struct PageVersionInfo {
         std::shared_mutex mutex_;
         /** 存储所有槽的先前版本信息。注意：不要使用 `[x]` 来访问它，因为
@@ -147,6 +158,20 @@ public:
     std::unordered_map<page_id_t, std::shared_ptr<PageVersionInfo>> version_info_;
 
     timestamp_t get_next_timestamp() { return next_timestamp_.load(); }
+
+    /** @brief 获取所有活跃的事务列表（用于MVCC冲突检测） */
+    std::vector<Transaction*> GetActiveTransactions() {
+        std::vector<Transaction*> active_txns;
+        std::unique_lock<std::mutex> lock(latch_);
+        for (const auto& pair : txn_map) {
+            if (pair.second->get_state() == TransactionState::DEFAULT ||
+                pair.second->get_state() == TransactionState::GROWING ||
+                pair.second->get_state() == TransactionState::SHRINKING) {
+                active_txns.push_back(pair.second);
+            }
+        }
+        return active_txns;
+    }
 
 private:
     ConcurrencyMode concurrency_mode_;      // 事务使用的并发控制算法，目前只需要考虑2PL

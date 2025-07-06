@@ -369,14 +369,9 @@ class IndexScanExecutor : public AbstractExecutor {
     // 获取左操作数值
     auto lhs_col = get_col(cols, cond.lhs_col);
     
-    // 在MVCC模式下，需要跳过TupleMeta结构体
-    int tuple_data_offset = 0;
-    if (context_ && context_->txn_mgr_ && 
-        context_->txn_mgr_->get_concurrency_mode() == ConcurrencyMode::MVCC) {
-        tuple_data_offset = sizeof(TupleMeta);
-    }
-    
-    const char *lhs_value = rec->data + tuple_data_offset + lhs_col->offset;
+    // 注意：在MVCC模式下，通过get_record返回的记录已经是ReconstructTuple的结果，
+    // 不包含TupleMeta，所以不需要额外的偏移量
+    const char *lhs_value = rec->data + lhs_col->offset;
 
     // 增加浮点数比较的容差
     if (lhs_col->type == TYPE_FLOAT) {
@@ -389,7 +384,7 @@ class IndexScanExecutor : public AbstractExecutor {
             memcpy(&rhs_float, cond.rhs_val.raw->data, sizeof(float));
         } else {
             auto rhs_col = get_col(cols, cond.rhs_col);
-            const char *rhs_value = rec->data + tuple_data_offset + rhs_col->offset;
+            const char *rhs_value = rec->data + rhs_col->offset;
             memcpy(&rhs_float, rhs_value, sizeof(float));
         }
 
@@ -422,7 +417,7 @@ class IndexScanExecutor : public AbstractExecutor {
     } else {
       // 右操作数也是列
       auto rhs_col = get_col(cols, cond.rhs_col);
-      const char *rhs_value = rec->data + tuple_data_offset + rhs_col->offset;
+      const char *rhs_value = rec->data + rhs_col->offset;
       int cmp_res = ix_compare(lhs_value, rhs_value, lhs_col->type, lhs_col->len);
       
       switch (cond.op) {

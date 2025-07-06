@@ -12,7 +12,11 @@ See the Mulan PSL v2 for more details. */
 
 #include <mutex>
 #include <condition_variable>
+#include <functional>
 #include "transaction/transaction.h"
+
+// 前向声明
+enum class ConcurrencyMode;
 
 static const std::string GroupLockModeStr[10] = {"NON_LOCK", "IS", "IX", "S", "X", "SIX"};
 
@@ -47,6 +51,11 @@ public:
 
     ~LockManager() {}
 
+    /** @brief 设置并发控制模式访问函数 */
+    void SetConcurrencyModeGetter(std::function<ConcurrencyMode()> getter) {
+        get_concurrency_mode_ = getter;
+    }
+
     bool lock_shared_on_record(Transaction* txn, const Rid& rid, int tab_fd);
 
     bool lock_exclusive_on_record(Transaction* txn, const Rid& rid, int tab_fd);
@@ -64,4 +73,10 @@ public:
 private:
     std::mutex latch_;      // 用于锁表的并发
     std::unordered_map<LockDataId, LockRequestQueue> lock_table_;   // 全局锁表
+    
+    /** @brief 获取当前并发控制模式的函数 */
+    std::function<ConcurrencyMode()> get_concurrency_mode_;
+    
+    /** @brief 检查当前是否为MVCC模式 */
+    bool IsMVCCMode();
 };

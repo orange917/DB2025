@@ -9,8 +9,11 @@ MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
 See the Mulan PSL v2 for more details. */
 
 #include "execution_common.h"
+#include "common/config.h"
+#include "defs.h"
 #include "record/rm_defs.h"
 #include "record/rm.h"
+#include "system/sm.h"
 
 /**
  * @brief 根据撤销日志重建元组
@@ -85,16 +88,34 @@ auto ReconstructTuple(const TabMeta *schema, const RmRecord &base_tuple, const T
  * @brief 检查是否存在写-写冲突
  * @param tuple_ts 元组的时间戳
  * @param txn 当前事务
+ * @param txn_mgr 事务管理器
  * @return 如果存在冲突返回true，否则返回false
  */
-auto IsWriteWriteConflict(timestamp_t tuple_ts, Transaction *txn) -> bool {
+auto IsWriteWriteConflict(timestamp_t tuple_ts, Transaction *txn, TransactionManager *txn_mgr) -> bool {
     // 如果时间戳无效，说明这是一个未正确初始化的元组，不应该有冲突
     if (tuple_ts == INVALID_TS || tuple_ts == 0) {
         return false;
     }
     
-    // 如果元组的时间戳大于事务的开始时间戳，说明在事务开始后元组被修改过
-    // 但是如果元组的时间戳等于当前事务的开始时间戳，说明这是当前事务创建的，不应该有冲突
+    // 如果元组的时间戳等于当前事务的开始时间戳，说明这是当前事务创建的，不应该有冲突
+    if (tuple_ts == txn->get_start_ts()) {
+        return false;
+    }
+    
+    // 情况1：元组的时间戳属于另一个未提交的事务
+    // 检查这个时间戳是否属于一个未提交的事务
+    if (txn_mgr != nullptr) {
+        // 检查所有活跃事务的时间戳
+        for (const auto& active_txn : txn_mgr->GetActiveTransactions()) {
+            if (active_txn->get_start_ts() == tuple_ts) {
+                // 找到了拥有该时间戳的未提交事务
+                return true;
+            }
+        }
+    }
+    
+    // 情况2：元组的时间戳属于另一个已提交的事务，且该事务的提交时间戳大于当前事务的读时间戳
+    // 在快照隔离中，如果元组的时间戳大于事务的开始时间戳，说明在事务开始后元组被修改过
     if (tuple_ts > txn->get_start_ts()) {
         return true;
     }
