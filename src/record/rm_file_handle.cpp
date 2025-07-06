@@ -314,6 +314,12 @@ std::unique_ptr<RmRecord> RmFileHandle::get_record_mvcc(const Rid& rid, Context*
     // 获取当前事务
     Transaction* txn = context->txn_;
     
+    // 在读取记录之前，先获取排他锁（X-Lock）
+    if (!context->lock_mgr_->lock_exclusive_on_record(txn, rid, fd_)) {
+        // 如果无法获取锁，说明存在冲突，事务需要中止
+        throw TransactionAbortException(txn->get_transaction_id(), AbortReason::UPGRADE_CONFLICT);
+    }
+    
     // 获取记录所在的页面
     RmPageHandle page_handle = fetch_page_handle(rid.page_no);
     if (page_handle.page == nullptr) {
@@ -372,12 +378,12 @@ std::unique_ptr<RmRecord> RmFileHandle::get_record_mvcc(const Rid& rid, Context*
     // 释放页面
     buffer_pool_manager_->unpin_page(page_handle.page->get_page_id(), false);
     
-    // 如果没有表元数据或没有撤销日志，直接返回原始记录
-    if (tab_meta == nullptr || undo_logs.empty()) {
+    // 如果没有表元数据，直接返回原始记录
+    if (tab_meta == nullptr) {
         return record;
     }
     
-    // 根据撤销日志重建元组
+    // 根据撤销日志重建元组（即使没有撤销日志也要调用，以确保记录格式一致）
     auto reconstructed_record = ReconstructTuple(tab_meta, *record, tuple_meta, undo_logs);
     
     // 如果元组不可见，返回nullptr

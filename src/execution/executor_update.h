@@ -78,7 +78,15 @@ class UpdateExecutor : public AbstractExecutor {
     Value get_value_from_record(const RmRecord* record, const ColMeta& col) {
         Value val;
         val.type = col.type;
-        const char* field_ptr = record->data + col.offset;
+        
+        // 在MVCC模式下，需要考虑TupleMeta的偏移量
+        int tuple_data_offset = 0;
+        if (context_ != nullptr && context_->txn_mgr_ != nullptr && 
+            context_->txn_mgr_->get_concurrency_mode() == ConcurrencyMode::MVCC) {
+            tuple_data_offset = sizeof(TupleMeta);
+        }
+        
+        const char* field_ptr = record->data + tuple_data_offset + col.offset;
         switch (col.type) {
             case TYPE_INT:
                 val.int_val = *reinterpret_cast<const int*>(field_ptr);
@@ -170,10 +178,17 @@ public:
             new_meta.is_deleted_ = false;
             memcpy(new_record.data, &new_meta, sizeof(TupleMeta));
             
+            // 在MVCC模式下，需要考虑TupleMeta的偏移量
+            int tuple_data_offset = 0;
+            if (context_ != nullptr && context_->txn_mgr_ != nullptr && 
+                context_->txn_mgr_->get_concurrency_mode() == ConcurrencyMode::MVCC) {
+                tuple_data_offset = sizeof(TupleMeta);
+            }
+            
             // Second, apply the new values from the SET clauses.
             for (const auto &set_clause : set_clauses_) {
                 auto col = get_col(tab_.cols, set_clause.lhs);
-                char *data_ptr = new_record.data + col->offset;
+                char *data_ptr = new_record.data + tuple_data_offset + col->offset;
                 
                 Value val = analyzer_->evaluate_expr(set_clause.rhs, &old_record, tab_.cols);
                 
@@ -201,8 +216,8 @@ public:
                 char* old_key = new char[index.col_tot_len];
                 int offset = 0;
                 for (size_t j = 0; j < index.col_num; ++j) {
-                    memcpy(new_key + offset, new_record.data + index.cols[j].offset, index.cols[j].len);
-                    memcpy(old_key + offset, old_record.data + index.cols[j].offset, index.cols[j].len);
+                    memcpy(new_key + offset, new_record.data + tuple_data_offset + index.cols[j].offset, index.cols[j].len);
+                    memcpy(old_key + offset, old_record.data + tuple_data_offset + index.cols[j].offset, index.cols[j].len);
                     offset += index.cols[j].len;
                 }
                 if (memcmp(new_key, old_key, index.col_tot_len) != 0) {
@@ -223,8 +238,8 @@ public:
                 char* old_key = new char[index.col_tot_len];
                 int offset = 0;
                 for (size_t j = 0; j < index.col_num; ++j) {
-                    memcpy(new_key + offset, new_record.data + index.cols[j].offset, index.cols[j].len);
-                    memcpy(old_key + offset, old_record.data + index.cols[j].offset, index.cols[j].len);
+                    memcpy(new_key + offset, new_record.data + tuple_data_offset + index.cols[j].offset, index.cols[j].len);
+                    memcpy(old_key + offset, old_record.data + tuple_data_offset + index.cols[j].offset, index.cols[j].len);
                     offset += index.cols[j].len;
                 }
 

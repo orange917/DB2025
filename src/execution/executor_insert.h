@@ -40,6 +40,19 @@ class InsertExecutor : public AbstractExecutor {
     std::unique_ptr<RmRecord> Next() override {
         // Make record buffer
         RmRecord rec(fh_->get_file_hdr().record_size);
+        
+        // 在MVCC模式下，需要在记录前面预留TupleMeta空间
+        int tuple_data_offset = 0;
+        if (context_ != nullptr && context_->txn_mgr_ != nullptr && 
+            context_->txn_mgr_->get_concurrency_mode() == ConcurrencyMode::MVCC) {
+            // 在记录前面设置TupleMeta
+            TupleMeta meta;
+            meta.ts_ = context_->txn_->get_start_ts();
+            meta.is_deleted_ = false;
+            memcpy(rec.data, &meta, sizeof(TupleMeta));
+            tuple_data_offset = sizeof(TupleMeta);
+        }
+        
         for (size_t i = 0; i < values_.size(); i++) {
             auto &col = tab_.cols[i];
             auto &val = values_[i];
@@ -60,7 +73,7 @@ class InsertExecutor : public AbstractExecutor {
             }
 
             val.init_raw(col.len);
-            memcpy(rec.data + col.offset, val.raw->data, col.len);
+            memcpy(rec.data + tuple_data_offset + col.offset, val.raw->data, col.len);
         }
         // Insert into record file
         rid_ = fh_->insert_record(rec.data, context_);
@@ -85,7 +98,7 @@ class InsertExecutor : public AbstractExecutor {
                 char* key = new char[index.col_tot_len];
                 int offset = 0;
                 for(size_t i = 0; i < index.col_num; ++i) {
-                    memcpy(key + offset, rec.data + index.cols[i].offset, index.cols[i].len);
+                    memcpy(key + offset, rec.data + tuple_data_offset + index.cols[i].offset, index.cols[i].len);
                     offset += index.cols[i].len;
                 }
                 ih->insert_entry(key, rid_, context_->txn_);

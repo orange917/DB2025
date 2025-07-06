@@ -11,6 +11,7 @@ See the Mulan PSL v2 for more details. */
 #include "analyze.h"
 #include "defs.h"
 #include "optimizer/planner.h"  // 包含 OrderByCol 的完整定义
+#include "record/rm_defs.h"     // 包含 TupleMeta 结构体定义
 
 /**
  * @description: 分析器，进行语义分析和查询重写，需要检查不符合语义规定的部分
@@ -510,7 +511,24 @@ Value Analyze::evaluate_expr(const std::shared_ptr<ast::TreeNode> &expr, const R
     } else if (auto col = std::dynamic_pointer_cast<ast::Col>(expr)) {
         // 列引用，从当前记录中获取值
         auto col_meta = get_col(cols, TabCol(col->tab_name, col->col_name));
-        const char *data = record->data + col_meta->offset;
+        
+        // 在MVCC模式下，需要跳过TupleMeta结构体
+        int tuple_data_offset = 0;
+        // 注意：这里需要从Context中获取事务管理器信息
+        // 由于这个函数没有直接访问Context，我们需要检查记录是否包含TupleMeta
+        // 一个简单的方法是检查记录大小是否大于预期的数据大小
+        // 但更好的方法是传递Context参数或者使用全局状态
+        // 这里我们采用检查记录大小的方法
+        size_t expected_data_size = 0;
+        for (const auto& col : cols) {
+            expected_data_size = std::max(expected_data_size, static_cast<size_t>(col.offset + col.len));
+        }
+        if (record->size > expected_data_size) {
+            // 记录大小大于预期，可能包含TupleMeta
+            tuple_data_offset = sizeof(TupleMeta);
+        }
+        
+        const char *data = record->data + tuple_data_offset + col_meta->offset;
         
         Value result;
         switch (col_meta->type) {

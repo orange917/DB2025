@@ -18,7 +18,9 @@ See the Mulan PSL v2 for more details. */
 
 #include "index/ix.h"
 #include "record/rm.h"
+#include "record/rm_defs.h"
 #include "record_printer.h"
+#include "transaction/transaction_manager.h"
 
 /**
  * @description: 判断是否为一个文件夹
@@ -257,6 +259,14 @@ void SmManager::create_table(const std::string& tab_name, const std::vector<ColD
 
     // 创建并打开记录文件
     int record_size = curr_offset;
+    
+    // 在MVCC模式下，记录前面需要包含TupleMeta结构体
+    // 检查是否有事务管理器且处于MVCC模式
+    if (context != nullptr && context->txn_mgr_ != nullptr && 
+        context->txn_mgr_->get_concurrency_mode() == ConcurrencyMode::MVCC) {
+        record_size += sizeof(TupleMeta);
+    }
+    
     try {
         rm_manager_->create_file(tab_name, record_size);
         db_.tabs_[tab_name] = tab;
@@ -425,8 +435,16 @@ void SmManager::drop_table(const std::string& tab_name, Context* context) {
                 // 从记录中提取键值并插入到索引中
                 char* key = new char[index_meta.col_tot_len];
                 int offset = 0;
+                
+                // 在MVCC模式下，记录前面有TupleMeta结构体，需要跳过
+                int tuple_data_offset = 0;
+                if (context != nullptr && context->txn_mgr_ != nullptr && 
+                    context->txn_mgr_->get_concurrency_mode() == ConcurrencyMode::MVCC) {
+                    tuple_data_offset = sizeof(TupleMeta);
+                }
+                
                 for (const auto& col : cols) {
-                    memcpy(key + offset, record->data + col.offset, col.len);
+                    memcpy(key + offset, record->data + tuple_data_offset + col.offset, col.len);
                     offset += col.len;
                 }
                 ihs_[index_name]->insert_entry(key, rid, nullptr); // 若唯一性冲突会抛异常

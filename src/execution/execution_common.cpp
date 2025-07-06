@@ -27,14 +27,22 @@ auto ReconstructTuple(const TabMeta *schema, const RmRecord &base_tuple, const T
         return std::nullopt;
     }
     
-    // 如果没有撤销日志，直接返回原始元组
-    if (undo_logs.empty()) {
-        return base_tuple;
-    }
+    // 计算不包含TupleMeta的记录大小
+    int data_size = base_tuple.size - sizeof(TupleMeta);
     
-    // 创建新的记录
-    RmRecord new_tuple(base_tuple.size);
-    memcpy(new_tuple.data, base_tuple.data, base_tuple.size);
+    // 创建新的记录（不包含TupleMeta）
+    RmRecord new_tuple(data_size);
+    
+    // 在MVCC模式下，数据部分需要跳过TupleMeta
+    int tuple_data_offset = sizeof(TupleMeta);
+    
+    // 首先复制基础元组的数据部分（跳过TupleMeta）
+    memcpy(new_tuple.data, base_tuple.data + tuple_data_offset, data_size);
+    
+    // 如果没有撤销日志，直接返回只包含数据的记录
+    if (undo_logs.empty()) {
+        return new_tuple;
+    }
     
     // 应用撤销日志中的修改
     for (const auto &log : undo_logs) {
@@ -46,7 +54,7 @@ auto ReconstructTuple(const TabMeta *schema, const RmRecord &base_tuple, const T
         // 应用修改的字段
         for (size_t i = 0; i < log.modified_fields_.size(); i++) {
             if (log.modified_fields_[i]) {
-                // 获取字段的偏移量和类型
+                // 获取字段的偏移量和类型（注意：这里不需要加tuple_data_offset，因为new_tuple已经不包含TupleMeta）
                 int offset = schema->cols[i].offset;
                 int len = schema->cols[i].len;
                 ColType type = schema->cols[i].type;
@@ -80,6 +88,16 @@ auto ReconstructTuple(const TabMeta *schema, const RmRecord &base_tuple, const T
  * @return 如果存在冲突返回true，否则返回false
  */
 auto IsWriteWriteConflict(timestamp_t tuple_ts, Transaction *txn) -> bool {
-    // 如果元组的时间戳大于事务的开始时间戳，说明在事务开始后元组被修改过，存在冲突
-    return tuple_ts > txn->get_start_ts();
+    // 如果时间戳无效，说明这是一个未正确初始化的元组，不应该有冲突
+    if (tuple_ts == INVALID_TS || tuple_ts == 0) {
+        return false;
+    }
+    
+    // 如果元组的时间戳大于事务的开始时间戳，说明在事务开始后元组被修改过
+    // 但是如果元组的时间戳等于当前事务的开始时间戳，说明这是当前事务创建的，不应该有冲突
+    if (tuple_ts > txn->get_start_ts()) {
+        return true;
+    }
+    
+    return false;
 } 
