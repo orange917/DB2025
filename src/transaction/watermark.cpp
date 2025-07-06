@@ -12,8 +12,40 @@ See the Mulan PSL v2 for more details. */
 
 
 auto Watermark::AddTxn(timestamp_t read_ts) -> void {
+    current_reads_[read_ts]++;
+    
+    if (read_ts < watermark_) {
+        watermark_ = read_ts;
+    }
 }
 
 auto Watermark::RemoveTxn(timestamp_t read_ts) -> void {
+    auto it = current_reads_.find(read_ts);
+    if (it != current_reads_.end()) {
+        it->second--;
+        
+        if (it->second == 0) {
+            current_reads_.erase(it);
+            
+            if (read_ts == watermark_) {
+                if (current_reads_.empty()) {
+                    watermark_ = commit_ts_;
+                } else {
+                    watermark_ = current_reads_.begin()->first;
+                }
+            }
+        }
+    }
+}
 
+auto Watermark::UpdateCommitTs(timestamp_t commit_ts) -> void {
+    commit_ts_ = commit_ts;
+    
+    if (current_reads_.empty()) {
+        watermark_ = commit_ts_;
+    }
+}
+
+auto Watermark::GetWatermark() -> timestamp_t {
+    return watermark_;
 }
