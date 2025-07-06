@@ -14,6 +14,8 @@ See the Mulan PSL v2 for more details. */
 #include <string>
 #include <vector>
 #include <iomanip>
+#include <algorithm>
+#include <set>
 
 #include "execution/executor_delete.h"
 #include "execution/executor_index_scan.h"
@@ -220,8 +222,8 @@ std::shared_ptr<Plan> pop_scan(int *scantbl, std::string table, std::vector<std:
 
 std::shared_ptr<Query> Planner::logical_optimization(std::shared_ptr<Query> query, Context *context)
 {
-    // 投影下推优化：分析每个表需要的列
-    if (query->has_join && !query->jointree.empty()) {
+    // 投影下推优化：分析每个表需要的列，但是当SELECT *时不进行投影下推
+    if (query->has_join && !query->jointree.empty() && !query->is_select_all) {
         // 初始化每个表的列列表
         for (const auto& table : query->tables) {
             query->table_projections[table] = std::vector<TabCol>();
@@ -384,8 +386,8 @@ std::shared_ptr<Plan> Planner::build_join_plan(std::shared_ptr<Query> query, con
             scan_plan = std::make_shared<FilterPlan>(scan_plan, curr_conds);
         }
         
-        // 投影下推：在Scan上方添加Project节点
-        if (query->table_projections.count(tables[i]) && !query->table_projections[tables[i]].empty()) {
+        // 投影下推：在Scan上方添加Project节点，但是当SELECT *时不添加
+        if (!query->is_select_all && query->table_projections.count(tables[i]) && !query->table_projections[tables[i]].empty()) {
             scan_plan = std::make_shared<ProjectionPlan>(T_Projection, scan_plan, query->table_projections[tables[i]]);
         }
         
@@ -490,8 +492,8 @@ std::shared_ptr<Plan> Planner::make_one_rel(std::shared_ptr<Query> query)
             scan_plan = std::make_shared<FilterPlan>(scan_plan, curr_conds);
         }
         
-        // 投影下推：在Scan上方添加Project节点
-        if (query->table_projections.count(tables[i]) && !query->table_projections[tables[i]].empty()) {
+        // 投影下推：在Scan上方添加Project节点，但是当SELECT *时不添加
+        if (!query->is_select_all && query->table_projections.count(tables[i]) && !query->table_projections[tables[i]].empty()) {
             scan_plan = std::make_shared<ProjectionPlan>(T_Projection, scan_plan, query->table_projections[tables[i]]);
         }
         
@@ -531,20 +533,52 @@ std::shared_ptr<Plan> Planner::make_one_rel(std::shared_ptr<Query> query)
     }
     // 3. 按顺序左深树 join
     std::shared_ptr<Plan> plan = join_order[0];
+    
     for (size_t i = 1; i < join_order.size(); ++i) {
-        // 查找连接条件
+        // 查找连接条件：新表与左子树中所有表的连接条件
         std::vector<Condition> join_conds;
+        std::string new_table = join_order_names[i];
+        
+        // 收集左子树中的所有表名
+        std::set<std::string> left_tables;
+        std::function<void(const Plan*)> collect_left_tables = [&](const Plan* p) {
+            if (auto scan = dynamic_cast<const ScanPlan*>(p)) {
+                left_tables.insert(scan->tab_name_);
+            } else if (auto filter = dynamic_cast<const FilterPlan*>(p)) {
+                collect_left_tables(filter->subplan_.get());
+            } else if (auto projection = dynamic_cast<const ProjectionPlan*>(p)) {
+                collect_left_tables(projection->subplan_.get());
+            } else if (auto join = dynamic_cast<const JoinPlan*>(p)) {
+                collect_left_tables(join->left_.get());
+                collect_left_tables(join->right_.get());
+            }
+        };
+        collect_left_tables(plan.get());
+        
+        // 查找涉及新表和左子树中任意表的连接条件
         auto it = query->conds.begin();
         while (it != query->conds.end()) {
-            if (!it->is_rhs_val &&
-                ((it->lhs_col.tab_name == join_order_names[i-1] && it->rhs_col.tab_name == join_order_names[i]) ||
-                 (it->rhs_col.tab_name == join_order_names[i-1] && it->lhs_col.tab_name == join_order_names[i]))) {
-                join_conds.push_back(*it);
-                it = query->conds.erase(it);
-            } else {
+            bool found_condition = false;
+            if (!it->is_rhs_val) {
+                // 检查条件是否涉及新表和左子树中的表
+                bool lhs_is_new = (it->lhs_col.tab_name == new_table);
+                bool rhs_is_new = (it->rhs_col.tab_name == new_table);
+                bool lhs_in_left = left_tables.count(it->lhs_col.tab_name) > 0;
+                bool rhs_in_left = left_tables.count(it->rhs_col.tab_name) > 0;
+                
+                // 条件连接新表和左子树中的表
+                if ((lhs_is_new && rhs_in_left) || (rhs_is_new && lhs_in_left)) {
+                    join_conds.push_back(*it);
+                    it = query->conds.erase(it);
+                    found_condition = true;
+                }
+            }
+            
+            if (!found_condition) {
                 ++it;
             }
         }
+        
         plan = std::make_shared<JoinPlan>(T_NestLoop, plan, join_order[i], join_conds);
     }
     // 剩余条件加到最外层 join
@@ -637,15 +671,18 @@ std::shared_ptr<Plan> Planner::generate_select_plan(std::shared_ptr<Query> query
         }
         
         sel_cols = std::move(agg_sel_cols);
+        
+        // 对于聚合查询，总是需要ProjectionPlan
+        plannerRoot = std::make_shared<ProjectionPlan>(T_Projection, std::move(plannerRoot), std::move(sel_cols), query->limit_val, query->is_select_all);
     } else {
         // 对于非聚合查询，ORDER BY 在聚合之前处理
         if (query->has_order_by) {
             plannerRoot = generate_sort_plan(query, std::move(plannerRoot));
         }
+        
+        // 无论是否select *，根节点都需要是ProjectionPlan
+        plannerRoot = std::make_shared<ProjectionPlan>(T_Projection, std::move(plannerRoot), std::move(sel_cols), query->limit_val, query->is_select_all);
     }
-
-    // 创建ProjectionPlan，传递limit值和is_select_all标志
-    plannerRoot = std::make_shared<ProjectionPlan>(T_Projection, std::move(plannerRoot), std::move(sel_cols), query->limit_val, query->is_select_all);
     
     return plannerRoot;
 }
@@ -791,7 +828,12 @@ void FilterPlan::Explain(std::ostream& os, int indent) const {
             } else if (cond.rhs_val.type == TYPE_INT) {
                 cond_str += std::to_string(cond.rhs_val.int_val);
             } else if (cond.rhs_val.type == TYPE_FLOAT) {
-                cond_str += std::to_string(cond.rhs_val.float_val);
+                // 如果是整数值，输出为整数格式
+                if (cond.rhs_val.float_val == (int)cond.rhs_val.float_val) {
+                    cond_str += std::to_string((int)cond.rhs_val.float_val);
+                } else {
+                    cond_str += std::to_string(cond.rhs_val.float_val);
+                }
             }
         } else {
             std::string rhs_tab_name = cond.rhs_col.original_tab_name.empty() ? cond.rhs_col.tab_name : cond.rhs_col.original_tab_name;
@@ -848,7 +890,12 @@ void JoinPlan::Explain(std::ostream& os, int indent) const {
             } else if (cond.rhs_val.type == TYPE_INT) {
                 s += std::to_string(cond.rhs_val.int_val);
             } else if (cond.rhs_val.type == TYPE_FLOAT) {
-                s += std::to_string(cond.rhs_val.float_val);
+                // 如果是整数值，输出为整数格式
+                if (cond.rhs_val.float_val == (int)cond.rhs_val.float_val) {
+                    s += std::to_string((int)cond.rhs_val.float_val);
+                } else {
+                    s += std::to_string(cond.rhs_val.float_val);
+                }
             }
         } else {
             std::string rhs_tab_name = cond.rhs_col.original_tab_name.empty() ? cond.rhs_col.tab_name : cond.rhs_col.original_tab_name;
@@ -866,10 +913,19 @@ void JoinPlan::Explain(std::ostream& os, int indent) const {
     os << "]";
     os << ")\n";
     
-    // 递归输出子节点，按表名字典序排序
-    std::vector<std::pair<std::string, std::shared_ptr<Plan>>> child_plans;
+    // 递归输出子节点，按照Filter Join Project Scan的顺序输出
+    std::vector<std::pair<int, std::shared_ptr<Plan>>> child_plans;
     
-    // 收集子节点的表名
+    // 定义节点类型的优先级
+    auto get_plan_priority = [](const Plan* p) -> int {
+        if (dynamic_cast<const FilterPlan*>(p)) return 1;
+        if (dynamic_cast<const JoinPlan*>(p)) return 2;
+        if (dynamic_cast<const ProjectionPlan*>(p)) return 3;
+        if (dynamic_cast<const ScanPlan*>(p)) return 4;
+        return 5; // 其他类型
+    };
+    
+    // 收集子节点的表名（用于排序）
     std::function<std::string(const Plan*)> get_first_table = [&](const Plan* p) -> std::string {
         if (auto scan = dynamic_cast<const ScanPlan*>(p)) {
             return scan->tab_name_;
@@ -884,16 +940,20 @@ void JoinPlan::Explain(std::ostream& os, int indent) const {
     };
     
     if (left_) {
-        std::string left_table = get_first_table(left_.get());
-        child_plans.emplace_back(left_table, left_);
+        child_plans.emplace_back(get_plan_priority(left_.get()), left_);
     }
     if (right_) {
-        std::string right_table = get_first_table(right_.get());
-        child_plans.emplace_back(right_table, right_);
+        child_plans.emplace_back(get_plan_priority(right_.get()), right_);
     }
     
-    // 按表名排序
-    std::sort(child_plans.begin(), child_plans.end());
+    // 按优先级排序，同类型按表名升序排序
+    std::sort(child_plans.begin(), child_plans.end(), [&](const auto& a, const auto& b) {
+        if (a.first != b.first) {
+            return a.first < b.first; // 按类型优先级排序
+        }
+        // 同类型按表名升序排序
+        return get_first_table(a.second.get()) < get_first_table(b.second.get());
+    });
     
     // 输出子节点
     for (const auto& child : child_plans) {
