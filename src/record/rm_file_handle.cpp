@@ -346,9 +346,15 @@ std::unique_ptr<RmRecord> RmFileHandle::get_record_mvcc(const Rid& rid, Context*
 
     Transaction* txn = context->txn_;
 
+    // **调试输出**
+    std::cout << "[DEBUG] get_record_mvcc: txn_id=" << txn->get_transaction_id() 
+              << ", start_ts=" << txn->get_start_ts() 
+              << ", rid=(" << rid.page_no << "," << rid.slot_no << ")" << std::endl;
+
     // 获取原始记录（包含TupleMeta）
     auto raw_record = get_record(rid, context);
     if (!raw_record) {
+        std::cout << "[DEBUG] raw_record is null, returning nullptr" << std::endl;
         return nullptr;
     }
 
@@ -367,9 +373,12 @@ std::unique_ptr<RmRecord> RmFileHandle::get_record_mvcc(const Rid& rid, Context*
         // 对于非MVCC插入的记录，假设它们是时间戳为0的初始数据
         tuple_meta.ts_ = 0;
         tuple_meta.is_deleted_ = false;
+        std::cout << "[DEBUG] Record has no TupleMeta, treating as initial data (ts=0)" << std::endl;
     } else {
         // 记录包含TupleMeta，正常解析
         memcpy(&tuple_meta, raw_record->data, sizeof(TupleMeta));
+        std::cout << "[DEBUG] Record TupleMeta: ts=" << tuple_meta.ts_ 
+                  << ", is_deleted=" << tuple_meta.is_deleted_ << std::endl;
     }
 
     // MVCC可见性检查
@@ -377,6 +386,7 @@ std::unique_ptr<RmRecord> RmFileHandle::get_record_mvcc(const Rid& rid, Context*
 
     // 关键修复：首先处理时间戳为0的初始数据
     if (tuple_meta.ts_ == 0) {
+        std::cout << "[DEBUG] Processing initial data (ts=0)" << std::endl;
         // 时间戳为0的记录是初始数据，对所有事务都可见（除非已被删除）
         if (!tuple_meta.is_deleted_) {
             if (has_tuple_meta) {
@@ -391,33 +401,40 @@ std::unique_ptr<RmRecord> RmFileHandle::get_record_mvcc(const Rid& rid, Context*
                 visible_record->size = raw_record->size;
                 memcpy(visible_record->data, raw_record->data, raw_record->size);
             }
+            std::cout << "[DEBUG] Initial data is visible, returning record" << std::endl;
             return visible_record;
         } else {
             // 初始数据已被删除，返回nullptr
+            std::cout << "[DEBUG] Initial data is deleted, returning nullptr" << std::endl;
             return nullptr;
         }
     }
 
     if (tuple_meta.is_deleted_) {
+        std::cout << "[DEBUG] Record is deleted, checking delete operation visibility" << std::endl;
         // 记录已被删除，检查删除操作的可见性
         if (tuple_meta.ts_ == txn->get_start_ts()) {
             // 当前事务删除的，返回nullptr
+            std::cout << "[DEBUG] Current transaction deleted this record" << std::endl;
             return nullptr;
-        } else if (tuple_meta.ts_ < txn->get_start_ts()) {
-            // 在当前事务开始前删除的，检查是否已提交
-            if (txn_manager->IsCommitted(tuple_meta.ts_)) {
-                return nullptr; // 已提交的删除，不可见
+        } else {
+            // **关键修复**：对于删除操作的可见性检查
+            // 删除操作的可见性规则：如果删除操作对当前事务可见，则记录不可见
+            if (txn_manager->IsCommittedBeforeReadTs(tuple_meta.ts_, txn->get_start_ts())) {
+                // 删除操作在读时间戳之前已提交，记录对当前事务不可见
+                std::cout << "[DEBUG] Delete operation is visible, record not visible" << std::endl;
+                return nullptr;
             } else {
-                // 未提交或已回滚的删除，查找历史版本
+                // 删除操作未提交、已回滚，或在读时间戳之后才提交，查找历史版本
+                std::cout << "[DEBUG] Delete operation not visible, checking history" << std::endl;
                 visible_record = GetVisibleVersionFromHistory(rid, txn, txn_manager);
             }
-        } else {
-            // 在当前事务开始后被其他事务删除的，查找历史版本
-            visible_record = GetVisibleVersionFromHistory(rid, txn, txn_manager);
         }
     } else {
+        std::cout << "[DEBUG] Record is not deleted, checking visibility" << std::endl;
         // 记录未被删除，检查可见性
         if (tuple_meta.ts_ == txn->get_start_ts()) {
+            std::cout << "[DEBUG] Current transaction created/modified this record" << std::endl;
             // 当前事务创建/修改的版本，直接可见
             if (has_tuple_meta) {
                 // 从原始记录中提取数据部分（去掉TupleMeta）
@@ -432,8 +449,10 @@ std::unique_ptr<RmRecord> RmFileHandle::get_record_mvcc(const Rid& rid, Context*
                 memcpy(visible_record->data, raw_record->data, raw_record->size);
             }
         } else if (tuple_meta.ts_ < txn->get_start_ts()) {
+            std::cout << "[DEBUG] Record created before current transaction, checking if committed" << std::endl;
             // 在当前事务开始前的版本，检查是否在读时间戳之前已提交
             if (txn_manager->IsCommittedBeforeReadTs(tuple_meta.ts_, txn->get_start_ts())) {
+                std::cout << "[DEBUG] Record is visible (committed before read)" << std::endl;
                 // 已提交版本，且在快照时间戳之前提交
                 if (has_tuple_meta) {
                     // 从原始记录中提取数据部分（去掉TupleMeta）
@@ -449,9 +468,11 @@ std::unique_ptr<RmRecord> RmFileHandle::get_record_mvcc(const Rid& rid, Context*
                 }
             } else {
                 // 事务未提交、已回滚，或在读时间戳之后才提交，查找历史版本
+                std::cout << "[DEBUG] Record not visible, checking history" << std::endl;
                 visible_record = GetVisibleVersionFromHistory(rid, txn, txn_manager);
             }
         } else {
+            std::cout << "[DEBUG] Record created after current transaction started" << std::endl;
             // tuple_meta.ts_ > txn->get_start_ts()
             // 在当前事务开始后创建的版本，需要更仔细的处理
             
@@ -461,21 +482,25 @@ std::unique_ptr<RmRecord> RmFileHandle::get_record_mvcc(const Rid& rid, Context*
             // 首先检查是否是已回滚的事务创建的版本
             if (txn_manager->is_transaction_aborted(tuple_meta.ts_)) {
                 // 已回滚的事务创建的版本不可见，查找历史版本
+                std::cout << "[DEBUG] Record created by aborted transaction, checking history" << std::endl;
                 visible_record = GetVisibleVersionFromHistory(rid, txn, txn_manager);
             } else {
                 // 检查创建该版本的事务是否已提交
                 if (txn_manager->IsCommitted(tuple_meta.ts_)) {
                     // 虽然已提交，但时间戳大于当前事务开始时间，
                     // 根据MVCC规则，这个版本对当前事务不可见
+                    std::cout << "[DEBUG] Record committed but after read timestamp, checking history" << std::endl;
                     visible_record = GetVisibleVersionFromHistory(rid, txn, txn_manager);
                 } else {
                     // 未提交的版本，查找历史版本
+                    std::cout << "[DEBUG] Record not committed, checking history" << std::endl;
                     visible_record = GetVisibleVersionFromHistory(rid, txn, txn_manager);
                 }
             }
         }
     }
 
+    std::cout << "[DEBUG] Returning " << (visible_record ? "visible record" : "nullptr") << std::endl;
     return visible_record;
 }
 

@@ -47,11 +47,28 @@ Transaction * TransactionManager::begin(Transaction* txn, LogManager* log_manage
         // 使用全局锁来确保时间戳分配的原子性，避免时间戳乱序问题
         std::unique_lock<std::mutex> ts_lock(timestamp_mutex_);
         
-        // 分配读时间戳
-        timestamp_t read_ts = next_timestamp_.fetch_add(1);
+        // **调试输出**
+        timestamp_t current_next = next_timestamp_.load();
+        timestamp_t last_commit = last_commit_ts_.load();
+        std::cout << "[DEBUG] Transaction " << txn->get_transaction_id() 
+                  << " starting - current_next_ts: " << current_next 
+                  << ", last_commit_ts: " << last_commit << std::endl;
+        
+        // **关键修复**：对于快照隔离，事务应该获得一个唯一的开始时间戳
+        // 并且能够看到在其开始之前已经提交的所有数据
+        timestamp_t read_ts;
+        
+        // 为事务分配一个新的时间戳作为开始时间戳
+        // 这样可以确保事务的顺序性和唯一性
+        read_ts = next_timestamp_.fetch_add(1);
+        
         txn->set_start_ts(read_ts);
         
-        // 更新水印
+        // **调试输出**
+        std::cout << "[DEBUG] Transaction " << txn->get_transaction_id() 
+                  << " assigned start_ts: " << read_ts << std::endl;
+        
+        // 更新水印 - 加入活跃事务列表
         running_txns_.AddTxn(read_ts);
         
         ts_lock.unlock();
@@ -91,8 +108,17 @@ void TransactionManager::commit(Transaction* txn, LogManager* log_manager) {
         // 使用全局锁来确保时间戳分配的原子性，避免时间戳乱序问题
         std::unique_lock<std::mutex> ts_lock(timestamp_mutex_);
         
+        // **调试输出**
+        timestamp_t old_next = next_timestamp_.load();
+        std::cout << "[DEBUG] Transaction " << txn->get_transaction_id() 
+                  << " (start_ts: " << txn->get_start_ts() << ") committing - next_ts before: " << old_next << std::endl;
+        
         // 分配提交时间戳
         timestamp_t commit_ts = next_timestamp_.fetch_add(1);
+        
+        // **调试输出**
+        std::cout << "[DEBUG] Transaction " << txn->get_transaction_id() 
+                  << " assigned commit_ts: " << commit_ts << std::endl;
         
         // 更新所有该事务创建的版本链中的时间戳
         UpdateCommitTimestamp(txn, commit_ts);
@@ -103,11 +129,20 @@ void TransactionManager::commit(Transaction* txn, LogManager* log_manager) {
             // 自旋直到成功更新
         }
         
+        // **调试输出**
+        std::cout << "[DEBUG] Updated last_commit_ts to: " << commit_ts << std::endl;
+        
         // 更新水印的提交时间戳
         running_txns_.UpdateCommitTs(commit_ts);
         
         // 从水印中移除事务
         running_txns_.RemoveTxn(txn->get_start_ts());
+        
+        // **新增**：记录已提交事务的时间戳，用于后续可见性检查
+        {
+            std::unique_lock<std::mutex> lock(committed_txns_mutex_);
+            committed_txns_.insert(txn->get_start_ts());
+        }
         
         ts_lock.unlock();
     }
@@ -125,11 +160,15 @@ void TransactionManager::commit(Transaction* txn, LogManager* log_manager) {
     auto lock_set = txn->get_lock_set();
     lock_set->clear();
 
-    // 从全局事务表中移除此事务
-    {
+    // **关键修复**：在MVCC模式下，不要立即删除已提交的事务对象
+    // 因为其他事务可能需要查询其状态来进行可见性检查
+    // 事务对象的清理应该通过垃圾回收机制延迟进行
+    if (concurrency_mode_ != ConcurrencyMode::MVCC) {
+        // 只有在非MVCC模式下才立即从全局事务表中移除此事务
         std::unique_lock<std::mutex> lock(latch_);
         txn_map.erase(txn->get_transaction_id());
     }
+    // 在MVCC模式下，已提交的事务对象将通过垃圾回收机制清理
 }
 
 /**
@@ -410,14 +449,15 @@ void TransactionManager::GarbageCollection() {
     // 获取水印
     timestamp_t watermark = GetWatermark();
     
-    // 清理已回滚事务对象（MVCC模式下的关键修复）
+    // **修复**：清理已提交和已回滚的事务对象（MVCC模式下的关键修复）
     {
         std::unique_lock<std::mutex> lock(latch_);
         auto it = txn_map.begin();
         while (it != txn_map.end()) {
             Transaction* txn = it->second;
-            // 只清理已回滚的事务，且其时间戳小于等于水印（确保没有其他事务在访问）
-            if (txn->get_state() == TransactionState::ABORTED && 
+            // 清理已完成的事务（已提交或已回滚），且其时间戳小于等于水印（确保没有其他事务在访问）
+            if ((txn->get_state() == TransactionState::COMMITTED || 
+                 txn->get_state() == TransactionState::ABORTED) && 
                 txn->get_start_ts() <= watermark) {
                 
                 // 删除事务对象
@@ -436,6 +476,19 @@ void TransactionManager::GarbageCollection() {
         while (it != aborted_txns_.end()) {
             if (*it <= watermark) {
                 it = aborted_txns_.erase(it);
+            } else {
+                ++it;
+            }
+        }
+    }
+    
+    // **新增**：清理已提交事务记录
+    {
+        std::unique_lock<std::mutex> lock(committed_txns_mutex_);
+        auto it = committed_txns_.begin();
+        while (it != committed_txns_.end()) {
+            if (*it <= watermark) {
+                it = committed_txns_.erase(it);
             } else {
                 ++it;
             }
@@ -535,23 +588,38 @@ Transaction* TransactionManager::begin_read_only_snapshot(LogManager* log_manage
     txn->set_state(TransactionState::DEFAULT);
 
     if (concurrency_mode_ == ConcurrencyMode::MVCC) {
-        // 对于只读快照，使用当前所有已提交事务的最高时间戳
-        // 这样可以看到所有已提交的数据，但不会看到任何未提交的数据
+        // **关键修复**：只读快照事务应该使用与普通事务相同的时间戳分配策略
+        // 确保看到一致的已提交数据快照
         std::unique_lock<std::mutex> ts_lock(timestamp_mutex_);
         
-        // 使用当前的last_commit_ts作为读时间戳，而不是next_timestamp
-        // 这确保只能看到已提交的数据，不会看到正在进行的事务的修改
-        timestamp_t read_ts = last_commit_ts_.load();
+        // **调试输出**
+        timestamp_t current_next = next_timestamp_.load();
+        timestamp_t last_commit = last_commit_ts_.load();
+        std::cout << "[DEBUG] Read-only Transaction " << txn->get_transaction_id() 
+                  << " starting - current_next_ts: " << current_next 
+                  << ", last_commit_ts: " << last_commit << std::endl;
         
-        // 如果没有任何已提交的事务，使用0作为读时间戳（只能看到初始数据）
-        if (read_ts == 0) {
-            read_ts = 0;
+        timestamp_t read_ts;
+        
+        // **修复**：只读事务也应该分配唯一的时间戳
+        // 但是可以使用最后提交的时间戳来确保看到最新的已提交数据
+        if (last_commit > 0) {
+            // 使用最后提交的时间戳作为读时间戳，确保看到所有已提交的数据
+            read_ts = last_commit;
+        } else {
+            // 如果没有任何已提交的事务，分配一个新的时间戳
+            read_ts = next_timestamp_.fetch_add(1);
         }
         
         txn->set_start_ts(read_ts);
         
-        // 注意：只读快照事务不需要添加到running_txns_水印中，
+        // **调试输出**
+        std::cout << "[DEBUG] Read-only Transaction " << txn->get_transaction_id() 
+                  << " assigned start_ts: " << read_ts << std::endl;
+        
+        // **重要**：只读快照事务不需要添加到running_txns_水印中，
         // 因为它们不会创建任何新版本，也不会影响垃圾回收
+        // 但如果系统设计需要追踪所有事务，可以选择添加
         
         ts_lock.unlock();
     }

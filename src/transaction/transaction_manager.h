@@ -18,6 +18,7 @@ See the Mulan PSL v2 for more details. */
 #include <vector>
 #include <mutex>
 #include <unordered_set>
+#include <iostream>
 
 #include "transaction.h"
 #include "watermark.h"
@@ -242,40 +243,66 @@ public:
 
     /** @brief 检查指定时间戳的事务是否在给定的读时间戳之前已提交（快照隔离专用） */
     bool IsCommittedBeforeReadTs(timestamp_t ts, timestamp_t read_ts) {
+        // **调试输出**
+        std::cout << "[DEBUG] IsCommittedBeforeReadTs: checking ts=" << ts << " against read_ts=" << read_ts << std::endl;
+        
         // 特殊情况：时间戳为0的版本总是被认为已提交（初始数据）
         if (ts == 0) {
+            std::cout << "[DEBUG] ts=0, returning true (initial data)" << std::endl;
             return true;
         }
         
-        // 首先检查是否在已回滚事务列表中
+        // **关键修复**：如果创建版本的时间戳大于等于读时间戳，则该版本肯定不可见
+        // 这是快照隔离的核心原则：只能看到在事务开始之前的数据
+        if (ts >= read_ts) {
+            std::cout << "[DEBUG] ts >= read_ts, returning false (future or concurrent data)" << std::endl;
+            return false;
+        }
+        
+        // **修复**：首先检查是否在已回滚事务列表中
         {
             std::unique_lock<std::mutex> lock(aborted_txns_mutex_);
             if (aborted_txns_.find(ts) != aborted_txns_.end()) {
+                std::cout << "[DEBUG] ts found in aborted list, returning false" << std::endl;
                 return false; // 已回滚的事务
+            }
+        }
+        
+        // **新增**：检查是否在已提交事务列表中
+        {
+            std::unique_lock<std::mutex> lock(committed_txns_mutex_);
+            if (committed_txns_.find(ts) != committed_txns_.end()) {
+                std::cout << "[DEBUG] ts found in committed list, returning true" << std::endl;
+                return true; // 已提交的事务
             }
         }
         
         // 查找对应的事务对象
         Transaction* txn = get_transaction_by_timestamp(ts);
         if (txn != nullptr) {
-            // 如果事务对象存在，检查其状态和提交时间戳
+            // 如果事务对象存在，检查其状态
             if (txn->get_state() == TransactionState::COMMITTED) {
-                // **快照隔离关键修复**：检查提交时间戳是否在读时间戳之前
-                timestamp_t commit_ts = txn->get_commit_ts();
-                return commit_ts <= read_ts;
+                std::cout << "[DEBUG] txn found, state=COMMITTED, returning true" << std::endl;
+                return true;
             }
-            return false;
+            std::cout << "[DEBUG] txn found but not committed, state=" << static_cast<int>(txn->get_state()) << std::endl;
+            return false; // 未提交的事务
         }
         
         // 如果事务对象不存在，可能已被清理
-        // 这里需要更保守的策略，因为我们无法获得确切的提交时间戳
+        // 对于已被清理的事务，需要保守处理
         timestamp_t watermark = GetWatermark();
-        if (ts < watermark && ts <= read_ts) {
-            // 如果事务时间戳小于水印且小于等于读时间戳，并且不在已回滚列表中
+        if (ts <= watermark) {
+            // 如果事务时间戳小于等于水印，并且不在已回滚列表中
+            // 则认为是已提交的事务（因为只有已提交的事务才会被清理到水印以下）
             std::unique_lock<std::mutex> lock(aborted_txns_mutex_);
-            return aborted_txns_.find(ts) == aborted_txns_.end();
+            bool result = aborted_txns_.find(ts) == aborted_txns_.end();
+            std::cout << "[DEBUG] txn not found but ts <= watermark(" << watermark << "), result=" << result << std::endl;
+            return result;
         }
         
+        // 其他情况保守地认为不可见
+        std::cout << "[DEBUG] default case, returning false" << std::endl;
         return false;
     }
 
@@ -294,4 +321,8 @@ private:
     // 新增：用于跟踪已回滚事务的时间戳，避免在可见性检查时误判为已提交
     std::mutex aborted_txns_mutex_;
     std::unordered_set<timestamp_t> aborted_txns_;  // 存储已回滚事务的时间戳
+    
+    // **新增**：用于跟踪已提交事务的时间戳，提高可见性检查的准确性
+    std::mutex committed_txns_mutex_;
+    std::unordered_set<timestamp_t> committed_txns_;  // 存储已提交事务的时间戳
 };
