@@ -44,12 +44,17 @@ Transaction * TransactionManager::begin(Transaction* txn, LogManager* log_manage
 
     // MVCC支持：分配时间戳并更新水印
     if (concurrency_mode_ == ConcurrencyMode::MVCC) {
+        // 使用全局锁来确保时间戳分配的原子性，避免时间戳乱序问题
+        std::unique_lock<std::mutex> ts_lock(timestamp_mutex_);
+        
         // 分配读时间戳
         timestamp_t read_ts = next_timestamp_.fetch_add(1);
         txn->set_start_ts(read_ts);
         
         // 更新水印
         running_txns_.AddTxn(read_ts);
+        
+        ts_lock.unlock();
     }
 
     // 把开始事务加入到全局事务表中
@@ -83,6 +88,9 @@ void TransactionManager::commit(Transaction* txn, LogManager* log_manager) {
 
     // MVCC支持：分配提交时间戳并更新水印
     if (concurrency_mode_ == ConcurrencyMode::MVCC) {
+        // 使用全局锁来确保时间戳分配的原子性，避免时间戳乱序问题
+        std::unique_lock<std::mutex> ts_lock(timestamp_mutex_);
+        
         // 分配提交时间戳
         timestamp_t commit_ts = next_timestamp_.fetch_add(1);
         
@@ -100,6 +108,8 @@ void TransactionManager::commit(Transaction* txn, LogManager* log_manager) {
         
         // 从水印中移除事务
         running_txns_.RemoveTxn(txn->get_start_ts());
+        
+        ts_lock.unlock();
     }
 
     // 检查事务的状态，更新为已提交状态
@@ -138,60 +148,82 @@ void TransactionManager::abort(Transaction * txn, LogManager *log_manager) {
 
     Context context(lock_manager_, log_manager, txn);
 
-    // MVCC支持：从水印中移除事务
-    if (concurrency_mode_ == ConcurrencyMode::MVCC) {
-        running_txns_.RemoveTxn(txn->get_start_ts());
-    }
-
     // 更新事务状态为已终止
     txn->set_state(TransactionState::ABORTED);
-    
-     // 回滚DDL操作
-     auto ddl_set = txn->get_ddl_set();
-     while (!ddl_set->empty()) {
-        auto ddl_record = ddl_set->back();
-        ddl_set->pop_back(); // 先弹出记录，再尝试补偿
-        try {
-            if (ddl_record->ddl_type_ == DdlType::CREATE_INDEX) {
-                sm_manager_->drop_index(ddl_record->tab_name_, ddl_record->col_names_, &context);
-            } else if (ddl_record->ddl_type_ == DdlType::DROP_INDEX) {
-               // 传递记录的 is_unique_ 属性
-               sm_manager_->create_index(ddl_record->tab_name_, ddl_record->col_names_, &context, ddl_record->is_unique_);
+
+    //从水印中移除事务
+    if (concurrency_mode_ == ConcurrencyMode::MVCC) {
+        running_txns_.RemoveTxn(txn->get_start_ts());
+        
+        // 记录已回滚事务的时间戳，用于后续可见性检查
+        {
+            std::unique_lock<std::mutex> lock(aborted_txns_mutex_);
+            aborted_txns_.insert(txn->get_start_ts());
+        }
+        
+        // 在MVCC模式下，不需要进行物理回滚
+        // 事务回滚通过可见性检查来实现：
+        // 1. 已回滚事务创建的版本对其他事务不可见
+        // 2. 通过版本链访问之前的版本
+        // 这样避免了物理修改数据，保持了MVCC的无锁特性
+        
+        // 重要：在MVCC模式下，不能立即从txn_map中删除事务对象
+        // 因为其他事务可能需要通过版本链访问这个事务的撤销日志
+        // 事务对象的清理应该通过垃圾回收机制延迟进行
+        
+    } else {
+        // 非MVCC模式下的传统回滚逻辑
+        // 回滚DDL操作
+        auto ddl_set = txn->get_ddl_set();
+        while (!ddl_set->empty()) {
+            auto ddl_record = ddl_set->back();
+            ddl_set->pop_back(); // 先弹出记录，再尝试补偿
+            try {
+                if (ddl_record->ddl_type_ == DdlType::CREATE_INDEX) {
+                    sm_manager_->drop_index(ddl_record->tab_name_, ddl_record->col_names_, &context);
+                } else if (ddl_record->ddl_type_ == DdlType::DROP_INDEX) {
+                   // 传递记录的 is_unique_ 属性
+                   sm_manager_->create_index(ddl_record->tab_name_, ddl_record->col_names_, &context, ddl_record->is_unique_);
+                }
+            } catch (const std::exception& e) {
+                // 记录补偿操作失败的日志，但在abort期间不应重新抛出异常，避免中断回滚
+                std::cerr << "Abort: Failed to compensate DDL operation. Error: " << e.what() << std::endl;
             }
-        } catch (const std::exception& e) {
-            // 记录补偿操作失败的日志，但在abort期间不应重新抛出异常，避免中断回滚
-            std::cerr << "Abort: Failed to compensate DDL operation. Error: " << e.what() << std::endl;
+            delete ddl_record;
         }
-        delete ddl_record;
-    }
-    
-    // 回滚所有写操作
-    auto write_set = txn->get_write_set();
-    while (!write_set->empty()) {
-        WriteRecord* record = write_set->back();
-        write_set->pop_back();
+        
+        // 回滚所有写操作
+        auto write_set = txn->get_write_set();
+        while (!write_set->empty()) {
+            WriteRecord* record = write_set->back();
+            write_set->pop_back();
 
-        auto& rm_file = sm_manager_->fhs_.at(record->GetTableName());
-        if(record->GetWriteType() == WType::INSERT_TUPLE) {
-            // 如果是插入操作，删除记录
-            rm_file->delete_record(record->GetRid(), &context);
-        } else if(record->GetWriteType() == WType::UPDATE_TUPLE) {
-            // 如果是更新操作，恢复旧记录
-            rm_file->update_record(record->GetRid(), record->GetRecord().data, &context);
-        } else if(record->GetWriteType() == WType::DELETE_TUPLE) {
-            // 如果是删除操作，插入旧记录
-            rm_file->insert_record(record->GetRecord().data, &context);
+            auto& rm_file = sm_manager_->fhs_.at(record->GetTableName());
+            if(record->GetWriteType() == WType::INSERT_TUPLE) {
+                // 如果是插入操作，删除记录
+                rm_file->delete_record(record->GetRid(), &context);
+            } else if(record->GetWriteType() == WType::DELETE_TUPLE) {
+                // 如果是删除操作，恢复记录
+                rm_file->insert_record(record->GetRid(), record->GetRecord().data);
+            } else if(record->GetWriteType() == WType::UPDATE_TUPLE) {
+                // 如果是更新操作，恢复为原记录
+                rm_file->update_record(record->GetRid(), record->GetRecord().data, &context);
+            }
+            delete record;
         }
-        // 释放写记录资源
-        delete record;
+        
+        // 非MVCC模式下可以立即从全局事务表中移除事务
+        {
+            std::unique_lock<std::mutex> lock(latch_);
+            txn_map.erase(txn->get_transaction_id());
+        }
     }
 
-    // 如果有日志管理器，将日志刷入磁盘
     if (log_manager != nullptr) {
         log_manager->flush_log_to_disk();
     }
 
-    // 清空索引相关资源
+    // 清空索引相关资源  
     auto index_latch_page_set = txn->get_index_latch_page_set();
     while (!index_latch_page_set->empty()) {
         // Page* page = index_latch_page_set->front();
@@ -202,12 +234,6 @@ void TransactionManager::abort(Transaction * txn, LogManager *log_manager) {
     // 释放所有锁资源
     auto lock_set = txn->get_lock_set();
     lock_set->clear();
-
-    // 从全局事务表中移除此事务
-    {
-        std::unique_lock<std::mutex> lock(latch_);
-        txn_map.erase(txn->get_transaction_id());
-    }
 }
 
 /**
@@ -384,6 +410,38 @@ void TransactionManager::GarbageCollection() {
     // 获取水印
     timestamp_t watermark = GetWatermark();
     
+    // 清理已回滚事务对象（MVCC模式下的关键修复）
+    {
+        std::unique_lock<std::mutex> lock(latch_);
+        auto it = txn_map.begin();
+        while (it != txn_map.end()) {
+            Transaction* txn = it->second;
+            // 只清理已回滚的事务，且其时间戳小于等于水印（确保没有其他事务在访问）
+            if (txn->get_state() == TransactionState::ABORTED && 
+                txn->get_start_ts() <= watermark) {
+                
+                // 删除事务对象
+                delete txn;
+                it = txn_map.erase(it);
+            } else {
+                ++it;
+            }
+        }
+    }
+    
+    // 清理已回滚事务记录
+    {
+        std::unique_lock<std::mutex> lock(aborted_txns_mutex_);
+        auto it = aborted_txns_.begin();
+        while (it != aborted_txns_.end()) {
+            if (*it <= watermark) {
+                it = aborted_txns_.erase(it);
+            } else {
+                ++it;
+            }
+        }
+    }
+    
     // 清理版本信息
     std::unique_lock<std::shared_mutex> lock(version_info_mutex_);
     for (auto it = version_info_.begin(); it != version_info_.end();) {
@@ -423,6 +481,9 @@ void TransactionManager::UpdateCommitTimestamp(Transaction* txn, timestamp_t com
     
     timestamp_t start_ts = txn->get_start_ts();
     
+    // 设置事务的提交时间戳
+    txn->set_commit_ts(commit_ts);
+    
     // 更新该事务的所有撤销日志中的时间戳
     size_t undo_log_num = txn->GetUndoLogNum();
     for (size_t i = 0; i < undo_log_num; i++) {
@@ -433,21 +494,38 @@ void TransactionManager::UpdateCommitTimestamp(Transaction* txn, timestamp_t com
         }
     }
     
-    // 更新所有表堆中属于该事务的元组时间戳
+    // 重要修复：更新所有表堆中属于该事务的元组时间戳
     // 遍历所有版本信息，查找属于该事务的版本
     std::shared_lock<std::shared_mutex> lock(version_info_mutex_);
     for (auto& page_pair : version_info_) {
+        page_id_t page_no = page_pair.first;
         auto page_version_info = page_pair.second;
         std::shared_lock<std::shared_mutex> page_lock(page_version_info->mutex_);
         
         for (auto& slot_pair : page_version_info->prev_version_) {
+            slot_offset_t slot_no = slot_pair.first;
             auto& version_link = slot_pair.second;
+            
+            // 检查是否是当前事务创建的版本
             if (version_link.prev_.IsValid() && version_link.prev_.prev_txn_ == txn->get_transaction_id()) {
-                // 这是该事务创建的版本，需要在表堆中更新对应记录的时间戳
+                // 构造Rid，注意类型转换
+                Rid rid = {static_cast<int>(page_no), static_cast<int>(slot_no)};
                 
-                // 由于我们无法直接访问表堆中的记录来更新时间戳，
-                // 我们依赖于下次访问记录时通过撤销日志重建来获得正确的时间戳
-                // 这种设计避免了直接修改已存储的记录数据
+                // 通过SmManager获取对应的RmFileHandle并更新记录时间戳
+                // 这需要我们知道表名，这里我们需要遍历所有表
+                for (auto& fh_pair : sm_manager_->fhs_) {
+                    auto& fh = fh_pair.second;
+                    // 尝试更新该表中的记录（如果record存在于该表中）
+                    try {
+                        // 创建一个临时的Context来调用UpdateRecordCommitTimestamp
+                        Context temp_context(lock_manager_, nullptr, txn);
+                        temp_context.txn_mgr_ = this;
+                        fh->UpdateRecordCommitTimestamp(rid, commit_ts, &temp_context);
+                    } catch (...) {
+                        // 如果记录不在这个表中，忽略错误并继续尝试下一个表
+                        continue;
+                    }
+                }
             }
         }
     }

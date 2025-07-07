@@ -16,6 +16,8 @@ See the Mulan PSL v2 for more details. */
 #include <functional>
 #include <shared_mutex>
 #include <vector>
+#include <mutex>
+#include <unordered_set>
 
 #include "transaction.h"
 #include "watermark.h"
@@ -98,7 +100,11 @@ public:
         auto *res = it->second;
         lock.unlock();
         assert(res != nullptr);
-        assert(res->get_thread_id() == std::this_thread::get_id());
+
+        // 如果不在MVCC模式下，才需要检查线程ID
+        if (concurrency_mode_ != ConcurrencyMode::MVCC) {
+            assert(res->get_thread_id() == std::this_thread::get_id());
+        }
 
         return res;
     }
@@ -173,14 +179,56 @@ public:
         return active_txns;
     }
 
+    /** @brief 根据时间戳查找事务 */
+    Transaction* get_transaction_by_timestamp(timestamp_t ts) {
+        std::unique_lock<std::mutex> lock(latch_);
+        for (const auto& pair : txn_map) {
+            if (pair.second->get_start_ts() == ts) {
+                return pair.second;
+            }
+        }
+        return nullptr;
+    }
+
+    /** @brief 检查指定时间戳的事务是否已回滚 */
+    bool is_transaction_aborted(timestamp_t ts) {
+        std::unique_lock<std::mutex> lock(aborted_txns_mutex_);
+        return aborted_txns_.find(ts) != aborted_txns_.end();
+    }
+
+    /** @brief 检查指定时间戳的事务是否已提交 */
+    bool IsCommitted(timestamp_t ts) {
+        // 如果时间戳小于等于最后提交时间戳，且不在已回滚事务列表中，则认为已提交
+        timestamp_t last_commit = last_commit_ts_.load();
+        if (ts <= last_commit) {
+            // 进一步检查是否在已回滚事务列表中
+            std::unique_lock<std::mutex> lock(aborted_txns_mutex_);
+            return aborted_txns_.find(ts) == aborted_txns_.end();
+        }
+        
+        // 如果时间戳大于最后提交时间戳，检查是否有对应的已提交事务
+        Transaction* txn = get_transaction_by_timestamp(ts);
+        if (txn != nullptr) {
+            return txn->get_state() == TransactionState::COMMITTED;
+        }
+        
+        // 如果找不到事务，且时间戳大于最后提交时间戳，认为未提交
+        return false;
+    }
+
 private:
     ConcurrencyMode concurrency_mode_;      // 事务使用的并发控制算法，目前只需要考虑2PL
     std::atomic<txn_id_t> next_txn_id_{0};  // 用于分发事务ID
     std::atomic<timestamp_t> next_timestamp_;    // 用于分发事务时间戳
     std::mutex latch_;  // 用于txn_map的并发
+    std::mutex timestamp_mutex_;  // 用于保证时间戳分配的原子性，避免时间戳乱序
     SmManager *sm_manager_;
     LockManager *lock_manager_;
 
     std::atomic<timestamp_t> last_commit_ts_{0};    // 最后提交的时间戳,仅用于MVCC
     Watermark running_txns_{0};             // 存储所有正在运行事务的读取时间戳，以便于垃圾回收，仅用于MVCC
+    
+    // 新增：用于跟踪已回滚事务的时间戳，避免在可见性检查时误判为已提交
+    std::mutex aborted_txns_mutex_;
+    std::unordered_set<timestamp_t> aborted_txns_;  // 存储已回滚事务的时间戳
 };

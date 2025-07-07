@@ -117,6 +117,12 @@ class RmFileHandle {
         return std::make_unique<RmScan>(this);
     }
 
+    // 更新记录中的提交时间戳
+    void UpdateRecordCommitTimestamp(const Rid& rid, timestamp_t commit_ts, Context* context);
+    
+    // 检查写-写冲突（专门用于写操作前的检查）
+    bool CheckWriteWriteConflict(const Rid& rid, Context* context) const;
+
    private:
     RmPageHandle create_page_handle();
 
@@ -124,4 +130,5 @@ class RmFileHandle {
     
     // MVCC相关的辅助函数
     std::unique_ptr<RmRecord> ReconstructTupleFromUndoLog(const UndoLog& undo_log) const;
+    std::unique_ptr<RmRecord> GetVisibleVersionFromHistory(const Rid& rid, Transaction* txn, TransactionManager* txn_manager) const;
 };

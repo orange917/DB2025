@@ -241,7 +241,7 @@ std::unique_ptr<AbstractExecutor> QlManager::create_aggregation_executor(
     const std::vector<TabCol>& group_by_cols,
     const std::vector<Condition>& having_conds,
     int limit_val) {
-    
+
     return std::make_unique<AggregationExecutor>(
         std::move(prev), agg_funcs, group_by_cols, having_conds, 
         std::vector<OrderByCol>(), std::vector<bool>(), limit_val);

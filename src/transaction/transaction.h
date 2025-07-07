@@ -80,6 +80,9 @@ class Transaction {
     inline void set_start_ts(timestamp_t start_ts) { start_ts_ = start_ts; }
     inline timestamp_t get_start_ts() { return start_ts_; }
 
+    inline void set_commit_ts(timestamp_t commit_ts) { commit_ts_.store(commit_ts); }
+    inline timestamp_t get_commit_ts() const { return commit_ts_; }
+
     inline IsolationLevel get_isolation_level() { return isolation_level_; }
 
     inline TransactionState get_state() { return state_; }
@@ -103,7 +106,6 @@ class Transaction {
     inline std::shared_ptr<std::unordered_set<LockDataId>> get_lock_set() { return lock_set_; }
 
     inline timestamp_t get_read_ts() const { return read_ts_; }
-    inline timestamp_t get_commit_ts() const { return commit_ts_; }
 
     /** 修改现有的撤销日志 */
     inline auto ModifyUndoLog(int log_idx, UndoLog new_log) {
