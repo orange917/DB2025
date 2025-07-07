@@ -313,7 +313,15 @@ class IndexScanExecutor : public AbstractExecutor {
     // std::cout << "rid = " << scan_->rid() << std::endl;
   
     while (!scan_->is_end()) {
-      auto rcd = fh_->get_record(scan_->rid(), context_);
+      // 根据并发控制模式选择不同的方法获取记录
+      std::unique_ptr<RmRecord> rcd;
+      if (context_ && context_->txn_mgr_ && 
+          context_->txn_mgr_->get_concurrency_mode() == ConcurrencyMode::MVCC) {
+          rcd = fh_->get_record_mvcc(scan_->rid(), context_);
+      } else {
+          rcd = fh_->get_record(scan_->rid(), context_);
+      }
+      
       auto current_rid = scan_->rid();
       if (rcd == nullptr) { // 防止空指针
         // 打印出导致问题的Rid
@@ -334,7 +342,15 @@ class IndexScanExecutor : public AbstractExecutor {
 
   void nextTuple() override {
     for (scan_->next(); !scan_->is_end(); scan_->next()) {
-      auto rcd = fh_->get_record(scan_->rid(), context_);
+      // 根据并发控制模式选择不同的方法获取记录
+      std::unique_ptr<RmRecord> rcd;
+      if (context_ && context_->txn_mgr_ && 
+          context_->txn_mgr_->get_concurrency_mode() == ConcurrencyMode::MVCC) {
+          rcd = fh_->get_record_mvcc(scan_->rid(), context_);
+      } else {
+          rcd = fh_->get_record(scan_->rid(), context_);
+      }
+      
       if (rcd == nullptr) { // 防止空指针
         continue;
       }
@@ -345,7 +361,15 @@ class IndexScanExecutor : public AbstractExecutor {
     }
   }
 
-  std::unique_ptr<RmRecord> Next() override { return fh_->get_record(rid_, context_); }
+  std::unique_ptr<RmRecord> Next() override { 
+    // 根据并发控制模式选择不同的方法获取记录
+    if (context_ && context_->txn_mgr_ && 
+        context_->txn_mgr_->get_concurrency_mode() == ConcurrencyMode::MVCC) {
+        return fh_->get_record_mvcc(rid_, context_);
+    } else {
+        return fh_->get_record(rid_, context_);
+    }
+  }
 
   Rid &rid() override { return rid_; }
 

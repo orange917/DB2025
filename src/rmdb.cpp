@@ -24,6 +24,7 @@ See the Mulan PSL v2 for more details. */
 #include "optimizer/planner.h"
 #include "portal.h"
 #include "analyze/analyze.h"
+#include "parser/ast.h"
 
 #define SOCK_PORT 8765
 #define MAX_CONN_LIMIT 8
@@ -31,7 +32,7 @@ See the Mulan PSL v2 for more details. */
 static bool should_exit = false;
 
 // 构建全局所需的管理器对象
-auto disk_manager = std::make_unique<DiskManager>();
+std::unique_ptr<DiskManager> disk_manager = std::make_unique<DiskManager>();
 auto buffer_pool_manager = std::make_unique<BufferPoolManager>(BUFFER_POOL_SIZE, disk_manager.get());
 auto rm_manager = std::make_unique<RmManager>(disk_manager.get(), buffer_pool_manager.get());
 auto ix_manager = std::make_unique<IxManager>(disk_manager.get(), buffer_pool_manager.get());
@@ -60,12 +61,41 @@ void sigint_handler(int signo) {
 void SetTransaction(txn_id_t *txn_id, Context *context) {
     context->txn_mgr_ = txn_manager.get(); // 设置事务管理器
     context->sm_manager_ = sm_manager.get(); // 设置系统管理器
-    context->txn_ = txn_manager->get_transaction(*txn_id);
-    if(context->txn_ == nullptr || context->txn_->get_state() == TransactionState::COMMITTED ||
-        context->txn_->get_state() == TransactionState::ABORTED) {
-        context->txn_ = txn_manager->begin(nullptr, context->log_mgr_);
-        *txn_id = context->txn_->get_transaction_id();
-        context->txn_->set_txn_mode(false);
+    
+    // 检查是否有活跃的显式事务
+    Transaction* existing_txn = txn_manager->get_transaction(*txn_id);
+    
+    if (existing_txn != nullptr && 
+        existing_txn->get_state() != TransactionState::COMMITTED &&
+        existing_txn->get_state() != TransactionState::ABORTED &&
+        existing_txn->get_txn_mode()) {
+        // 有活跃的显式事务，使用现有事务
+        context->txn_ = existing_txn;
+    } else {
+        // 没有活跃的显式事务，需要创建新事务或使用只读快照
+        
+        // 检查当前语句类型
+        bool is_read_only_stmt = false;
+        if (context->parse_tree) {
+            // 检查是否为只读语句（SELECT）
+            if (std::dynamic_pointer_cast<ast::SelectStmt>(context->parse_tree) ||
+                std::dynamic_pointer_cast<ast::ShowTables>(context->parse_tree) ||
+                std::dynamic_pointer_cast<ast::DescTable>(context->parse_tree)) {
+                is_read_only_stmt = true;
+            }
+        }
+        
+        if (is_read_only_stmt && txn_manager->get_concurrency_mode() == ConcurrencyMode::MVCC) {
+            // 对于MVCC模式下的只读语句，创建一个特殊的只读快照事务
+            // 这个事务的时间戳固定为当前的全局时间戳，确保看到已提交的数据
+            context->txn_ = txn_manager->begin_read_only_snapshot(context->log_mgr_);
+            *txn_id = context->txn_->get_transaction_id();
+        } else {
+            // 对于写操作或非MVCC模式，创建正常的事务
+            context->txn_ = txn_manager->begin(nullptr, context->log_mgr_);
+            *txn_id = context->txn_->get_transaction_id();
+            context->txn_->set_txn_mode(false); // 标记为自动提交事务
+        }
     }
 }
 

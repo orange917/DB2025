@@ -512,23 +512,10 @@ Value Analyze::evaluate_expr(const std::shared_ptr<ast::TreeNode> &expr, const R
         // 列引用，从当前记录中获取值
         auto col_meta = get_col(cols, TabCol(col->tab_name, col->col_name));
         
-        // 在MVCC模式下，需要跳过TupleMeta结构体
-        int tuple_data_offset = 0;
-        // 注意：这里需要从Context中获取事务管理器信息
-        // 由于这个函数没有直接访问Context，我们需要检查记录是否包含TupleMeta
-        // 一个简单的方法是检查记录大小是否大于预期的数据大小
-        // 但更好的方法是传递Context参数或者使用全局状态
-        // 这里我们采用检查记录大小的方法
-        size_t expected_data_size = 0;
-        for (const auto& col : cols) {
-            expected_data_size = std::max(expected_data_size, static_cast<size_t>(col.offset + col.len));
-        }
-        if (record->size > expected_data_size) {
-            // 记录大小大于预期，可能包含TupleMeta
-            tuple_data_offset = sizeof(TupleMeta);
-        }
-        
-        const char *data = record->data + tuple_data_offset + col_meta->offset;
+        // 关键修复：在UpdateExecutor中，传递给evaluate_expr的记录是通过get_record_mvcc返回的
+        // 这些记录已经是不包含TupleMeta的纯数据，所以不需要额外的偏移量
+        // 直接使用列的偏移量即可
+        const char *data = record->data + col_meta->offset;
         
         Value result;
         switch (col_meta->type) {

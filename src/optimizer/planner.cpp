@@ -795,16 +795,14 @@ std::shared_ptr<Plan> Planner::do_planner(std::shared_ptr<Query> query, Context 
         if (index_exist == false) {  // 该表没有索引
         index_col_names.clear();
             table_scan_executors = 
-                std::make_shared<ScanPlan>(T_SeqScan, sm_manager_, x->tab_name, std::vector<Condition>(), index_col_names);
+                std::make_shared<ScanPlan>(T_SeqScan, sm_manager_, x->tab_name, query->conds, index_col_names);
         } else {  // 存在索引
             table_scan_executors =
-                std::make_shared<ScanPlan>(T_IndexScan, sm_manager_, x->tab_name, std::vector<Condition>(), index_col_names);
+                std::make_shared<ScanPlan>(T_IndexScan, sm_manager_, x->tab_name, query->conds, index_col_names);
         }
         
-        // 如果有条件，创建FilterPlan
-        if (!query->conds.empty()) {
-            table_scan_executors = std::make_shared<FilterPlan>(table_scan_executors, query->conds);
-        }
+        // 注意：条件已经在ScanPlan中处理，不需要额外的FilterPlan
+        // 因为我们在scan阶段就应该过滤掉不满足条件的记录
         plannerRoot = std::make_shared<DMLPlan>(T_Update, table_scan_executors, x->tab_name,
                                                      std::vector<Value>(), query->conds, 
                                                      query->set_clauses);

@@ -175,15 +175,18 @@ public:
             new_meta.is_deleted_ = false;
             memcpy(new_record.data, &new_meta, sizeof(TupleMeta));
             
-            // 注意：new_record仍然包含TupleMeta（它是从get_record_mvcc获取的原始记录的副本），
-            // 所以在更新时仍需要跳过TupleMeta
+            // 关键修复：正确设置偏移量
+            // new_record包含TupleMeta，所以需要跳过TupleMeta
+            // old_record不包含TupleMeta（来自get_record_mvcc）
             int tuple_data_offset = sizeof(TupleMeta);
             
             // Second, apply the new values from the SET clauses.
             for (const auto &set_clause : set_clauses_) {
                 auto col = get_col(tab_.cols, set_clause.lhs);
+                // 修复：new_record包含TupleMeta，所以需要偏移量
                 char *data_ptr = new_record.data + tuple_data_offset + col->offset;
                 
+                // 修复：old_record不包含TupleMeta，所以不需要额外偏移量
                 Value val = analyzer_->evaluate_expr(set_clause.rhs, &old_record, tab_.cols);
                 
                 if (col->type != val.type) {
@@ -210,8 +213,10 @@ public:
                 char* old_key = new char[index.col_tot_len];
                 int offset = 0;
                 for (size_t j = 0; j < index.col_num; ++j) {
+                    // 修复：new_record包含TupleMeta，需要跳过
                     memcpy(new_key + offset, new_record.data + tuple_data_offset + index.cols[j].offset, index.cols[j].len);
-                    memcpy(old_key + offset, old_record.data + index.cols[j].offset, index.cols[j].len);  // old_record没有TupleMeta
+                    // old_record不包含TupleMeta，直接使用offset
+                    memcpy(old_key + offset, old_record.data + index.cols[j].offset, index.cols[j].len);
                     offset += index.cols[j].len;
                 }
                 if (memcmp(new_key, old_key, index.col_tot_len) != 0) {
@@ -232,8 +237,10 @@ public:
                 char* old_key = new char[index.col_tot_len];
                 int offset = 0;
                 for (size_t j = 0; j < index.col_num; ++j) {
+                    // 修复：new_record包含TupleMeta，需要跳过
                     memcpy(new_key + offset, new_record.data + tuple_data_offset + index.cols[j].offset, index.cols[j].len);
-                    memcpy(old_key + offset, old_record.data + index.cols[j].offset, index.cols[j].len);  // old_record没有TupleMeta
+                    // old_record不包含TupleMeta，直接使用offset
+                    memcpy(old_key + offset, old_record.data + index.cols[j].offset, index.cols[j].len);
                     offset += index.cols[j].len;
                 }
 

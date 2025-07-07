@@ -494,39 +494,73 @@ void TransactionManager::UpdateCommitTimestamp(Transaction* txn, timestamp_t com
         }
     }
     
-    // 重要修复：更新所有表堆中属于该事务的元组时间戳
-    // 遍历所有版本信息，查找属于该事务的版本
-    std::shared_lock<std::shared_mutex> lock(version_info_mutex_);
-    for (auto& page_pair : version_info_) {
-        page_id_t page_no = page_pair.first;
-        auto page_version_info = page_pair.second;
-        std::shared_lock<std::shared_mutex> page_lock(page_version_info->mutex_);
-        
-        for (auto& slot_pair : page_version_info->prev_version_) {
-            slot_offset_t slot_no = slot_pair.first;
-            auto& version_link = slot_pair.second;
-            
-            // 检查是否是当前事务创建的版本
-            if (version_link.prev_.IsValid() && version_link.prev_.prev_txn_ == txn->get_transaction_id()) {
-                // 构造Rid，注意类型转换
-                Rid rid = {static_cast<int>(page_no), static_cast<int>(slot_no)};
+    // 关键修复：直接使用事务的write_set来更新所有被修改记录的时间戳
+    // 这比遍历版本链更直接、更可靠
+    auto write_set = txn->get_write_set();
+    if (write_set) {
+        for (const auto& write_record : *write_set) {
+            if (write_record) {
+                Rid rid = write_record->GetRid();
+                std::string table_name = write_record->GetTableName();
                 
-                // 通过SmManager获取对应的RmFileHandle并更新记录时间戳
-                // 这需要我们知道表名，这里我们需要遍历所有表
-                for (auto& fh_pair : sm_manager_->fhs_) {
-                    auto& fh = fh_pair.second;
-                    // 尝试更新该表中的记录（如果record存在于该表中）
-                    try {
-                        // 创建一个临时的Context来调用UpdateRecordCommitTimestamp
-                        Context temp_context(lock_manager_, nullptr, txn);
-                        temp_context.txn_mgr_ = this;
-                        fh->UpdateRecordCommitTimestamp(rid, commit_ts, &temp_context);
-                    } catch (...) {
-                        // 如果记录不在这个表中，忽略错误并继续尝试下一个表
-                        continue;
-                    }
+                // 获取对应的表文件句柄
+                auto fh_it = sm_manager_->fhs_.find(table_name);
+                if (fh_it != sm_manager_->fhs_.end()) {
+                    auto& fh = fh_it->second;
+                    
+                    // 创建临时Context来调用UpdateRecordCommitTimestamp
+                    Context temp_context(lock_manager_, nullptr, txn);
+                    temp_context.txn_mgr_ = this;
+                    
+                    // 直接更新这个记录的时间戳
+                    fh->UpdateRecordCommitTimestamp(rid, commit_ts, &temp_context);
                 }
             }
         }
     }
+}
+
+/**
+ * @description: 创建只读快照事务，用于事务外的SELECT语句
+ * @return {Transaction*} 只读快照事务的指针
+ * @param {LogManager*} log_manager 日志管理器指针
+ */
+Transaction* TransactionManager::begin_read_only_snapshot(LogManager* log_manager) {
+    // 生成新的事务ID
+    txn_id_t new_id = next_txn_id_.fetch_add(1);
+    Transaction* txn = new Transaction(new_id);
+    
+    // 设置为非显式事务模式（自动提交）
+    txn->set_txn_mode(false);
+    txn->set_state(TransactionState::DEFAULT);
+
+    if (concurrency_mode_ == ConcurrencyMode::MVCC) {
+        // 对于只读快照，使用当前所有已提交事务的最高时间戳
+        // 这样可以看到所有已提交的数据，但不会看到任何未提交的数据
+        std::unique_lock<std::mutex> ts_lock(timestamp_mutex_);
+        
+        // 使用当前的last_commit_ts作为读时间戳，而不是next_timestamp
+        // 这确保只能看到已提交的数据，不会看到正在进行的事务的修改
+        timestamp_t read_ts = last_commit_ts_.load();
+        
+        // 如果没有任何已提交的事务，使用0作为读时间戳（只能看到初始数据）
+        if (read_ts == 0) {
+            read_ts = 0;
+        }
+        
+        txn->set_start_ts(read_ts);
+        
+        // 注意：只读快照事务不需要添加到running_txns_水印中，
+        // 因为它们不会创建任何新版本，也不会影响垃圾回收
+        
+        ts_lock.unlock();
+    }
+
+    // 把只读快照事务加入到全局事务表中
+    {
+        std::unique_lock<std::mutex> lock(latch_);
+        txn_map[txn->get_transaction_id()] = txn;
+    }
+
+    return txn;
 }

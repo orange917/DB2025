@@ -74,6 +74,9 @@ public:
 
     Transaction* begin(Transaction* txn, LogManager* log_manager);
 
+    /** @brief 创建只读快照事务，用于事务外的SELECT语句 */
+    Transaction* begin_read_only_snapshot(LogManager* log_manager);
+
     void commit(Transaction* txn, LogManager* log_manager);
 
     void abort(Transaction* txn, LogManager* log_manager);
@@ -198,21 +201,81 @@ public:
 
     /** @brief 检查指定时间戳的事务是否已提交 */
     bool IsCommitted(timestamp_t ts) {
-        // 如果时间戳小于等于最后提交时间戳，且不在已回滚事务列表中，则认为已提交
-        timestamp_t last_commit = last_commit_ts_.load();
-        if (ts <= last_commit) {
-            // 进一步检查是否在已回滚事务列表中
+        // 特殊情况：时间戳为0的版本总是被认为已提交（初始数据）
+        if (ts == 0) {
+            return true;
+        }
+        
+        // 首先检查是否在已回滚事务列表中
+        {
+            std::unique_lock<std::mutex> lock(aborted_txns_mutex_);
+            if (aborted_txns_.find(ts) != aborted_txns_.end()) {
+                return false; // 已回滚的事务
+            }
+        }
+        
+        // 查找对应的事务对象
+        Transaction* txn = get_transaction_by_timestamp(ts);
+        if (txn != nullptr) {
+            // 如果事务对象存在，直接检查其状态
+            return txn->get_state() == TransactionState::COMMITTED;
+        }
+        
+        // 如果事务对象不存在，可能有以下几种情况：
+        // 1. 事务已提交并被清理
+        // 2. 事务从未存在
+        // 3. 事务已回滚并被清理
+        
+        // 对于已被清理的事务，我们需要更保守的策略
+        // 如果时间戳小于当前最低水印，并且不在已回滚列表中，
+        // 则认为已提交（这是安全的假设，因为水印以下的事务都应该已经结束）
+        timestamp_t watermark = GetWatermark();
+        if (ts < watermark) {
+            // 再次检查是否在已回滚事务列表中（双重检查）
             std::unique_lock<std::mutex> lock(aborted_txns_mutex_);
             return aborted_txns_.find(ts) == aborted_txns_.end();
         }
         
-        // 如果时间戳大于最后提交时间戳，检查是否有对应的已提交事务
-        Transaction* txn = get_transaction_by_timestamp(ts);
-        if (txn != nullptr) {
-            return txn->get_state() == TransactionState::COMMITTED;
+        // 对于其他情况，保守地认为未提交
+        return false;
+    }
+
+    /** @brief 检查指定时间戳的事务是否在给定的读时间戳之前已提交（快照隔离专用） */
+    bool IsCommittedBeforeReadTs(timestamp_t ts, timestamp_t read_ts) {
+        // 特殊情况：时间戳为0的版本总是被认为已提交（初始数据）
+        if (ts == 0) {
+            return true;
         }
         
-        // 如果找不到事务，且时间戳大于最后提交时间戳，认为未提交
+        // 首先检查是否在已回滚事务列表中
+        {
+            std::unique_lock<std::mutex> lock(aborted_txns_mutex_);
+            if (aborted_txns_.find(ts) != aborted_txns_.end()) {
+                return false; // 已回滚的事务
+            }
+        }
+        
+        // 查找对应的事务对象
+        Transaction* txn = get_transaction_by_timestamp(ts);
+        if (txn != nullptr) {
+            // 如果事务对象存在，检查其状态和提交时间戳
+            if (txn->get_state() == TransactionState::COMMITTED) {
+                // **快照隔离关键修复**：检查提交时间戳是否在读时间戳之前
+                timestamp_t commit_ts = txn->get_commit_ts();
+                return commit_ts <= read_ts;
+            }
+            return false;
+        }
+        
+        // 如果事务对象不存在，可能已被清理
+        // 这里需要更保守的策略，因为我们无法获得确切的提交时间戳
+        timestamp_t watermark = GetWatermark();
+        if (ts < watermark && ts <= read_ts) {
+            // 如果事务时间戳小于水印且小于等于读时间戳，并且不在已回滚列表中
+            std::unique_lock<std::mutex> lock(aborted_txns_mutex_);
+            return aborted_txns_.find(ts) == aborted_txns_.end();
+        }
+        
         return false;
     }
 

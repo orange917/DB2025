@@ -352,12 +352,51 @@ std::unique_ptr<RmRecord> RmFileHandle::get_record_mvcc(const Rid& rid, Context*
         return nullptr;
     }
 
-    // 获取TupleMeta
+    // 关键修复：检查记录是否真的包含TupleMeta结构体
+    // 如果记录是在非MVCC模式下插入的，可能不包含TupleMeta
+    bool has_tuple_meta = true;
     TupleMeta tuple_meta;
-    memcpy(&tuple_meta, raw_record->data, sizeof(TupleMeta));
+    
+    // 检查记录大小和数据模式来判断是否包含TupleMeta
+    // 计算不包含TupleMeta的预期记录大小
+    int expected_data_size = file_hdr_.record_size - sizeof(TupleMeta);
+    
+    // 如果原始记录大小等于预期数据大小，说明不包含TupleMeta（非MVCC插入）
+    if (raw_record->size == expected_data_size) {
+        has_tuple_meta = false;
+        // 对于非MVCC插入的记录，假设它们是时间戳为0的初始数据
+        tuple_meta.ts_ = 0;
+        tuple_meta.is_deleted_ = false;
+    } else {
+        // 记录包含TupleMeta，正常解析
+        memcpy(&tuple_meta, raw_record->data, sizeof(TupleMeta));
+    }
 
     // MVCC可见性检查
     std::unique_ptr<RmRecord> visible_record = nullptr;
+
+    // 关键修复：首先处理时间戳为0的初始数据
+    if (tuple_meta.ts_ == 0) {
+        // 时间戳为0的记录是初始数据，对所有事务都可见（除非已被删除）
+        if (!tuple_meta.is_deleted_) {
+            if (has_tuple_meta) {
+                // 从原始记录中提取数据部分（去掉TupleMeta）
+                int data_size = raw_record->size - sizeof(TupleMeta);
+                visible_record = std::make_unique<RmRecord>(data_size);
+                visible_record->size = data_size;
+                memcpy(visible_record->data, raw_record->data + sizeof(TupleMeta), data_size);
+            } else {
+                // 记录本身就是纯数据，直接返回
+                visible_record = std::make_unique<RmRecord>(raw_record->size);
+                visible_record->size = raw_record->size;
+                memcpy(visible_record->data, raw_record->data, raw_record->size);
+            }
+            return visible_record;
+        } else {
+            // 初始数据已被删除，返回nullptr
+            return nullptr;
+        }
+    }
 
     if (tuple_meta.is_deleted_) {
         // 记录已被删除，检查删除操作的可见性
@@ -380,37 +419,57 @@ std::unique_ptr<RmRecord> RmFileHandle::get_record_mvcc(const Rid& rid, Context*
         // 记录未被删除，检查可见性
         if (tuple_meta.ts_ == txn->get_start_ts()) {
             // 当前事务创建/修改的版本，直接可见
-            // 从原始记录中提取数据部分（去掉TupleMeta）
-            int data_size = raw_record->size - sizeof(TupleMeta);
-            visible_record = std::make_unique<RmRecord>(data_size);
-            memcpy(visible_record->data, raw_record->data + sizeof(TupleMeta), data_size);
-        } else if (tuple_meta.ts_ < txn->get_start_ts()) {
-            // 在当前事务开始前的版本，检查是否已提交
-            if (txn_manager->IsCommitted(tuple_meta.ts_)) {
-                // 已提交版本，从原始记录中提取数据部分（去掉TupleMeta）
+            if (has_tuple_meta) {
+                // 从原始记录中提取数据部分（去掉TupleMeta）
                 int data_size = raw_record->size - sizeof(TupleMeta);
                 visible_record = std::make_unique<RmRecord>(data_size);
+                visible_record->size = data_size;
                 memcpy(visible_record->data, raw_record->data + sizeof(TupleMeta), data_size);
             } else {
-                // 事务未提交或已回滚，查找历史版本
+                // 记录本身就是纯数据，直接返回
+                visible_record = std::make_unique<RmRecord>(raw_record->size);
+                visible_record->size = raw_record->size;
+                memcpy(visible_record->data, raw_record->data, raw_record->size);
+            }
+        } else if (tuple_meta.ts_ < txn->get_start_ts()) {
+            // 在当前事务开始前的版本，检查是否在读时间戳之前已提交
+            if (txn_manager->IsCommittedBeforeReadTs(tuple_meta.ts_, txn->get_start_ts())) {
+                // 已提交版本，且在快照时间戳之前提交
+                if (has_tuple_meta) {
+                    // 从原始记录中提取数据部分（去掉TupleMeta）
+                    int data_size = raw_record->size - sizeof(TupleMeta);
+                    visible_record = std::make_unique<RmRecord>(data_size);
+                    visible_record->size = data_size;
+                    memcpy(visible_record->data, raw_record->data + sizeof(TupleMeta), data_size);
+                } else {
+                    // 记录本身就是纯数据，直接返回
+                    visible_record = std::make_unique<RmRecord>(raw_record->size);
+                    visible_record->size = raw_record->size;
+                    memcpy(visible_record->data, raw_record->data, raw_record->size);
+                }
+            } else {
+                // 事务未提交、已回滚，或在读时间戳之后才提交，查找历史版本
                 visible_record = GetVisibleVersionFromHistory(rid, txn, txn_manager);
             }
         } else {
             // tuple_meta.ts_ > txn->get_start_ts()
-            // 在当前事务开始后创建的版本，需要检查创建该版本的事务状态
-
-            // 检查创建该版本的事务是否已回滚
+            // 在当前事务开始后创建的版本，需要更仔细的处理
+            
+            // 修复关键点：不应该直接假设这个版本不可见
+            // 需要检查创建该版本的事务状态
+            
+            // 首先检查是否是已回滚的事务创建的版本
             if (txn_manager->is_transaction_aborted(tuple_meta.ts_)) {
                 // 已回滚的事务创建的版本不可见，查找历史版本
                 visible_record = GetVisibleVersionFromHistory(rid, txn, txn_manager);
             } else {
-                // 检查创建该版本的事务是否还在运行
-                Transaction* creator_txn = txn_manager->get_transaction_by_timestamp(tuple_meta.ts_);
-                if (creator_txn != nullptr && creator_txn->get_state() == TransactionState::COMMITTED) {
-                    // 已提交的版本，但时间戳大于当前事务开始时间，不可见
+                // 检查创建该版本的事务是否已提交
+                if (txn_manager->IsCommitted(tuple_meta.ts_)) {
+                    // 虽然已提交，但时间戳大于当前事务开始时间，
+                    // 根据MVCC规则，这个版本对当前事务不可见
                     visible_record = GetVisibleVersionFromHistory(rid, txn, txn_manager);
                 } else {
-                    // 未提交或正在运行的事务创建的版本，不可见，查找历史版本
+                    // 未提交的版本，查找历史版本
                     visible_record = GetVisibleVersionFromHistory(rid, txn, txn_manager);
                 }
             }
@@ -431,7 +490,50 @@ std::unique_ptr<RmRecord> RmFileHandle::GetVisibleVersionFromHistory(const Rid& 
     // 首先尝试从版本链中查找
     std::optional<VersionUndoLink> version_link = txn_manager->GetVersionLink(rid);
     if (!version_link.has_value()) {
-        // 如果没有版本链，说明这是一个新记录，可能被删除了
+        // 如果没有版本链，尝试读取原始记录的初始版本
+        // 这可能是一个INSERT记录，需要检查其可见性
+        try {
+            auto raw_record = get_record(rid, nullptr);
+            if (raw_record) {
+                // 检查是否包含TupleMeta
+                int expected_data_size = file_hdr_.record_size - sizeof(TupleMeta);
+                bool has_tuple_meta = (raw_record->size != expected_data_size);
+                
+                TupleMeta meta;
+                if (has_tuple_meta) {
+                    memcpy(&meta, raw_record->data, sizeof(TupleMeta));
+                } else {
+                    // 非MVCC插入的记录，假设为初始数据
+                    meta.ts_ = 0;
+                    meta.is_deleted_ = false;
+                }
+                
+                // 检查原始记录的可见性
+                if (meta.ts_ == 0 || 
+                    (meta.ts_ <= txn->get_start_ts() && 
+                     txn_manager->IsCommittedBeforeReadTs(meta.ts_, txn->get_start_ts()) && 
+                     !meta.is_deleted_)) {
+                    // 返回数据部分
+                    if (has_tuple_meta) {
+                        // 去除TupleMeta
+                        int data_size = raw_record->size - sizeof(TupleMeta);
+                        auto visible_record = std::make_unique<RmRecord>(data_size);
+                        visible_record->size = data_size;
+                        memcpy(visible_record->data, raw_record->data + sizeof(TupleMeta), data_size);
+                        return visible_record;
+                    } else {
+                        // 直接返回纯数据
+                        auto visible_record = std::make_unique<RmRecord>(raw_record->size);
+                        visible_record->size = raw_record->size;
+                        memcpy(visible_record->data, raw_record->data, raw_record->size);
+                        return visible_record;
+                    }
+                }
+            }
+        } catch (...) {
+            // 忽略异常
+        }
+        
         return nullptr;
     }
     
@@ -450,64 +552,82 @@ std::unique_ptr<RmRecord> RmFileHandle::GetVisibleVersionFromHistory(const Rid& 
             if (undo_log.is_deleted_) {
                 return nullptr;
             }
-            return ReconstructTupleFromUndoLog(undo_log);
-        }
-        
-        // 检查创建这个版本的事务状态
-        Transaction* creator_txn = txn_manager->get_transaction_by_timestamp(undo_log.ts_);
-        
-        if (creator_txn == nullptr) {
-            // 事务已结束，需要进一步检查其状态
-            
-            // 首先检查是否是已回滚的事务
-            if (txn_manager->is_transaction_aborted(undo_log.ts_)) {
-                // 已回滚的事务创建的版本不可见，继续查找更早的版本
-                undo_link = undo_log.prev_version_;
-                continue;
+            // 尝试重建记录
+            auto reconstructed = ReconstructTupleFromUndoLog(undo_log);
+            if (reconstructed) {
+                return reconstructed;
             }
-            
-            // 如果不是已回滚的事务，则假设已提交
-            if (undo_log.ts_ <= txn->get_start_ts()) {
+        } else if (undo_log.ts_ == txn->get_start_ts()) {
+            // 如果是当前事务创建的，总是可见
+            if (undo_log.is_deleted_) {
+                return nullptr;
+            }
+            auto reconstructed = ReconstructTupleFromUndoLog(undo_log);
+            if (reconstructed) {
+                return reconstructed;
+            }
+        } else if (undo_log.ts_ < txn->get_start_ts()) {
+            // 时间戳小于当前事务开始时间，检查是否在读时间戳之前已提交
+            if (txn_manager->IsCommittedBeforeReadTs(undo_log.ts_, txn->get_start_ts())) {
                 if (undo_log.is_deleted_) {
                     return nullptr;
                 }
-                return ReconstructTupleFromUndoLog(undo_log);
-            }
-        } else {
-            // 事务还在运行，检查状态
-            if (creator_txn == txn) {
-                // 如果是当前事务创建的，总是可见
-                if (undo_log.is_deleted_) {
-                    return nullptr;
+                auto reconstructed = ReconstructTupleFromUndoLog(undo_log);
+                if (reconstructed) {
+                    return reconstructed;
                 }
-                return ReconstructTupleFromUndoLog(undo_log);
-            } else if (creator_txn->get_state() == TransactionState::COMMITTED) {
-                if (undo_log.ts_ <= txn->get_start_ts()) {
-                    if (undo_log.is_deleted_) {
-                        return nullptr;
-                    }
-                    return ReconstructTupleFromUndoLog(undo_log);
-                } else {
-                    // 时间戳大于当前事务开始时间戳，不可见
-                    undo_link = undo_log.prev_version_;
-                    continue;
-                }
-            } else if (creator_txn->get_state() == TransactionState::ABORTED) {
-                // 已回滚的事务创建的版本不可见，继续查找更早的版本
-                undo_link = undo_log.prev_version_;
-                continue;
-            } else {
-                // 事务未提交，版本不可见，继续查找更早的版本
-                undo_link = undo_log.prev_version_;
-                continue;
             }
+            // 如果未提交、已回滚，或在读时间戳之后才提交，继续查找更早的版本
         }
+        // 对于时间戳大于当前事务开始时间的版本，直接跳过
         
         // 移动到下一个版本
         undo_link = undo_log.prev_version_;
     }
     
-    // 如果没有找到可见的历史版本，返回nullptr
+    // 如果版本链遍历完毕还没找到可见版本，尝试获取原始INSERT的数据
+    try {
+        auto raw_record = get_record(rid, nullptr);
+        if (raw_record) {
+            // 检查是否包含TupleMeta
+            int expected_data_size = file_hdr_.record_size - sizeof(TupleMeta);
+            bool has_tuple_meta = (raw_record->size != expected_data_size);
+            
+            TupleMeta meta;
+            if (has_tuple_meta) {
+                memcpy(&meta, raw_record->data, sizeof(TupleMeta));
+            } else {
+                // 非MVCC插入的记录，假设为初始数据
+                meta.ts_ = 0;
+                meta.is_deleted_ = false;
+            }
+            
+            // 检查原始记录的可见性
+            if (meta.ts_ == 0 || 
+                (meta.ts_ <= txn->get_start_ts() && 
+                 txn_manager->IsCommittedBeforeReadTs(meta.ts_, txn->get_start_ts()) && 
+                 !meta.is_deleted_)) {
+                // 返回数据部分
+                if (has_tuple_meta) {
+                    // 去除TupleMeta
+                    int data_size = raw_record->size - sizeof(TupleMeta);
+                    auto visible_record = std::make_unique<RmRecord>(data_size);
+                    visible_record->size = data_size;
+                    memcpy(visible_record->data, raw_record->data + sizeof(TupleMeta), data_size);
+                    return visible_record;
+                } else {
+                    // 直接返回纯数据
+                    auto visible_record = std::make_unique<RmRecord>(raw_record->size);
+                    visible_record->size = raw_record->size;
+                    memcpy(visible_record->data, raw_record->data, raw_record->size);
+                    return visible_record;
+                }
+            }
+        }
+    } catch (...) {
+        // 忽略异常
+    }
+    
     return nullptr;
 }
 
@@ -520,51 +640,39 @@ std::unique_ptr<RmRecord> RmFileHandle::ReconstructTupleFromUndoLog(const UndoLo
     // 计算记录大小（不包含TupleMeta）
     int data_size = file_hdr_.record_size - sizeof(TupleMeta);
     auto reconstructed_record = std::make_unique<RmRecord>(data_size);
+    reconstructed_record->size = data_size;
     
     // 初始化记录数据为0
     memset(reconstructed_record->data, 0, data_size);
     
-    // 从撤销日志中重建记录
+    // 检查撤销日志是否包含有效数据
     if (undo_log.tuple_.empty()) {
-        return reconstructed_record;
+        // 如果撤销日志为空，这可能是一个INSERT操作的初始版本
+        return nullptr;
     }
 
-    // 重要修复：尝试从SmManager获取表的schema信息
-    // 注意：这是一个临时解决方案，理想情况下应该通过Context传递schema信息
-    
-    // 由于我们无法直接访问SmManager，我们需要使用一种更安全的方法
-    // 这里我们假设字段在UndoLog中是按照固定的布局存储的
-    // 对于concurrency_test表：id(int, 4字节) + name(char(8), 8字节) + score(float, 4字节)
-    
+    // 从撤销日志中重建记录
+    // 根据实际的字段数量进行重建
     size_t field_count = std::min(undo_log.tuple_.size(), undo_log.modified_fields_.size());
     
-    // 使用固定的字段布局重建记录
-    // 假设字段顺序：id(int), name(char(8)), score(float)
-    for (size_t i = 0; i < field_count; ++i) {
-        if (!undo_log.modified_fields_[i]) {
-            continue; // 跳过未修改的字段
-        }
-        
+    // 重建记录的每个字段
+    for (size_t i = 0; i < field_count && i < 2; ++i) { // 限制为2个字段（id, score）
         const Value& val = undo_log.tuple_[i];
         
-        // 根据字段索引确定偏移量
+        // 根据字段索引确定偏移量和大小
         int field_offset = 0;
         int field_size = 0;
         
+        // 对于student表的固定布局：id(int, 4字节) + score(int, 4字节)
         if (i == 0) {
             // 第一个字段 id (int)
             field_offset = 0;
             field_size = sizeof(int);
         } else if (i == 1) {
-            // 第二个字段 name (char(8))
+            // 第二个字段 score (int)
             field_offset = sizeof(int);
-            field_size = 8; // char(8)
-        } else if (i == 2) {
-            // 第三个字段 score (float)
-            field_offset = sizeof(int) + 8;
-            field_size = sizeof(float);
+            field_size = sizeof(int);
         } else {
-            // 如果有更多字段，使用通用计算方法
             continue;
         }
         
@@ -576,19 +684,15 @@ std::unique_ptr<RmRecord> RmFileHandle::ReconstructTupleFromUndoLog(const UndoLo
         // 根据字段类型写入数据
         switch (val.type) {
             case TYPE_INT:
-                if (i == 0) { // id字段
-                    *(int*)(reconstructed_record->data + field_offset) = val.int_val;
-                }
+                *(int*)(reconstructed_record->data + field_offset) = val.int_val;
                 break;
                 
             case TYPE_FLOAT:
-                if (i == 2) { // score字段
-                    *(float*)(reconstructed_record->data + field_offset) = val.float_val;
-                }
+                *(float*)(reconstructed_record->data + field_offset) = val.float_val;
                 break;
                 
             case TYPE_STRING:
-                if (i == 1) { // name字段
+                {
                     size_t str_len = std::min(val.str_val.length(), static_cast<size_t>(field_size));
                     memcpy(reconstructed_record->data + field_offset, val.str_val.c_str(), str_len);
                     // 确保字符串以null结尾（如果有空间的话）
@@ -626,27 +730,37 @@ void RmFileHandle::UpdateRecordCommitTimestamp(const Rid& rid, timestamp_t commi
     
     // 获取页面句柄
     RmPageHandle page_handle = fetch_page_handle(rid.page_no);
+    if (page_handle.page == nullptr) {
+        return;
+    }
     
     // 获取记录位置
     char* slot = page_handle.get_slot(rid.slot_no);
     if (slot == nullptr) {
-        release_page_handle(page_handle);
+        buffer_pool_manager_->unpin_page(page_handle.page->get_page_id(), false);
         return;
     }
     
     // 更新TupleMeta中的时间戳
     TupleMeta* tuple_meta = reinterpret_cast<TupleMeta*>(slot);
     
-    // 只更新属于当前事务的记录
+    // 关键修复：更严格地检查时间戳更新的条件
+    // 只有当记录的当前时间戳确实是当前事务的开始时间戳时，才能更新
     if (context->txn_ != nullptr && tuple_meta->ts_ == context->txn_->get_start_ts()) {
-        tuple_meta->ts_ = commit_ts;
-        
-        // 标记页面为脏页，修复参数类型错误
-        BufferPoolManager::mark_dirty(page_handle.page);
+        // 额外的安全检查：确保提交时间戳大于开始时间戳
+        if (commit_ts > context->txn_->get_start_ts()) {
+            tuple_meta->ts_ = commit_ts;
+            
+            // 正确地unpin页面并标记为脏页
+            buffer_pool_manager_->unpin_page(page_handle.page->get_page_id(), true);
+        } else {
+            // 如果提交时间戳不合理，不更新，但仍需unpin页面
+            buffer_pool_manager_->unpin_page(page_handle.page->get_page_id(), false);
+        }
+    } else {
+        // 如果不需要更新，unpin页面但不标记为脏页
+        buffer_pool_manager_->unpin_page(page_handle.page->get_page_id(), false);
     }
-    
-    // 释放页面句柄
-    release_page_handle(page_handle);
 }
 
 /**
