@@ -772,19 +772,26 @@ void RmFileHandle::UpdateRecordCommitTimestamp(const Rid& rid, timestamp_t commi
     // 关键修复：更严格地检查时间戳更新的条件
     // 只有当记录的当前时间戳确实是当前事务的开始时间戳时，才能更新
     if (context->txn_ != nullptr && tuple_meta->ts_ == context->txn_->get_start_ts()) {
+        std::cout << "[DEBUG] UpdateRecordCommitTimestamp: updating ts from " << tuple_meta->ts_ 
+                  << " to " << commit_ts << " for rid=(" << rid.page_no << "," << rid.slot_no << ")" << std::endl;
         // 额外的安全检查：确保提交时间戳大于开始时间戳
         if (commit_ts > context->txn_->get_start_ts()) {
             tuple_meta->ts_ = commit_ts;
             
             // 正确地unpin页面并标记为脏页
             buffer_pool_manager_->unpin_page(page_handle.page->get_page_id(), true);
+            std::cout << "[DEBUG] Successfully updated timestamp to " << commit_ts << std::endl;
         } else {
             // 如果提交时间戳不合理，不更新，但仍需unpin页面
             buffer_pool_manager_->unpin_page(page_handle.page->get_page_id(), false);
+            std::cout << "[DEBUG] Commit timestamp not reasonable, skipping update" << std::endl;
         }
     } else {
         // 如果不需要更新，unpin页面但不标记为脏页
         buffer_pool_manager_->unpin_page(page_handle.page->get_page_id(), false);
+        std::cout << "[DEBUG] Not updating timestamp: txn_=" << (context->txn_ ? "valid" : "null") 
+                  << ", tuple_ts=" << tuple_meta->ts_ 
+                  << ", txn_start_ts=" << (context->txn_ ? context->txn_->get_start_ts() : 0) << std::endl;
     }
 }
 

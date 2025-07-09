@@ -141,7 +141,8 @@ void TransactionManager::commit(Transaction* txn, LogManager* log_manager) {
         // **新增**：记录已提交事务的时间戳，用于后续可见性检查
         {
             std::unique_lock<std::mutex> lock(committed_txns_mutex_);
-            committed_txns_.insert(txn->get_start_ts());
+            committed_txns_.insert(commit_ts);  // **修复**：应该插入commit_ts而不是start_ts
+            std::cout << "[DEBUG] Added commit_ts=" << commit_ts << " to committed_txns_ (size now: " << committed_txns_.size() << ")" << std::endl;
         }
         
         ts_lock.unlock();

@@ -271,10 +271,17 @@ public:
         // **新增**：检查是否在已提交事务列表中
         {
             std::unique_lock<std::mutex> lock(committed_txns_mutex_);
+            std::cout << "[DEBUG] committed_txns_ size: " << committed_txns_.size() << ", checking for ts=" << ts << std::endl;
             if (committed_txns_.find(ts) != committed_txns_.end()) {
                 std::cout << "[DEBUG] ts found in committed list, returning true" << std::endl;
                 return true; // 已提交的事务
             }
+            // **调试**：显示所有已提交事务的时间戳
+            std::cout << "[DEBUG] committed_txns_ contents: ";
+            for (const auto& committed_ts : committed_txns_) {
+                std::cout << committed_ts << " ";
+            }
+            std::cout << std::endl;
         }
         
         // 查找对应的事务对象
