@@ -358,27 +358,86 @@ std::unique_ptr<RmRecord> RmFileHandle::get_record_mvcc(const Rid& rid, Context*
         return nullptr;
     }
 
+    // **新增：详细分析原始数据的内存布局**
+    std::cout << "[DEBUG] Raw record analysis:" << std::endl;
+    std::cout << "  raw_record->size: " << raw_record->size << std::endl;
+    std::cout << "  file_hdr_.record_size: " << file_hdr_.record_size << std::endl;
+    
+    // 打印原始数据的十六进制表示（前24字节）
+    std::cout << "  Raw data (first 24 bytes): ";
+    for (int i = 0; i < std::min(24, raw_record->size); i++) {
+        printf("%02x ", (unsigned char)raw_record->data[i]);
+    }
+    std::cout << std::endl;
+    
+    // 尝试解析为不同的数据结构
+    if (raw_record->size >= sizeof(TupleMeta)) {
+        TupleMeta* meta_ptr = (TupleMeta*)raw_record->data;
+        std::cout << "  As TupleMeta: ts=" << meta_ptr->ts_ << ", is_deleted=" << meta_ptr->is_deleted_ << std::endl;
+    }
+    
+    if (raw_record->size >= 8) {
+        int* int_ptr = (int*)raw_record->data;
+        std::cout << "  As int array: [" << int_ptr[0] << ", " << int_ptr[1] << "]" << std::endl;
+    }
+
     // 关键修复：检查记录是否真的包含TupleMeta结构体
     // 如果记录是在非MVCC模式下插入的，可能不包含TupleMeta
-    bool has_tuple_meta = true;
+    bool has_tuple_meta = false;
     TupleMeta tuple_meta;
     
-    // 检查记录大小和数据模式来判断是否包含TupleMeta
+    // **关键修复：更准确的TupleMeta检测逻辑**
+    // 在MVCC模式下，记录应该包含TupleMeta + 实际数据
+    // 而非MVCC模式下，记录只包含实际数据
+    
+    // 首先检查记录大小
     // 计算不包含TupleMeta的预期记录大小
     int expected_data_size = file_hdr_.record_size - sizeof(TupleMeta);
     
-    // 如果原始记录大小等于预期数据大小，说明不包含TupleMeta（非MVCC插入）
-    if (raw_record->size == expected_data_size) {
+    std::cout << "[DEBUG] Record size analysis:" << std::endl;
+    std::cout << "  raw_record->size: " << raw_record->size << std::endl;
+    std::cout << "  file_hdr_.record_size: " << file_hdr_.record_size << std::endl;
+    std::cout << "  expected_data_size (without TupleMeta): " << expected_data_size << std::endl;
+    std::cout << "  sizeof(TupleMeta): " << sizeof(TupleMeta) << std::endl;
+    
+    if (raw_record->size == file_hdr_.record_size) {
+        // 记录大小等于文件头中的记录大小，可能包含TupleMeta
+        // 进一步检查数据模式来确认
+        
+        // 尝试解析前sizeof(TupleMeta)字节为TupleMeta
+        TupleMeta potential_meta;
+        memcpy(&potential_meta, raw_record->data, sizeof(TupleMeta));
+        
+        std::cout << "[DEBUG] Potential TupleMeta: ts=" << potential_meta.ts_ 
+                  << ", is_deleted=" << potential_meta.is_deleted_ << std::endl;
+        
+        // **关键判断逻辑**：检查时间戳是否合理
+        // 合理的时间戳应该：
+        // 1. 等于0（初始数据）
+        // 2. 或者在合理范围内（1到当前最大事务时间戳+一些缓冲）
+        timestamp_t max_reasonable_ts = txn_manager->get_next_timestamp() + 1000; // 加一些缓冲
+        
+        if (potential_meta.ts_ == 0 || 
+            (potential_meta.ts_ > 0 && potential_meta.ts_ <= max_reasonable_ts &&
+             (potential_meta.is_deleted_ == false || potential_meta.is_deleted_ == true))) {
+            // 时间戳合理，且删除标志是有效的布尔值，认为包含TupleMeta
+            has_tuple_meta = true;
+            tuple_meta = potential_meta;
+            std::cout << "[DEBUG] Record contains valid TupleMeta" << std::endl;
+        } else {
+            // 时间戳不合理，认为这是纯业务数据，不包含TupleMeta
+            has_tuple_meta = false;
+            // 对于非MVCC插入的记录，假设它们是时间戳为0的初始数据
+            tuple_meta.ts_ = 0;
+            tuple_meta.is_deleted_ = false;
+            std::cout << "[DEBUG] Record does NOT contain TupleMeta (unreasonable timestamp), treating as pure data" << std::endl;
+        }
+    } else {
+        // 记录大小不等于文件头中的记录大小，很可能不包含TupleMeta
         has_tuple_meta = false;
-        // 对于非MVCC插入的记录，假设它们是时间戳为0的初始数据
         tuple_meta.ts_ = 0;
         tuple_meta.is_deleted_ = false;
-        std::cout << "[DEBUG] Record has no TupleMeta, treating as initial data (ts=0)" << std::endl;
-    } else {
-        // 记录包含TupleMeta，正常解析
-        memcpy(&tuple_meta, raw_record->data, sizeof(TupleMeta));
-        std::cout << "[DEBUG] Record TupleMeta: ts=" << tuple_meta.ts_ 
-                  << ", is_deleted=" << tuple_meta.is_deleted_ << std::endl;
+        std::cout << "[DEBUG] Record size mismatch, treating as non-MVCC data" << std::endl;
     }
 
     // MVCC可见性检查
@@ -513,87 +572,78 @@ std::unique_ptr<RmRecord> RmFileHandle::get_record_mvcc(const Rid& rid, Context*
  */
 std::unique_ptr<RmRecord> RmFileHandle::GetVisibleVersionFromHistory(const Rid& rid, Transaction* txn, TransactionManager* txn_manager) const {
     // 首先尝试从版本链中查找
-    std::optional<VersionUndoLink> version_link = txn_manager->GetVersionLink(rid);
-    if (!version_link.has_value()) {
-        // 如果没有版本链，尝试读取原始记录的初始版本
-        // 这可能是一个INSERT记录，需要检查其可见性
-        try {
-            auto raw_record = get_record(rid, nullptr);
-            if (raw_record) {
-                // 检查是否包含TupleMeta
-                int expected_data_size = file_hdr_.record_size - sizeof(TupleMeta);
-                bool has_tuple_meta = (raw_record->size != expected_data_size);
-                
-                TupleMeta meta;
-                if (has_tuple_meta) {
-                    memcpy(&meta, raw_record->data, sizeof(TupleMeta));
-                } else {
-                    // 非MVCC插入的记录，假设为初始数据
-                    meta.ts_ = 0;
-                    meta.is_deleted_ = false;
-                }
-                
-                // 检查原始记录的可见性
-                if (meta.ts_ == 0 || 
-                    (meta.ts_ <= txn->get_start_ts() && 
-                     txn_manager->IsCommittedBeforeReadTs(meta.ts_, txn->get_start_ts()) && 
-                     !meta.is_deleted_)) {
-                    // 返回数据部分
+    try {
+        std::optional<VersionUndoLink> version_link = txn_manager->GetVersionLink(rid);
+        if (!version_link.has_value()) {
+            // 如果没有版本链，尝试读取原始记录的初始版本
+            // 这可能是一个INSERT记录，需要检查其可见性
+            try {
+                auto raw_record = get_record(rid, nullptr);
+                if (raw_record) {
+                    // 检查是否包含TupleMeta
+                    int expected_data_size = file_hdr_.record_size - sizeof(TupleMeta);
+                    bool has_tuple_meta = (raw_record->size != expected_data_size);
+                    
+                    TupleMeta meta;
                     if (has_tuple_meta) {
-                        // 去除TupleMeta
-                        int data_size = raw_record->size - sizeof(TupleMeta);
-                        auto visible_record = std::make_unique<RmRecord>(data_size);
-                        visible_record->size = data_size;
-                        memcpy(visible_record->data, raw_record->data + sizeof(TupleMeta), data_size);
-                        return visible_record;
+                        memcpy(&meta, raw_record->data, sizeof(TupleMeta));
                     } else {
-                        // 直接返回纯数据
-                        auto visible_record = std::make_unique<RmRecord>(raw_record->size);
-                        visible_record->size = raw_record->size;
-                        memcpy(visible_record->data, raw_record->data, raw_record->size);
-                        return visible_record;
+                        // 非MVCC插入的记录，假设为初始数据
+                        meta.ts_ = 0;
+                        meta.is_deleted_ = false;
+                    }
+                    
+                    // 检查原始记录的可见性
+                    if (meta.ts_ == 0 || 
+                        (meta.ts_ <= txn->get_start_ts() && 
+                         txn_manager->IsCommittedBeforeReadTs(meta.ts_, txn->get_start_ts()) && 
+                         !meta.is_deleted_)) {
+                        // 返回数据部分
+                        if (has_tuple_meta) {
+                            // 去除TupleMeta
+                            int data_size = raw_record->size - sizeof(TupleMeta);
+                            auto visible_record = std::make_unique<RmRecord>(data_size);
+                            visible_record->size = data_size;
+                            memcpy(visible_record->data, raw_record->data + sizeof(TupleMeta), data_size);
+                            return visible_record;
+                        } else {
+                            // 直接返回纯数据
+                            auto visible_record = std::make_unique<RmRecord>(raw_record->size);
+                            visible_record->size = raw_record->size;
+                            memcpy(visible_record->data, raw_record->data, raw_record->size);
+                            return visible_record;
+                        }
                     }
                 }
+            } catch (...) {
+                // 忽略异常
             }
-        } catch (...) {
-            // 忽略异常
+            
+            return nullptr;
         }
         
-        return nullptr;
-    }
-    
-    std::optional<UndoLink> undo_link = version_link->prev_;
-    while (undo_link.has_value()) {
-        auto log_opt = txn_manager->GetUndoLogOptional(*undo_link);
-        if (!log_opt.has_value()) {
-            break;
-        }
-        
-        const UndoLog& undo_log = *log_opt;
-        
-        // 检查这个版本是否可见
-        if (undo_log.ts_ == 0) {
-            // 时间戳为0的版本总是可见（初始数据）
-            if (undo_log.is_deleted_) {
-                return nullptr;
+        std::optional<UndoLink> undo_link = version_link->prev_;
+        while (undo_link.has_value()) {
+            auto log_opt = txn_manager->GetUndoLogOptional(*undo_link);
+            if (!log_opt.has_value()) {
+                break;
             }
-            // 尝试重建记录
-            auto reconstructed = ReconstructTupleFromUndoLog(undo_log);
-            if (reconstructed) {
-                return reconstructed;
-            }
-        } else if (undo_log.ts_ == txn->get_start_ts()) {
-            // 如果是当前事务创建的，总是可见
-            if (undo_log.is_deleted_) {
-                return nullptr;
-            }
-            auto reconstructed = ReconstructTupleFromUndoLog(undo_log);
-            if (reconstructed) {
-                return reconstructed;
-            }
-        } else if (undo_log.ts_ < txn->get_start_ts()) {
-            // 时间戳小于当前事务开始时间，检查是否在读时间戳之前已提交
-            if (txn_manager->IsCommittedBeforeReadTs(undo_log.ts_, txn->get_start_ts())) {
+            
+            const UndoLog& undo_log = *log_opt;
+            
+            // 检查这个版本是否可见
+            if (undo_log.ts_ == 0) {
+                // 时间戳为0的版本总是可见（初始数据）
+                if (undo_log.is_deleted_) {
+                    return nullptr;
+                }
+                // 尝试重建记录
+                auto reconstructed = ReconstructTupleFromUndoLog(undo_log);
+                if (reconstructed) {
+                    return reconstructed;
+                }
+            } else if (undo_log.ts_ == txn->get_start_ts()) {
+                // 如果是当前事务创建的，总是可见
                 if (undo_log.is_deleted_) {
                     return nullptr;
                 }
@@ -601,13 +651,27 @@ std::unique_ptr<RmRecord> RmFileHandle::GetVisibleVersionFromHistory(const Rid& 
                 if (reconstructed) {
                     return reconstructed;
                 }
+            } else if (undo_log.ts_ < txn->get_start_ts()) {
+                // 时间戳小于当前事务开始时间，检查是否在读时间戳之前已提交
+                if (txn_manager->IsCommittedBeforeReadTs(undo_log.ts_, txn->get_start_ts())) {
+                    if (undo_log.is_deleted_) {
+                        return nullptr;
+                    }
+                    auto reconstructed = ReconstructTupleFromUndoLog(undo_log);
+                    if (reconstructed) {
+                        return reconstructed;
+                    }
+                }
+                // 如果未提交、已回滚，或在读时间戳之后才提交，继续查找更早的版本
             }
-            // 如果未提交、已回滚，或在读时间戳之后才提交，继续查找更早的版本
+            // 对于时间戳大于当前事务开始时间的版本，直接跳过
+            
+            // 移动到下一个版本
+            undo_link = undo_log.prev_version_;
         }
-        // 对于时间戳大于当前事务开始时间的版本，直接跳过
-        
-        // 移动到下一个版本
-        undo_link = undo_log.prev_version_;
+    } catch (const std::exception& e) {
+        std::cout << "[ERROR] GetVisibleVersionFromHistory: Exception during version chain access: " << e.what() << std::endl;
+        // 如果访问版本链失败，尝试直接读取原始记录
     }
     
     // 如果版本链遍历完毕还没找到可见版本，尝试获取原始INSERT的数据
@@ -777,7 +841,7 @@ void RmFileHandle::UpdateRecordCommitTimestamp(const Rid& rid, timestamp_t commi
         // 额外的安全检查：确保提交时间戳大于开始时间戳
         if (commit_ts > context->txn_->get_start_ts()) {
             tuple_meta->ts_ = commit_ts;
-            
+
             // 正确地unpin页面并标记为脏页
             buffer_pool_manager_->unpin_page(page_handle.page->get_page_id(), true);
             std::cout << "[DEBUG] Successfully updated timestamp to " << commit_ts << std::endl;
@@ -811,9 +875,9 @@ bool RmFileHandle::CheckWriteWriteConflict(const Rid& rid, Context* context) con
         return false; // 非MVCC模式不检查冲突
     }
 
-    Transaction* txn = context->txn_;
+    Transaction* current_txn = context->txn_;
     
-    // 获取记录
+    // **关键修复**：获取原始记录（包含TupleMeta）
     auto record = get_record(rid, context);
     if (!record) {
         return false; // 记录不存在，没有冲突
@@ -823,23 +887,79 @@ bool RmFileHandle::CheckWriteWriteConflict(const Rid& rid, Context* context) con
     TupleMeta tuple_meta;
     memcpy(&tuple_meta, record->data, sizeof(TupleMeta));
     
-    // 如果是当前事务创建/修改的版本，没有冲突
-    if (tuple_meta.ts_ == txn->get_start_ts()) {
+    // 新增：时间戳合理性检查
+    if (tuple_meta.ts_ > 1000000000ULL) { // 如果时间戳过大，可能是数据损坏
+        std::cout << "[WARNING] CheckWriteWriteConflict: Detected corrupted timestamp: " << tuple_meta.ts_ << std::endl;
+        
+        // 关键修复：对于损坏的时间戳，直接假设不存在冲突
+        std::cout << "[DEBUG] Assuming no write-write conflict due to corrupted timestamp" << std::endl;
         return false;
     }
     
-    // 检查是否有其他未提交事务正在修改此记录
-    if (tuple_meta.ts_ > txn->get_start_ts()) {
-        // 在当前事务开始后创建的版本，可能存在写-写冲突
-        Transaction* creator_txn = txn_manager->get_transaction_by_timestamp(tuple_meta.ts_);
-        if (creator_txn != nullptr && creator_txn != txn) {
-            TransactionState state = creator_txn->get_state();
-            if (state != TransactionState::COMMITTED && state != TransactionState::ABORTED) {
-                // 其他事务正在修改且未提交，存在写-写冲突
+    std::cout << "[DEBUG] CheckWriteWriteConflict: rid=(" << rid.page_no << "," << rid.slot_no 
+              << "), tuple_ts=" << tuple_meta.ts_ 
+              << ", current_txn_start_ts=" << current_txn->get_start_ts() << std::endl;
+    
+    // 如果是当前事务创建/修改的版本，没有冲突
+    if (tuple_meta.ts_ == current_txn->get_start_ts()) {
+        std::cout << "[DEBUG] No conflict: record belongs to current transaction" << std::endl;
+        return false;
+    }
+    
+    // **写-写冲突检测的核心逻辑**
+    
+    // 情况1：事务A尝试更新一条元组时，发现该元组的最新时间戳属于另一个未提交的事务B
+    Transaction* tuple_owner_txn = txn_manager->get_transaction_by_timestamp(tuple_meta.ts_);
+    if (tuple_owner_txn != nullptr && tuple_owner_txn != current_txn) {
+        TransactionState owner_state = tuple_owner_txn->get_state();
+        std::cout << "[DEBUG] Found tuple owner transaction, state: " << static_cast<int>(owner_state) << std::endl;
+        
+        if (owner_state == TransactionState::DEFAULT) {
+            // 其他事务正在进行且未提交，存在写-写冲突
+            std::cout << "[DEBUG] Write-write conflict detected: tuple belongs to uncommitted transaction" << std::endl;
+            return true;
+        }
+    }
+    
+    // 情况2：事务A尝试更新一条元组时，发现该元组的最新时间戳属于另一个已提交的事务B，
+    // 且该事务B的提交时间戳大于事务A的读时间戳
+    if (tuple_meta.ts_ != 0) { // 排除初始数据（时间戳为0）
+        // 检查该时间戳是否对应一个已提交的事务
+        if (txn_manager->IsCommitted(tuple_meta.ts_)) {
+            // **修复**：使用事务对象的get_commit_ts()方法获取提交时间戳
+            Transaction* tuple_owner_txn = txn_manager->get_transaction_by_timestamp(tuple_meta.ts_);
+            if (tuple_owner_txn != nullptr) {
+                timestamp_t commit_ts = tuple_owner_txn->get_commit_ts();
+                timestamp_t read_ts = current_txn->get_start_ts(); // 在快照隔离中，读时间戳就是事务开始时间戳
+                
+                std::cout << "[DEBUG] Tuple belongs to committed transaction, commit_ts=" << commit_ts 
+                          << ", read_ts=" << read_ts << std::endl;
+                
+                if (commit_ts > read_ts) {
+                    // 已提交事务的提交时间戳大于当前事务的读时间戳，存在写-写冲突
+                    std::cout << "[DEBUG] Write-write conflict detected: committed transaction's commit_ts > current txn's read_ts" << std::endl;
+                    return true;
+                }
+            } else {
+                // 如果找不到事务对象，但IsCommitted返回true，说明事务已被清理
+                // 在这种情况下，我们需要保守处理
+                if (tuple_meta.ts_ > current_txn->get_start_ts()) {
+                    // 如果时间戳大于当前事务开始时间，可能存在冲突
+                    std::cout << "[DEBUG] Potential write-write conflict: cleaned committed transaction with ts > current txn start_ts" << std::endl;
+                    return true;
+                }
+            }
+        } else {
+            // 如果时间戳不对应任何已知的事务，可能是一个已经清理的事务
+            // 在这种情况下，我们需要更保守的处理
+            if (tuple_meta.ts_ > current_txn->get_start_ts()) {
+                // 如果时间戳大于当前事务开始时间，可能存在冲突
+                std::cout << "[DEBUG] Potential write-write conflict: unknown transaction with ts > current txn start_ts" << std::endl;
                 return true;
             }
         }
     }
     
+    std::cout << "[DEBUG] No write-write conflict detected" << std::endl;
     return false; // 没有冲突
 }

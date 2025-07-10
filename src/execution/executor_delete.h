@@ -14,6 +14,7 @@ See the Mulan PSL v2 for more details. */
 #include "executor_abstract.h"
 #include "index/ix.h"
 #include "system/sm.h"
+#include "transaction/txn_defs.h"  // 添加这个头文件以使用TransactionAbortException
 
 class DeleteExecutor : public AbstractExecutor {
     private:
@@ -58,9 +59,22 @@ class DeleteExecutor : public AbstractExecutor {
             // 在MVCC模式下，需要创建撤销日志
             if (context_ != nullptr && context_->txn_mgr_ != nullptr && 
                 context_->txn_mgr_->get_concurrency_mode() == ConcurrencyMode::MVCC) {
+                
+                // **修复：写-写冲突检查 - 抛出TransactionAbortException**
+                if (fh_->CheckWriteWriteConflict(rid, context_)) {
+                    std::cout << "[CONFLICT] Write-write conflict detected during DELETE operation on rid=(" 
+                              << rid.page_no << "," << rid.slot_no << ")" << std::endl;
+                    throw TransactionAbortException(context_->txn_->get_transaction_id(), AbortReason::DEADLOCK_PREVENTION);
+                }
+                
+                // **关键修复**：在MVCC模式下，需要获取原始记录来读取TupleMeta
+                // get_record_mvcc返回的是不包含TupleMeta的纯数据记录
+                auto raw_record = fh_->get_record(rid, context_);
+                if (!raw_record) continue;
+                
                 // 获取当前记录的元数据
                 TupleMeta tuple_meta;
-                memcpy(&tuple_meta, record.data, sizeof(TupleMeta));
+                memcpy(&tuple_meta, raw_record->data, sizeof(TupleMeta));
                 
                 // 创建撤销日志
                 UndoLog undo_log;
@@ -70,12 +84,11 @@ class DeleteExecutor : public AbstractExecutor {
                 // 记录修改的字段（对于删除操作，所有字段都需要记录）
                 undo_log.modified_fields_.assign(tab_.cols.size(), true);
                 
-                // 保存原始数据
+                // 保存原始数据（使用不包含TupleMeta的record）
                 undo_log.tuple_.resize(tab_.cols.size());
-                int tuple_data_offset = sizeof(TupleMeta);
                 for (size_t i = 0; i < tab_.cols.size(); i++) {
                     const auto& col = tab_.cols[i];
-                    const char* field_data = record.data + tuple_data_offset + col.offset;
+                    const char* field_data = record.data + col.offset;  // record已经是纯数据
                     
                     switch (col.type) {
                         case TYPE_INT:
@@ -103,24 +116,46 @@ class DeleteExecutor : public AbstractExecutor {
                 // 将撤销日志添加到事务
                 auto undo_link = context_->txn_->AppendUndoLog(undo_log);
                 
+                // 更新记录的元数据
+                TupleMeta new_meta;
+                new_meta.ts_ = context_->txn_->get_start_ts();
+                new_meta.is_deleted_ = true;
+                
+                // 创建新记录（基于原始记录）
+                RmRecord new_record(raw_record->size);
+                memcpy(new_record.data, &new_meta, sizeof(TupleMeta));
+                memcpy(new_record.data + sizeof(TupleMeta), raw_record->data + sizeof(TupleMeta), raw_record->size - sizeof(TupleMeta));
+                
+                // 更新记录
+                fh_->update_record(rid, new_record.data, context_);
+                
+                // 重要：在MVCC模式下，不要调用delete_record，因为它会完全清零记录
+                // 我们只需要更新TupleMeta即可
+                
                 // 更新版本链
                 VersionUndoLink new_version_link;
                 new_version_link.prev_ = undo_link;
                 new_version_link.in_progress_ = true;
                 context_->txn_mgr_->UpdateVersionLink(rid, new_version_link);
                 
-                // 更新记录的元数据
-                TupleMeta new_meta;
-                new_meta.ts_ = context_->txn_->get_start_ts();
-                new_meta.is_deleted_ = true;
-                
-                // 创建新记录
-                RmRecord new_record(record.size);
-                memcpy(new_record.data, &new_meta, sizeof(TupleMeta));
-                memcpy(new_record.data + sizeof(TupleMeta), record.data + sizeof(TupleMeta), record.size - sizeof(TupleMeta));
-                
-                // 更新记录
-                fh_->update_record(rid, new_record.data, context_);
+                // 先删除记录的索引（如果有的话）
+                for (size_t i = 0; i < tab_.indexes.size(); ++i) {
+                    auto& index = tab_.indexes[i];
+                    auto ih = sm_manager_->ihs_.at(sm_manager_->get_ix_manager()->get_index_name(tab_name_, index.cols)).get();
+
+                    // 创建索引键（使用纯数据记录）
+                    char* key = new char[index.col_tot_len];
+                    int offset = 0;
+                    for (size_t j = 0; j < index.col_num; ++j) {
+                        // record是纯数据，不包含TupleMeta
+                        memcpy(key + offset, record.data + index.cols[j].offset, index.cols[j].len);
+                        offset += index.cols[j].len;
+                    }
+
+                    // 删除索引项
+                    ih->delete_entry(key, context_->txn_);
+                    delete[] key;
+                }
             } else {
                 // 非MVCC模式的传统处理
                 // 添加到事务的写集合中 - 在删除前记录原始数据

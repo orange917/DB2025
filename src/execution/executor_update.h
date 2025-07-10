@@ -19,6 +19,7 @@ See the Mulan PSL v2 for more details. */
 #include "analyze/analyze.h"
 #include "transaction/transaction_manager.h" // For MVCC
 #include "transaction/transaction.h"         // For MVCC
+#include "transaction/txn_defs.h"  // 添加这个头文件以使用TransactionAbortException
 
 class UpdateExecutor : public AbstractExecutor {
    private:
@@ -136,6 +137,13 @@ public:
 
         // 2. 对 rids_ 做 update
         for (const Rid &rid : rids_) {
+            // **新增：写-写冲突检查**
+            if (fh_->CheckWriteWriteConflict(rid, context_)) {
+                std::cout << "[CONFLICT] Write-write conflict detected during UPDATE operation on rid=(" 
+                          << rid.page_no << "," << rid.slot_no << ")" << std::endl;
+                throw TransactionAbortException(context_->txn_->get_transaction_id(), AbortReason::DEADLOCK_PREVENTION);
+            }
+            
             // Get the visible version of the record for the current transaction.
             // This also performs the write-write conflict check.
             auto old_record_ptr = fh_->get_record_mvcc(rid, context_);

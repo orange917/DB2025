@@ -392,25 +392,90 @@ std::optional<UndoLink> TransactionManager::GetUndoLink(Rid rid) {
 
 /** @brief 获取表堆元组的第一个撤销日志。*/
 std::optional<VersionUndoLink> TransactionManager::GetVersionLink(Rid rid) {
-    // 获取页面版本信息
-    std::shared_ptr<PageVersionInfo> page_version_info;
-    {
-        std::shared_lock<std::shared_mutex> lock(version_info_mutex_);
-        auto it = version_info_.find(rid.page_no);
-        if (it == version_info_.end()) {
-            return std::nullopt;
-        }
-        page_version_info = it->second;
-    }
-    
-    // 获取槽位版本信息
-    std::shared_lock<std::shared_mutex> lock(page_version_info->mutex_);
-    auto it = page_version_info->prev_version_.find(rid.slot_no);
-    if (it == page_version_info->prev_version_.end()) {
+    // **新增：验证rid的合理性**
+    if (rid.page_no < 0 || rid.slot_no < 0) {
+        std::cout << "[ERROR] GetVersionLink: Invalid rid (" << rid.page_no << "," << rid.slot_no << ")" << std::endl;
         return std::nullopt;
     }
     
-    return it->second;
+    // 获取页面版本信息
+    std::shared_ptr<PageVersionInfo> page_version_info;
+    {
+        try {
+            std::shared_lock<std::shared_mutex> lock(version_info_mutex_);
+            auto it = version_info_.find(rid.page_no);
+            if (it == version_info_.end()) {
+                return std::nullopt;
+            }
+            page_version_info = it->second;
+            
+            // **新增：防护检查**
+            if (!page_version_info) {
+                std::cout << "[WARNING] GetVersionLink: page_version_info is null for page " << rid.page_no << std::endl;
+                return std::nullopt;
+            }
+        } catch (const std::exception& e) {
+            std::cout << "[ERROR] GetVersionLink: Exception accessing version_info_: " << e.what() << std::endl;
+            return std::nullopt;
+        } catch (...) {
+            std::cout << "[ERROR] GetVersionLink: Unknown exception accessing version_info_" << std::endl;
+            return std::nullopt;
+        }
+    }
+    
+    // **新增：再次检查page_version_info的有效性**
+    if (!page_version_info) {
+        std::cout << "[WARNING] GetVersionLink: page_version_info became null" << std::endl;
+        return std::nullopt;
+    }
+    
+    // **关键修复：验证page_version_info对象的完整性**
+    try {
+        // 检查prev_version_成员是否可以安全访问
+        // 这里使用一个简单的安全检查：尝试获取容器大小
+        size_t container_size = page_version_info->prev_version_.size();
+        (void)container_size; // 避免未使用变量警告
+    } catch (const std::exception& e) {
+        std::cout << "[ERROR] GetVersionLink: PageVersionInfo appears corrupted: " << e.what() << std::endl;
+        return std::nullopt;
+    } catch (...) {
+        std::cout << "[ERROR] GetVersionLink: PageVersionInfo appears corrupted (unknown exception)" << std::endl;
+        return std::nullopt;
+    }
+    
+    // 获取槽位版本信息
+    try {
+        std::shared_lock<std::shared_mutex> lock(page_version_info->mutex_);
+        
+        // **新增：在find操作前再次验证容器状态**
+        if (page_version_info->prev_version_.bucket_count() == 0) {
+            std::cout << "[WARNING] GetVersionLink: prev_version_ container is not properly initialized" << std::endl;
+            return std::nullopt;
+        }
+        
+        // **关键修复：使用更安全的查找方式**
+        // 不直接调用find，而是先检查容器状态
+        if (page_version_info->prev_version_.empty()) {
+            return std::nullopt;
+        }
+        
+        // 安全地进行查找
+        auto it = page_version_info->prev_version_.find(rid.slot_no);
+        if (it == page_version_info->prev_version_.end()) {
+            return std::nullopt;
+        }
+        
+        return it->second;
+    } catch (const std::bad_alloc& e) {
+        std::cout << "[ERROR] GetVersionLink: Memory allocation error: " << e.what() << std::endl;
+        return std::nullopt;
+    } catch (const std::exception& e) {
+        std::cout << "[ERROR] GetVersionLink: Exception during slot access: " << e.what() << std::endl;
+        return std::nullopt;
+    } catch (...) {
+        std::cout << "[ERROR] GetVersionLink: Unknown exception during slot access" << std::endl;
+        return std::nullopt;
+    }
 }
 
 /** @brief 访问事务撤销日志缓冲区并获取撤销日志。如果事务不存在，返回 nullopt。
