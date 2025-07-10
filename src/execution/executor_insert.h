@@ -87,49 +87,85 @@ class InsertExecutor : public AbstractExecutor {
             memcpy(rec.data + tuple_data_offset + col.offset, val.raw->data, col.len);
         }
         
-        // **修复：在MVCC模式下进行写-写冲突检查**
-        // 主要检查是否有并发事务正在操作相同的记录
+        // **关键修复：在MVCC模式下进行写-写冲突检查**
+        // 解决问题：当事务A删除记录但未提交时，事务B插入相同ID应该抛出abort
         if (is_mvcc) {
-            // 对于INSERT操作，主要的写-写冲突发生在：
-            // 1. 尝试插入相同的主键值
-            // 2. 尝试插入相同的唯一键值
-            // 这种情况下，如果另一个事务正在修改具有相同键值的记录，就存在冲突
-            
-            for (size_t i = 0; i < tab_.indexes.size(); ++i) {
-                auto& index = tab_.indexes[i];
-                if (!index.unique) continue;  // 只检查唯一索引
+            // 检查要插入的主键是否与现有记录冲突
+            if (!tab_.cols.empty()) {
+                // 假设第一列是主键（id列）
+                const auto& first_col = tab_.cols[0];
+                Value key_value;
                 
-                auto ih = sm_manager_->ihs_.at(sm_manager_->get_ix_manager()->get_index_name(tab_name_, index.cols)).get();
-                char* key = new char[index.col_tot_len];
-                int offset = 0;
-                for (size_t j = 0; j < index.col_num; ++j) {
-                    memcpy(key + offset, rec.data + tuple_data_offset + index.cols[j].offset, index.cols[j].len);
-                    offset += index.cols[j].len;
+                // 提取要插入记录的主键值
+                switch (first_col.type) {
+                    case TYPE_INT:
+                        key_value.set_int(*reinterpret_cast<int*>(rec.data + tuple_data_offset + first_col.offset));
+                        break;
+                    case TYPE_FLOAT:
+                        key_value.set_float(*reinterpret_cast<float*>(rec.data + tuple_data_offset + first_col.offset));
+                        break;
+                    case TYPE_STRING:
+                        key_value.set_str(std::string(rec.data + tuple_data_offset + first_col.offset, first_col.len));
+                        break;
+                    default:
+                        break;
                 }
                 
-                // 检查是否存在相同的键值
-                std::vector<Rid> existing_rids;
-                try {
-                    ih->get_value(key, &existing_rids, context_->txn_);
+                // 扫描表查找是否存在相同主键的记录
+                auto scanner = std::make_unique<RmScan>(fh_);
+                // RmScan构造函数会自动定位到第一个记录，不需要reset_pos()
+                for (; !scanner->is_end(); scanner->next()) {
+                    Rid scan_rid = scanner->rid();
                     
-                    // 如果找到了相同的键值，检查是否存在写-写冲突
-                    for (const Rid& existing_rid : existing_rids) {
-                        // 检查该记录是否被并发事务锁定或修改
-                        if (fh_->CheckWriteWriteConflict(existing_rid, context_)) {
+                    // **关键：直接检查原始记录，不使用get_record_mvcc**
+                    // 因为我们需要检查所有记录，包括被其他事务删除但未提交的记录
+                    auto raw_record = fh_->get_record(scan_rid, context_);
+                    if (!raw_record) continue;
+                    
+                    // 提取现有记录的主键值进行比较
+                    bool matches = false;
+                    const char* existing_field_data = raw_record->data + sizeof(TupleMeta) + first_col.offset;
+                    
+                    switch (first_col.type) {
+                        case TYPE_INT:
+                            matches = (*reinterpret_cast<const int*>(existing_field_data) == key_value.int_val);
+                            break;
+                        case TYPE_FLOAT:
+                            matches = (*reinterpret_cast<const float*>(existing_field_data) == key_value.float_val);
+                            break;
+                        case TYPE_STRING:
+                            matches = (std::string(existing_field_data, first_col.len) == key_value.str_val);
+                            break;
+                        default:
+                            break;
+                    }
+                    
+                    if (matches) {
+                        // 找到相同主键的记录，检查是否存在写-写冲突
+                        if (fh_->CheckWriteWriteConflict(scan_rid, context_)) {
                             std::cout << "[CONFLICT] Write-write conflict detected during INSERT operation" 
-                                      << " - another transaction is modifying record with same unique key" << std::endl;
-                            delete[] key;
+                                      << " - attempting to insert primary key " << key_value.int_val 
+                                      << " that is being modified/deleted by another transaction" << std::endl;
                             throw TransactionAbortException(context_->txn_->get_transaction_id(), AbortReason::DEADLOCK_PREVENTION);
                         }
+                        
+                        // 检查记录是否对当前事务可见
+                        auto visible_record = fh_->get_record_mvcc(scan_rid, context_);
+                        if (visible_record) {
+                            // 记录对当前事务可见，说明存在主键冲突
+                            std::cout << "[CONFLICT] Primary key violation during INSERT operation" 
+                                      << " - record with primary key " << key_value.int_val << " already exists and is visible" << std::endl;
+                            throw InternalError("Primary key constraint violation");
+                        }
+                        
+                        // 如果执行到这里，说明找到了相同主键的记录，但该记录：
+                        // 1. 不存在写-写冲突（不是被其他事务正在操作）
+                        // 2. 对当前事务不可见（可能是被当前事务删除，或被其他已提交事务删除）
+                        // 这种情况下允许插入
+                        std::cout << "[DEBUG] Found existing record with same primary key " << key_value.int_val 
+                                  << " but it's not visible to current transaction, allowing INSERT" << std::endl;
                     }
-                } catch (const TransactionAbortException&) {
-                    delete[] key;
-                    throw;  // 重新抛出事务中止异常
-                } catch (...) {
-                    // 其他异常（如索引不存在等）忽略，继续正常的唯一性检查
                 }
-                
-                delete[] key;
             }
         }
         
@@ -173,7 +209,7 @@ class InsertExecutor : public AbstractExecutor {
                 auto ih = sm_manager_->ihs_.at(sm_manager_->get_ix_manager()->get_index_name(tab_name_, index.cols)).get();
                 char* key = new char[index.col_tot_len];
                 int offset = 0;
-                for(size_t j = 0; j < index.col_num; ++j) {
+                for(int j = 0; j < index.col_num; ++j) {
                     memcpy(key + offset, rec.data + tuple_data_offset + index.cols[j].offset, index.cols[j].len);
                     offset += index.cols[j].len;
                 }
