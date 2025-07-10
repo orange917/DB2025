@@ -129,10 +129,36 @@ public:
         auto txn = context_->txn_;
         auto txn_mgr = context_->txn_mgr_;
 
-        // 1. 收集所有满足条件的 rid
+         // 1. 收集所有满足条件的 rid
         rids_.clear();
-        for (scanner_->beginTuple(); !scanner_->is_end(); scanner_->nextTuple()) {
-            rids_.push_back(scanner_->rid());
+        
+        // **关键修复**：UPDATE操作不能使用scanner，因为scanner会跳过MVCC不可见的记录
+        // 我们需要扫描所有物理存在的记录，然后在更新阶段检查可见性和冲突
+        auto scan = fh_->create_scan();
+        while (!scan->is_end()) {
+            auto current_rid = scan->rid();
+            auto raw_record = fh_->get_record(current_rid, context_);
+            if (raw_record) {
+                // 提取数据部分用于条件检查（跳过TupleMeta）
+                bool is_mvcc = (context_ && context_->txn_mgr_ && 
+                               context_->txn_mgr_->get_concurrency_mode() == ConcurrencyMode::MVCC);
+                std::unique_ptr<RmRecord> condition_record;
+                if (is_mvcc) {
+                    int data_size = raw_record->size - sizeof(TupleMeta);
+                    condition_record = std::make_unique<RmRecord>(data_size);
+                    condition_record->size = data_size;
+                    memcpy(condition_record->data, raw_record->data + sizeof(TupleMeta), data_size);
+                } else {
+                    condition_record = std::make_unique<RmRecord>(raw_record->size);
+                    condition_record->size = raw_record->size;  
+                    memcpy(condition_record->data, raw_record->data, raw_record->size);
+                }
+                
+                if (eval_conds(condition_record.get(), tab_.cols)) {
+                    rids_.push_back(current_rid);
+                }
+            }
+            scan->next();
         }
 
         // 2. 对 rids_ 做 update
@@ -143,14 +169,26 @@ public:
                           << rid.page_no << "," << rid.slot_no << ")" << std::endl;
                 throw TransactionAbortException(context_->txn_->get_transaction_id(), AbortReason::DEADLOCK_PREVENTION);
             }
-            
+
             // Get the visible version of the record for the current transaction.
             // This also performs the write-write conflict check.
             auto old_record_ptr = fh_->get_record_mvcc(rid, context_);
             if (!old_record_ptr) {
-                // Record is not visible to this transaction (e.g., created by a concurrent uncommitted txn,
-                // or deleted by a committed txn). Skip it.
-                continue;
+                // **关键修复**：当记录不可见时，需要进一步检查原因
+                // 可能是因为：1. 记录已被删除  2. 记录被并发事务修改且不可见
+                // 对于UPDATE操作，这两种情况都应该抛出异常，而不是跳过
+
+                // 尝试获取原始记录来检查具体情况
+                auto raw_record = fh_->get_record(rid, context_);
+                if (raw_record) {
+                    // 记录存在但不可见，说明存在并发冲突
+                    std::cout << "[CONFLICT] UPDATE operation failed: target record is not visible due to concurrent modification or deletion" << std::endl;
+                    throw TransactionAbortException(context_->txn_->get_transaction_id(), AbortReason::DEADLOCK_PREVENTION);
+                } else {
+                    // 记录完全不存在，这种情况下跳过是合理的
+                    std::cout << "[DEBUG] UPDATE operation: record does not exist, skipping" << std::endl;
+                    continue;
+                }
             }
             RmRecord &old_record = *old_record_ptr;
 

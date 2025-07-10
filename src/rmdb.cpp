@@ -53,6 +53,20 @@ static jmp_buf jmpbuf;
 void sigint_handler(int signo) {
     should_exit = true;
     log_manager->flush_log_to_disk();
+    
+    // **关键修复**：在程序退出前，确保时间戳被正确保存到数据库元数据中
+    // 这样下次启动时就能正确恢复时间戳，避免时间戳重置导致的写写冲突误判
+    if (txn_manager && sm_manager) {
+        // 将当前的时间戳保存到SmManager的数据库元数据中
+        timestamp_t current_ts = txn_manager->get_next_timestamp();
+        sm_manager->set_next_timestamp(current_ts);
+        
+        // 刷新元数据到磁盘
+        sm_manager->flush_meta();
+        
+        std::cout << "[DEBUG] Saved next_timestamp=" << current_ts << " to database metadata before exit" << std::endl;
+    }
+    
     std::cout << "The Server receive Crtl+C, will been closed\n";
     longjmp(jmpbuf, 1);
 }
