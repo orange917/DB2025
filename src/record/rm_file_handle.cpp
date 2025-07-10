@@ -483,10 +483,33 @@ std::unique_ptr<RmRecord> RmFileHandle::get_record_mvcc(const Rid& rid, Context*
                 // 删除操作在读时间戳之前已提交，记录对当前事务不可见
                 std::cout << "[DEBUG] Delete operation is visible, record not visible" << std::endl;
                 return nullptr;
-            } else {
-                // 删除操作未提交、已回滚，或在读时间戳之后才提交，查找历史版本
-                std::cout << "[DEBUG] Delete operation not visible, checking history" << std::endl;
-                visible_record = GetVisibleVersionFromHistory(rid, txn, txn_manager);
+             } else {
+                // **新增：读写冲突检测**
+                // 删除操作未提交、已回滚，或在读时间戳之后才提交
+                // 需要进一步检查是否存在读写冲突
+                
+                // 检查删除操作的事务是否已回滚
+                if (txn_manager->is_transaction_aborted(tuple_meta.ts_)) {
+                    // 已回滚的事务，查找历史版本
+                    std::cout << "[DEBUG] Delete operation from aborted transaction, checking history" << std::endl;
+                    visible_record = GetVisibleVersionFromHistory(rid, txn, txn_manager);
+                } else {
+                    // 检查删除操作的事务是否仍在进行中
+                    Transaction* deleting_txn = txn_manager->get_transaction_by_timestamp(tuple_meta.ts_);
+                    if (deleting_txn != nullptr && 
+                        (deleting_txn->get_state() == TransactionState::DEFAULT ||
+                         deleting_txn->get_state() == TransactionState::GROWING ||
+                         deleting_txn->get_state() == TransactionState::SHRINKING)) {
+                        // 删除操作的事务仍在进行中，存在读写冲突
+                        std::cout << "[CONFLICT] Read-write conflict detected: attempting to read a record deleted by uncommitted transaction " 
+                                  << deleting_txn->get_transaction_id() << std::endl;
+                        throw TransactionAbortException(txn->get_transaction_id(), AbortReason::DEADLOCK_PREVENTION);
+                    } else {
+                        // 事务已提交但在读时间戳之后，或事务对象已被清理，查找历史版本
+                        std::cout << "[DEBUG] Delete operation not visible (committed after read timestamp), checking history" << std::endl;
+                        visible_record = GetVisibleVersionFromHistory(rid, txn, txn_manager);
+                    }
+                }
             }
         }
     } else {
