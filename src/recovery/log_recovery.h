@@ -34,7 +34,22 @@ public:
     void analyze();
     void redo();
     void undo();
+    
+    // 故障恢复的完整流程
+    void recover() {
+        std::cout << "[RECOVERY] Starting database recovery..." << std::endl;
+        analyze();
+        redo();
+        undo();
+        std::cout << "[RECOVERY] Database recovery completed." << std::endl;
+    }
+
 private:
+    LogRecord* read_log_record(lsn_t lsn);
+    LogRecord* create_log_record(LogType log_type);
+    void redo_log_record(LogRecord* log_record, Page* page);
+    void undo_log_record(LogRecord* log_record);
+    
     LogBuffer buffer_;                                              // 读入日志
     DiskManager* disk_manager_;                                     // 用来读写文件
     BufferPoolManager* buffer_pool_manager_;                        // 对页面进行读写

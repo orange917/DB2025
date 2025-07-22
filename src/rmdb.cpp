@@ -358,10 +358,10 @@ int main(int argc, char **argv) {
         txn_manager->set_concurrency_mode(ConcurrencyMode::MVCC);
         std::cout << "Concurrency mode set to MVCC" << std::endl;
 
-        // recovery database
-        recovery->analyze();
-        recovery->redo();
-        recovery->undo();
+        // **故障恢复：系统启动时进行故障恢复**
+        std::cout << "Starting database recovery..." << std::endl;
+        recovery->recover();
+        std::cout << "Database recovery completed." << std::endl;
         
         // 开启服务端，开始接受客户端连接
         start_server();

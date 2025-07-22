@@ -95,31 +95,77 @@ Rid RmFileHandle::insert_record(char* buf, Context* context) {
     // 3. 将buf复制到空闲slot位置
     // 4. 更新page_handle.page_hdr中的数据结构
     // 注意考虑插入一条记录后页面已满的情况，需要更新file_hdr_.first_free_page_no
-    RmPageHandle page_handle = create_page_handle();
-
-    // 找到空闲的slot位置
-    int slot_no = Bitmap::first_bit(false, page_handle.bitmap, file_hdr_.num_records_per_page);
-    if (slot_no < file_hdr_.num_records_per_page) {
-        char *slot = page_handle.get_slot(slot_no);
-        // 将buf复制到空闲slot位置
-        std::memcpy(slot, buf, file_hdr_.record_size);
-        // 更新page_hdr中的数据结构
-        page_handle.page_hdr->num_records += 1;
-        Bitmap::set(page_handle.bitmap, slot_no); // 标记该slot为已使用
+    
+    // **WAL机制：先写日志后写数据**
+    lsn_t log_lsn = INVALID_LSN;
+    if (context != nullptr && context->log_mgr_ != nullptr) {
+        // 创建插入日志记录
+        RmRecord insert_record(file_hdr_.record_size);
+        insert_record.size = file_hdr_.record_size;
+        memcpy(insert_record.data, buf, file_hdr_.record_size);
         
-        if(page_handle.page_hdr->num_records == file_hdr_.num_records_per_page) {
-            // 如果插入后页面已满，更新file_hdr_.first_free_page_no
-            file_hdr_.first_free_page_no = RM_NO_PAGE;
+        // 先获取页面句柄以确定插入位置
+        RmPageHandle page_handle = create_page_handle();
+        int slot_no = Bitmap::first_bit(false, page_handle.bitmap, file_hdr_.num_records_per_page);
+        
+        if (slot_no < file_hdr_.num_records_per_page) {
+            Rid rid;
+            rid.page_no = page_handle.page->get_page_id().page_no;
+            rid.slot_no = slot_no;
+            
+            // 创建插入日志记录
+            InsertLogRecord* insert_log = new InsertLogRecord(
+                context->txn_ ? context->txn_->get_transaction_id() : INVALID_TXN_ID,
+                insert_record, rid, context->tab_name_
+            );
+            
+            // 写入日志缓冲区
+            log_lsn = context->log_mgr_->add_log_to_buffer(insert_log);
+            
+            // **WAL机制：强制刷新日志到磁盘**
+            context->log_mgr_->force_flush_log_to_disk(log_lsn);
+            
+            delete insert_log;
+            
+            // 现在可以安全地写数据
+            char *slot = page_handle.get_slot(slot_no);
+            std::memcpy(slot, buf, file_hdr_.record_size);
+            page_handle.page_hdr->num_records += 1;
+            Bitmap::set(page_handle.bitmap, slot_no);
+            
+            if(page_handle.page_hdr->num_records == file_hdr_.num_records_per_page) {
+                file_hdr_.first_free_page_no = RM_NO_PAGE;
+            }
+                
+            buffer_pool_manager_->unpin_page(page_handle.page->get_page_id(), true);
+            return rid;
         }
+        
+        buffer_pool_manager_->unpin_page(page_handle.page->get_page_id(), false);
+    } else {
+        // 非事务模式，直接插入
+        RmPageHandle page_handle = create_page_handle();
+        int slot_no = Bitmap::first_bit(false, page_handle.bitmap, file_hdr_.num_records_per_page);
+        
+        if (slot_no < file_hdr_.num_records_per_page) {
+            char *slot = page_handle.get_slot(slot_no);
+            std::memcpy(slot, buf, file_hdr_.record_size);
+            page_handle.page_hdr->num_records += 1;
+            Bitmap::set(page_handle.bitmap, slot_no);
             
-        buffer_pool_manager_->unpin_page(page_handle.page->get_page_id(), true);
-            
-        // 创建并返回记录号
-        Rid rid;
-        rid.page_no = page_handle.page->get_page_id().page_no;
-        rid.slot_no = slot_no;
-
-        return rid;
+            if(page_handle.page_hdr->num_records == file_hdr_.num_records_per_page) {
+                file_hdr_.first_free_page_no = RM_NO_PAGE;
+            }
+                
+            buffer_pool_manager_->unpin_page(page_handle.page->get_page_id(), true);
+                
+            Rid rid;
+            rid.page_no = page_handle.page->get_page_id().page_no;
+            rid.slot_no = slot_no;
+            return rid;
+        }
+        
+        buffer_pool_manager_->unpin_page(page_handle.page->get_page_id(), false);
     }
     
     // 如果没有找到空闲槽位，返回无效的Rid
@@ -162,6 +208,30 @@ void RmFileHandle::delete_record(const Rid& rid, Context* context) {
     // 1. 获取指定记录所在的page handle
     // 2. 更新page_handle.page_hdr中的数据结构
     // 注意考虑删除一条记录后页面未满的情况，需要调用release_page_handle()
+    
+    // **WAL机制：先写日志后写数据**
+    lsn_t log_lsn = INVALID_LSN;
+    if (context != nullptr && context->log_mgr_ != nullptr) {
+        // 先读取要删除的记录
+        auto record_to_delete = get_record(rid, context);
+        if (record_to_delete) {
+            // 创建删除日志记录
+            DeleteLogRecord* delete_log = new DeleteLogRecord(
+                context->txn_ ? context->txn_->get_transaction_id() : INVALID_TXN_ID,
+                *record_to_delete, rid, context->tab_name_
+            );
+            
+            // 写入日志缓冲区
+            log_lsn = context->log_mgr_->add_log_to_buffer(delete_log);
+            
+            // **WAL机制：强制刷新日志到磁盘**
+            context->log_mgr_->force_flush_log_to_disk(log_lsn);
+            
+            delete delete_log;
+        }
+    }
+    
+    // 现在可以安全地删除数据
     RmPageHandle page_handle = fetch_page_handle(rid.page_no);
     if (page_handle.page != nullptr) {
         char* slot = page_handle.get_slot(rid.slot_no);
@@ -193,6 +263,35 @@ void RmFileHandle::update_record(const Rid& rid, char* buf, Context* context) {
     // Todo:
     // 1. 获取指定记录所在的page handle
     // 2. 更新记录
+    
+    // **WAL机制：先写日志后写数据**
+    lsn_t log_lsn = INVALID_LSN;
+    if (context != nullptr && context->log_mgr_ != nullptr) {
+        // 先读取要更新的记录的旧值
+        auto old_record = get_record(rid, context);
+        if (old_record) {
+            // 创建新记录
+            RmRecord new_record(file_hdr_.record_size);
+            new_record.size = file_hdr_.record_size;
+            memcpy(new_record.data, buf, file_hdr_.record_size);
+            
+            // 创建更新日志记录
+            UpdateLogRecord* update_log = new UpdateLogRecord(
+                context->txn_ ? context->txn_->get_transaction_id() : INVALID_TXN_ID,
+                *old_record, new_record, rid, context->tab_name_
+            );
+            
+            // 写入日志缓冲区
+            log_lsn = context->log_mgr_->add_log_to_buffer(update_log);
+            
+            // **WAL机制：强制刷新日志到磁盘**
+            context->log_mgr_->force_flush_log_to_disk(log_lsn);
+            
+            delete update_log;
+        }
+    }
+    
+    // 现在可以安全地更新数据
     RmPageHandle page_handle = fetch_page_handle(rid.page_no);
     if (page_handle.page != nullptr) {
         char* slot = page_handle.get_slot(rid.slot_no);
