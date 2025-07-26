@@ -47,6 +47,12 @@ class ProjectionExecutor : public AbstractExecutor {
             sel_idxs_.push_back(pos - prev_cols.begin());
             auto col = *pos;
             col.offset = curr_offset;
+            
+            // 使用sel_col中的列名，这样可以确保表头显示正确
+            // 对于聚合函数：sel_col.tab_name为空，使用sel_col.col_name
+            // 对于普通列：使用sel_col.col_name（不包含表名前缀）
+            col.name = sel_col.col_name;
+            
             curr_offset += col.len;
             cols_.push_back(col);
         }

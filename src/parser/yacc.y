@@ -591,7 +591,15 @@ join_clause:
     {
         $$ = std::make_shared<JoinExpr>("", $2->tab_name, $4, ::INNER_JOIN, "", $2->alias);
     }
+    | JOIN table_ref WHERE whereClause
+    {
+        $$ = std::make_shared<JoinExpr>("", $2->tab_name, $4, ::INNER_JOIN, "", $2->alias);
+    }
     | SEMI JOIN table_ref ON whereClause
+    {
+        $$ = std::make_shared<JoinExpr>("", $3->tab_name, $5, ::SEMI_JOIN, "", $3->alias);
+    }
+    | SEMI JOIN table_ref WHERE whereClause
     {
         $$ = std::make_shared<JoinExpr>("", $3->tab_name, $5, ::SEMI_JOIN, "", $3->alias);
     }

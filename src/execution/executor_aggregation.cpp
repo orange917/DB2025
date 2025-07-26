@@ -51,14 +51,23 @@ AggregationExecutor::AggregationExecutor(std::unique_ptr<AbstractExecutor> prev,
         ColMeta col_meta;
         col_meta.tab_name = "";
         
-        // 如果没有别名，使用原列名作为列名
+        // 如果没有别名，生成合适的聚合函数列名
         if (agg_func.alias.empty()) {
             if (agg_func.func_type == AGG_COUNT && agg_func.col.tab_name.empty() && agg_func.col.col_name.empty()) {
                 // COUNT(*) 的情况
                 col_meta.name = "count";
             } else if (!agg_func.col.col_name.empty()) {
-                // 有列名的情况，使用原列名
-                col_meta.name = agg_func.col.col_name;
+                // 有列名的情况，使用"函数名(列名)"格式
+                std::string func_name;
+                switch (agg_func.func_type) {
+                    case AGG_COUNT: func_name = "count"; break;
+                    case AGG_MAX: func_name = "max"; break;
+                    case AGG_MIN: func_name = "min"; break;
+                    case AGG_SUM: func_name = "sum"; break;
+                    case AGG_AVG: func_name = "avg"; break;
+                    default: func_name = "agg"; break;
+                }
+                col_meta.name = func_name + "(" + agg_func.col.col_name + ")";
             } else {
                 // 其他情况，使用默认的agg_序号
                 col_meta.name = "agg_" + std::to_string(cols_.size());

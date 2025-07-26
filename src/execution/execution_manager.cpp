@@ -157,7 +157,21 @@ void QlManager::select_from(std::unique_ptr<AbstractExecutor> executorTreeRoot, 
     std::vector<std::string> captions;
     captions.reserve(sel_cols.size());
     for (auto &sel_col : sel_cols) {
-        captions.push_back(sel_col.col_name);
+        // 处理聚合函数的情况
+        if (sel_col.tab_name.empty() && !sel_col.col_name.empty()) {
+            // 这可能是聚合函数列，直接使用列名（已经在planner中处理过了）
+            captions.push_back(sel_col.col_name);
+        }
+        // 处理普通列的情况
+        else {
+            if (!sel_col.alias.empty()) {
+                // 如果有别名，使用别名
+                captions.push_back(sel_col.alias);
+            } else {
+                // 否则直接使用列名，不添加表名前缀
+                captions.push_back(sel_col.col_name);
+            }
+        }
     }
 
     // Print header into buffer

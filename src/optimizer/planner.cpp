@@ -431,37 +431,73 @@ std::shared_ptr<Plan> Planner::build_join_plan(std::shared_ptr<Query> query, con
         return table_scan_executors[0];
     }
     
-    // 贪心连接顺序优化
-    std::vector<bool> used(tables.size(), false);
+    // 策略选择：根据查询复杂程度决定使用哪种连接策略
+    bool use_greedy_optimization = false;
+    
+    // 判断是否使用贪心优化的条件：
+    // 1. 表数量大于2
+    // 2. 或者有复杂的连接条件
+    // 3. 或者表的大小差异很大（超过10倍）
+    if (tables.size() > 2) {
+        use_greedy_optimization = true;
+    } else if (!all_join_conds.empty()) {
+        // 检查是否有复杂的连接条件
+        for (const auto& cond : all_join_conds) {
+            if (!cond.is_rhs_val) {
+                // 有表间连接条件，使用贪心优化
+                use_greedy_optimization = true;
+                break;
+            }
+        }
+    } else {
+        // 检查表大小差异
+        int min_size = *std::min_element(table_row_counts.begin(), table_row_counts.end());
+        int max_size = *std::max_element(table_row_counts.begin(), table_row_counts.end());
+        if (max_size > min_size * 10) {
+            use_greedy_optimization = true;
+        }
+    }
+    
     std::vector<std::shared_ptr<Plan>> join_order;
     std::vector<std::string> join_order_names;
     
-    // 1. 先选基数最小的两个表
-    int min1 = -1, min2 = -1;
-    for (size_t i = 0; i < tables.size(); ++i) {
-        if (min1 == -1 || table_row_counts[i] < table_row_counts[min1]) min1 = i;
-    }
-    for (size_t i = 0; i < tables.size(); ++i) {
-        if (i != min1 && (min2 == -1 || table_row_counts[i] < table_row_counts[min2])) min2 = i;
-    }
-    used[min1] = used[min2] = true;
-    join_order.push_back(table_scan_executors[min1]);
-    join_order.push_back(table_scan_executors[min2]);
-    join_order_names.push_back(tables[min1]);
-    join_order_names.push_back(tables[min2]);
-    
-    // 2. 每次从剩余表中选择基数最小的表加入
-    for (size_t k = 2; k < tables.size(); ++k) {
-        int min_next = -1;
+    if (use_greedy_optimization) {
+        // 使用贪心连接顺序优化
+        std::vector<bool> used(tables.size(), false);
+        
+        // 1. 先选基数最小的两个表
+        int min1 = -1, min2 = -1;
         for (size_t i = 0; i < tables.size(); ++i) {
-            if (!used[i] && (min_next == -1 || table_row_counts[i] < table_row_counts[min_next])) min_next = i;
+            if (min1 == -1 || table_row_counts[i] < table_row_counts[min1]) min1 = i;
         }
-        used[min_next] = true;
-        join_order.push_back(table_scan_executors[min_next]);
-        join_order_names.push_back(tables[min_next]);
+        for (size_t i = 0; i < tables.size(); ++i) {
+            if (i != min1 && (min2 == -1 || table_row_counts[i] < table_row_counts[min2])) min2 = i;
+        }
+        used[min1] = used[min2] = true;
+        join_order.push_back(table_scan_executors[min1]);
+        join_order.push_back(table_scan_executors[min2]);
+        join_order_names.push_back(tables[min1]);
+        join_order_names.push_back(tables[min2]);
+        
+        // 2. 每次从剩余表中选择基数最小的表加入
+        for (size_t k = 2; k < tables.size(); ++k) {
+            int min_next = -1;
+            for (size_t i = 0; i < tables.size(); ++i) {
+                if (!used[i] && (min_next == -1 || table_row_counts[i] < table_row_counts[min_next])) min_next = i;
+            }
+            used[min_next] = true;
+            join_order.push_back(table_scan_executors[min_next]);
+            join_order_names.push_back(tables[min_next]);
+        }
+    } else {
+        // 使用SQL语句中表的出现顺序（保持用户预期的顺序）
+        for (size_t i = 0; i < tables.size(); ++i) {
+            join_order.push_back(table_scan_executors[i]);
+            join_order_names.push_back(tables[i]);
+        }
     }
     
-    // 3. 按顺序左深树 join
+    // 按顺序左深树 join
     std::shared_ptr<Plan> plan = join_order[0];
     
     for (size_t i = 1; i < join_order.size(); ++i) {
@@ -549,34 +585,19 @@ std::shared_ptr<Plan> Planner::make_one_rel(std::shared_ptr<Query> query)
     if(tables.size() == 1) {
         return table_scan_executors[0];
     }
-    // 贪心连接顺序优化
-    std::vector<bool> used(tables.size(), false);
+    
+    // 修改：按照SQL语句中表的出现顺序进行连接，而不是贪心优化
+    // 这样可以保持SQL语句中表的顺序，符合用户的预期
     std::vector<std::shared_ptr<Plan>> join_order;
     std::vector<std::string> join_order_names;
-    // 1. 先选基数最小的两个表
-    int min1 = -1, min2 = -1;
+    
+    // 按照tables数组的顺序进行连接
     for (size_t i = 0; i < tables.size(); ++i) {
-        if (min1 == -1 || table_row_counts[i] < table_row_counts[min1]) min1 = i;
+        join_order.push_back(table_scan_executors[i]);
+        join_order_names.push_back(tables[i]);
     }
-    for (size_t i = 0; i < tables.size(); ++i) {
-        if (i != min1 && (min2 == -1 || table_row_counts[i] < table_row_counts[min2])) min2 = i;
-    }
-    used[min1] = used[min2] = true;
-    join_order.push_back(table_scan_executors[min1]);
-    join_order.push_back(table_scan_executors[min2]);
-    join_order_names.push_back(tables[min1]);
-    join_order_names.push_back(tables[min2]);
-    // 2. 每次从剩余表中选择基数最小的表加入
-    for (size_t k = 2; k < tables.size(); ++k) {
-        int min_next = -1;
-        for (size_t i = 0; i < tables.size(); ++i) {
-            if (!used[i] && (min_next == -1 || table_row_counts[i] < table_row_counts[min_next])) min_next = i;
-        }
-        used[min_next] = true;
-        join_order.push_back(table_scan_executors[min_next]);
-        join_order_names.push_back(tables[min_next]);
-    }
-    // 3. 按顺序左深树 join
+    
+    // 按顺序左深树 join
     std::shared_ptr<Plan> plan = join_order[0];
     
     for (size_t i = 1; i < join_order.size(); ++i) {
@@ -696,14 +717,23 @@ std::shared_ptr<Plan> Planner::generate_select_plan(std::shared_ptr<Query> query
             TabCol agg_col;
             agg_col.tab_name = "";
             
-            // 如果没有别名，使用原列名作为列名
+            // 如果没有别名，生成合适的聚合函数表头
             if (agg_func.alias.empty()) {
                 if (agg_func.func_type == AGG_COUNT && agg_func.col.tab_name.empty() && agg_func.col.col_name.empty()) {
                     // COUNT(*) 的情况
                     agg_col.col_name = "count";
                 } else if (!agg_func.col.col_name.empty()) {
-                    // 有列名的情况，使用原列名
-                    agg_col.col_name = agg_func.col.col_name;
+                    // 有列名的情况，使用"函数名(列名)"格式
+                    std::string func_name;
+                    switch (agg_func.func_type) {
+                        case AGG_COUNT: func_name = "count"; break;
+                        case AGG_MAX: func_name = "max"; break;
+                        case AGG_MIN: func_name = "min"; break;
+                        case AGG_SUM: func_name = "sum"; break;
+                        case AGG_AVG: func_name = "avg"; break;
+                        default: func_name = "agg"; break;
+                    }
+                    agg_col.col_name = func_name + "(" + agg_func.col.col_name + ")";
                 } else {
                     // 其他情况，使用默认的agg_序号
                     agg_col.col_name = "agg_" + std::to_string(agg_sel_cols.size());

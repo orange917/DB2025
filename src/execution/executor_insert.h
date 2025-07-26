@@ -91,21 +91,40 @@ class InsertExecutor : public AbstractExecutor {
         // 解决问题：当事务A删除记录但未提交时，事务B插入相同ID应该抛出abort
         if (is_mvcc) {
             // 检查要插入的主键是否与现有记录冲突
-            if (!tab_.cols.empty()) {
-                // 假设第一列是主键（id列）
-                const auto& first_col = tab_.cols[0];
+            // 只有当表有主键约束时才进行检查
+            bool has_primary_key = false;
+            int primary_key_col_idx = -1;
+            
+            // 检查表是否有主键约束（通过检查是否有唯一索引）
+            for (const auto& index : tab_.indexes) {
+                if (index.unique && index.cols.size() == 1) {
+                    // 找到单列唯一索引，可能是主键
+                    for (int i = 0; i < tab_.cols.size(); i++) {
+                        if (tab_.cols[i].name == index.cols[0].name) {
+                            has_primary_key = true;
+                            primary_key_col_idx = i;
+                            break;
+                        }
+                    }
+                    break;
+                }
+            }
+            
+            if (has_primary_key && primary_key_col_idx >= 0) {
+                // 只有在表真正有主键约束时才进行主键检查
+                const auto& primary_key_col = tab_.cols[primary_key_col_idx];
                 Value key_value;
                 
                 // 提取要插入记录的主键值
-                switch (first_col.type) {
+                switch (primary_key_col.type) {
                     case TYPE_INT:
-                        key_value.set_int(*reinterpret_cast<int*>(rec.data + tuple_data_offset + first_col.offset));
+                        key_value.set_int(*reinterpret_cast<int*>(rec.data + tuple_data_offset + primary_key_col.offset));
                         break;
                     case TYPE_FLOAT:
-                        key_value.set_float(*reinterpret_cast<float*>(rec.data + tuple_data_offset + first_col.offset));
+                        key_value.set_float(*reinterpret_cast<float*>(rec.data + tuple_data_offset + primary_key_col.offset));
                         break;
                     case TYPE_STRING:
-                        key_value.set_str(std::string(rec.data + tuple_data_offset + first_col.offset, first_col.len));
+                        key_value.set_str(std::string(rec.data + tuple_data_offset + primary_key_col.offset, primary_key_col.len));
                         break;
                     default:
                         break;
@@ -124,9 +143,9 @@ class InsertExecutor : public AbstractExecutor {
                     
                     // 提取现有记录的主键值进行比较
                     bool matches = false;
-                    const char* existing_field_data = raw_record->data + sizeof(TupleMeta) + first_col.offset;
+                    const char* existing_field_data = raw_record->data + sizeof(TupleMeta) + primary_key_col.offset;
                     
-                    switch (first_col.type) {
+                    switch (primary_key_col.type) {
                         case TYPE_INT:
                             matches = (*reinterpret_cast<const int*>(existing_field_data) == key_value.int_val);
                             break;
@@ -134,7 +153,7 @@ class InsertExecutor : public AbstractExecutor {
                             matches = (*reinterpret_cast<const float*>(existing_field_data) == key_value.float_val);
                             break;
                         case TYPE_STRING:
-                            matches = (std::string(existing_field_data, first_col.len) == key_value.str_val);
+                            matches = (std::string(existing_field_data, primary_key_col.len) == key_value.str_val);
                             break;
                         default:
                             break;

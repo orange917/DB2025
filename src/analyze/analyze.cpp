@@ -32,17 +32,24 @@ std::shared_ptr<Query> Analyze::do_analyze(std::shared_ptr<ast::TreeNode> parse)
             query->tables = std::move(x->tabs);
         }
 
-        // 处理连接表达式 - 从表名中提取连接信息
-        // 由于语法分析器的限制，我们需要在这里处理连接表达式
-        // 假设表名格式为: table1, table2 JOIN table3 ON condition
-        // 我们需要解析这种格式并提取连接信息
-
-        /** 检查表是否存在 */
-        for(auto &tab_name : query->tables)
-        {
-            if(!sm_manager_->db_.is_table(tab_name))
-            {
-                throw TableNotFoundError(tab_name);
+        // 处理连接表达式（把右表加进 query->tables）
+        if (!x->jointree.empty()) {
+            query->has_join = true;
+            query->jointree = x->jointree;
+            for (const auto& join_expr : query->jointree) {
+                if (!sm_manager_->db_.is_table(join_expr->right)) {
+                    throw TableNotFoundError(join_expr->right);
+                }
+                bool found = false;
+                for (const auto& existing_table : query->tables) {
+                    if (existing_table == join_expr->right) {
+                        found = true;
+                        break;
+                    }
+                }
+                if (!found) {
+                    query->tables.push_back(join_expr->right);
+                }
             }
         }
 
@@ -178,34 +185,6 @@ std::shared_ptr<Query> Analyze::do_analyze(std::shared_ptr<ast::TreeNode> parse)
         get_clause(x->conds, query->conds, alias_to_table);
         check_clause(query->tables, query->conds);
         
-        // 处理连接表达式
-        if (!x->jointree.empty()) {
-            query->has_join = true;
-            
-            // 简单处理：直接复制连接表达式，不修改左表名
-            query->jointree = x->jointree;
-            
-            // 检查连接表达式中的表是否存在，并添加到表列表中
-            for (const auto& join_expr : query->jointree) {
-                // 检查右表是否存在
-                if (!sm_manager_->db_.is_table(join_expr->right)) {
-                    throw TableNotFoundError(join_expr->right);
-                }
-                
-                // 将右表添加到表列表中（如果还没有的话）
-                bool found = false;
-                for (const auto& existing_table : query->tables) {
-                    if (existing_table == join_expr->right) {
-                        found = true;
-                        break;
-                    }
-                }
-                if (!found) {
-                    query->tables.push_back(join_expr->right);
-                }
-            }
-        }
-        
         // 语义检查：检测SELECT列表中的非聚合列和WHERE子句中的聚合函数
         if (query->has_group_by) {
             // 检查1：SELECT 列表中不能出现没有在 GROUP BY 子句中的非聚集列
@@ -320,6 +299,8 @@ TabCol Analyze::check_column(const std::vector<ColMeta> &all_cols, TabCol target
     if (target.tab_name.empty()) {
         // Table name not specified, infer table name from column name
         std::string tab_name;
+        
+        // 首先尝试精确匹配
         for (auto &col : all_cols) {
             if (col.name == target.col_name) {
                 if (!tab_name.empty()) {
@@ -328,22 +309,32 @@ TabCol Analyze::check_column(const std::vector<ColMeta> &all_cols, TabCol target
                 tab_name = col.tab_name;
             }
         }
+        
+        // 如果精确匹配失败，尝试前缀匹配（例如：d_name -> 表d的name列）
+        if (tab_name.empty()) {
+            for (auto &col : all_cols) {
+                // 检查列名是否以表名开头，例如 d_name 对应表 d 的 name 列
+                std::string prefix = col.tab_name + "_";
+                if (target.col_name.length() > prefix.length() && 
+                    target.col_name.substr(0, prefix.length()) == prefix) {
+                    std::string suffix = target.col_name.substr(prefix.length());
+                    if (suffix == col.name) {
+                        if (!tab_name.empty()) {
+                            throw AmbiguousColumnError(target.col_name);
+                        }
+                        tab_name = col.tab_name;
+                        target.col_name = col.name; // 修正为真实列名
+                    }
+                }
+            }
+        }
+        
         if (tab_name.empty()) {
             throw ColumnNotFoundError(target.col_name);
         }
         target.tab_name = tab_name;
-    } else {
-        /** TODO: Make sure target column exists */
-        if(sm_manager_->db_.is_table(target.tab_name)) {
-            auto &tab = sm_manager_->db_.get_table(target.tab_name);
-            if (!tab.is_col(target.col_name)) {
-                throw ColumnNotFoundError(target.col_name);
-            }
-        } else {
-            throw TableNotFoundError(target.tab_name);
-        }
     }
-    target.alias = alias; // 恢复 alias
+    target.alias = alias;
     return target;
 }
 
