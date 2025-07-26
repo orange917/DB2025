@@ -220,8 +220,34 @@ void QlManager::select_from(std::unique_ptr<AbstractExecutor> executorTreeRoot, 
                 oss << std::fixed << std::setprecision(6) << *(float *)rec_buf;
                 col_str = oss.str();
             } else if (col.type == TYPE_STRING) {
-                // 字符串类型，注意处理字符串长度
-                col_str = std::string((char *)rec_buf, strnlen((char *)rec_buf, col.len));
+                // 字符串类型，正确处理CHAR类型的字符串
+                // CHAR类型通常用空格填充到指定长度，我们需要去除末尾的空格和NUL字符
+                // 使用更安全的方法：先检查字符串的实际长度
+                const char* str_ptr = (char *)rec_buf;
+                
+                // 方法1：使用strnlen找到字符串的实际长度（到第一个NUL字符）
+                size_t actual_len = strnlen(str_ptr, col.len);
+                
+                // 方法2：去除末尾的空格和NUL字符
+                std::string raw_str(str_ptr, col.len);
+                size_t last_valid_char = raw_str.find_last_not_of(" \0");
+                
+                if (last_valid_char != std::string::npos) {
+                    // 截取到最后一个有效字符
+                    col_str = raw_str.substr(0, last_valid_char + 1);
+                } else {
+                    // 如果字符串全是空格或NUL字符，返回空字符串
+                    col_str.clear();
+                }
+                
+                // 彻底去除所有NUL字符
+                col_str.erase(std::remove(col_str.begin(), col_str.end(), '\0'), col_str.end());
+                
+                // 调试输出（临时）
+                // std::cout << "[DEBUG] String processing: col.len=" << col.len 
+                //           << ", actual_len=" << actual_len 
+                //           << ", last_valid_char=" << last_valid_char 
+                //           << ", result='" << col_str << "'" << std::endl;
             }
             // 将转换后的字符串添加到结果集中
             columns.push_back(col_str);

@@ -180,6 +180,8 @@ std::unique_ptr<RmRecord> AggregationExecutor::Next() {
         } else if (col_meta.type == TYPE_FLOAT) {
             *(float*)(record->data + offset) = value.float_val;
         } else if (col_meta.type == TYPE_STRING) {
+            // 先用NUL字符填充整个字段，然后复制实际内容
+            memset(record->data + offset, 0, col_meta.len);
             memcpy(record->data + offset, value.str_val.c_str(), std::min(value.str_val.size(), (size_t)col_meta.len));
         }
         offset += col_meta.len;
@@ -195,6 +197,8 @@ std::unique_ptr<RmRecord> AggregationExecutor::Next() {
         } else if (col_meta.type == TYPE_FLOAT) {
             *(float*)(record->data + offset) = value.float_val;
         } else if (col_meta.type == TYPE_STRING) {
+            // 先用NUL字符填充整个字段，然后复制实际内容
+            memset(record->data + offset, 0, col_meta.len);
             memcpy(record->data + offset, value.str_val.c_str(), std::min(value.str_val.size(), (size_t)col_meta.len));
         }
         offset += col_meta.len;
@@ -862,7 +866,22 @@ Value AggregationExecutor::get_column_value(const std::unique_ptr<RmRecord>& rec
     } else if (pos->type == TYPE_FLOAT) {
         value.set_float(*(float*)(record->data + pos->offset));
     } else if (pos->type == TYPE_STRING) {
-        value.set_str(std::string(record->data + pos->offset, pos->len));
+        // 使用字段的实际长度，并正确处理CHAR类型的字符串
+        std::string raw_str(record->data + pos->offset, pos->len);
+        
+        // 去除字符串末尾的NUL字符和空格
+        size_t last_valid_char = raw_str.find_last_not_of(" \0");
+        if (last_valid_char != std::string::npos) {
+            // 截取到最后一个有效字符
+            std::string str_val = raw_str.substr(0, last_valid_char + 1);
+            value.set_str(str_val);
+        } else {
+            // 如果字符串全是空格或NUL字符，返回空字符串
+            value.set_str("");
+        }
+        
+        // 彻底去除所有NUL字符
+        value.str_val.erase(std::remove(value.str_val.begin(), value.str_val.end(), '\0'), value.str_val.end());
     } else {
         // 未知类型，返回默认值
         value.set_int(0);

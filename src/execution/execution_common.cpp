@@ -71,6 +71,8 @@ auto ReconstructTuple(const TabMeta *schema, const RmRecord &base_tuple, const T
                         memcpy(new_tuple.data + offset, &log.tuple_[i].float_val, sizeof(float));
                         break;
                     case TYPE_STRING:
+                        // 先用NUL字符填充整个字段，然后复制实际内容
+                        memset(new_tuple.data + offset, 0, len);
                         memcpy(new_tuple.data + offset, log.tuple_[i].str_val.c_str(), len);
                         break;
                     default:

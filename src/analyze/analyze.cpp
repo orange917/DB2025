@@ -517,7 +517,22 @@ Value Analyze::evaluate_expr(const std::shared_ptr<ast::TreeNode> &expr, const R
                 result.set_float(*(float*)data);
                 break;
             case TYPE_STRING:
-                result.set_str(std::string(data, col_meta->len));
+                {
+                    result.set_str(std::string(data, col_meta->len));
+                    // 正确处理CHAR类型的字符串，去除末尾的NUL字符和空格
+                    std::string raw_str = result.str_val;
+                    size_t last_valid_char = raw_str.find_last_not_of(" \0");
+                    if (last_valid_char != std::string::npos) {
+                        // 截取到最后一个有效字符
+                        result.str_val = raw_str.substr(0, last_valid_char + 1);
+                    } else {
+                        // 如果字符串全是空格或NUL字符，返回空字符串
+                        result.str_val.clear();
+                    }
+                    
+                    // 彻底去除所有NUL字符
+                    result.str_val.erase(std::remove(result.str_val.begin(), result.str_val.end(), '\0'), result.str_val.end());
+                }
                 break;
             default:
                 throw InternalError("Unsupported column type in expression");

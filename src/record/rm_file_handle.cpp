@@ -916,12 +916,10 @@ std::unique_ptr<RmRecord> RmFileHandle::ReconstructTupleFromUndoLog(const UndoLo
                 
             case TYPE_STRING:
                 {
+                    // 先用NUL字符填充整个字段
+                    memset(reconstructed_record->data + field_offset, 0, field_size);
                     size_t str_len = std::min(val.str_val.length(), static_cast<size_t>(field_size));
                     memcpy(reconstructed_record->data + field_offset, val.str_val.c_str(), str_len);
-                    // 确保字符串以null结尾（如果有空间的话）
-                    if (str_len < field_size) {
-                        reconstructed_record->data[field_offset + str_len] = '\0';
-                    }
                 }
                 break;
                 

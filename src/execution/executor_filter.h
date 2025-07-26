@@ -174,18 +174,46 @@ private:
                     default: return false;
                 }
             }
-            case TYPE_STRING: {
-                int cmp_result = memcmp(lhs, rhs, len);
-                switch (op) {
-                    case OP_EQ: return cmp_result == 0;
-                    case OP_NE: return cmp_result != 0;
-                    case OP_LT: return cmp_result < 0;
-                    case OP_GT: return cmp_result > 0;
-                    case OP_LE: return cmp_result <= 0;
-                    case OP_GE: return cmp_result >= 0;
-                    default: return false;
+            case TYPE_STRING:
+                {
+                    // 使用字段的实际长度，并正确处理CHAR类型的字符串
+                    std::string lhs_raw((char*)lhs, len);
+                    // 去除字符串末尾的NUL字符和空格
+                    size_t lhs_last_valid = lhs_raw.find_last_not_of(" \0");
+                    std::string lhs_str;
+                    if (lhs_last_valid != std::string::npos) {
+                        lhs_str = lhs_raw.substr(0, lhs_last_valid + 1);
+                    } else {
+                        lhs_str.clear();
+                    }
+                    
+                    // 彻底去除所有NUL字符
+                    lhs_str.erase(std::remove(lhs_str.begin(), lhs_str.end(), '\0'), lhs_str.end());
+                    
+                    std::string rhs_raw((char*)rhs, len);
+                    // 去除字符串末尾的NUL字符和空格
+                    size_t rhs_last_valid = rhs_raw.find_last_not_of(" \0");
+                    std::string rhs_str;
+                    if (rhs_last_valid != std::string::npos) {
+                        rhs_str = rhs_raw.substr(0, rhs_last_valid + 1);
+                    } else {
+                        rhs_str.clear();
+                    }
+                    
+                    // 彻底去除所有NUL字符
+                    rhs_str.erase(std::remove(rhs_str.begin(), rhs_str.end(), '\0'), rhs_str.end());
+                    
+                    int cmp_result = lhs_str.compare(rhs_str);
+                    switch (op) {
+                        case OP_EQ: return cmp_result == 0;
+                        case OP_NE: return cmp_result != 0;
+                        case OP_LT: return cmp_result < 0;
+                        case OP_GT: return cmp_result > 0;
+                        case OP_LE: return cmp_result <= 0;
+                        case OP_GE: return cmp_result >= 0;
+                        default: return false;
+                    }
                 }
-            }
             default:
                 return false;
         }

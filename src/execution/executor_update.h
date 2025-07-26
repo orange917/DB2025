@@ -91,7 +91,22 @@ class UpdateExecutor : public AbstractExecutor {
                 val.float_val = *reinterpret_cast<const float*>(field_ptr);
                 break;
             case TYPE_STRING:
-                val.str_val = std::string(field_ptr, col.len);
+                {
+                    val.str_val = std::string(field_ptr, col.len);
+                    // 正确处理CHAR类型的字符串，去除末尾的NUL字符和空格
+                    std::string raw_str = val.str_val;
+                    size_t last_valid_char = raw_str.find_last_not_of(" \0");
+                    if (last_valid_char != std::string::npos) {
+                        // 截取到最后一个有效字符
+                        val.str_val = raw_str.substr(0, last_valid_char + 1);
+                    } else {
+                        // 如果字符串全是空格或NUL字符，返回空字符串
+                        val.str_val.clear();
+                    }
+                    
+                    // 彻底去除所有NUL字符
+                    val.str_val.erase(std::remove(val.str_val.begin(), val.str_val.end(), '\0'), val.str_val.end());
+                }
                 break;
             default:
                 // Should not happen with a valid schema

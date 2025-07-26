@@ -142,8 +142,9 @@ int main(int argc, char *argv[]) {
                 printf("Connection has been closed\n");
                 break;
             } else {
-                for (int i = 0; i <= len; i++) {
+                for (int i = 0; i < len; i++) {
                     if (recv_buf[i] == '\0') {
+                        printf("\n"); // 确保遇到\0也换行
                         break;
                     } else {
                         printf("%c", recv_buf[i]);

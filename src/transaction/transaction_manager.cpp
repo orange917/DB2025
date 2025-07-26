@@ -50,9 +50,9 @@ Transaction * TransactionManager::begin(Transaction* txn, LogManager* log_manage
         // **调试输出**
         timestamp_t current_next = next_timestamp_.load();
         timestamp_t last_commit = last_commit_ts_.load();
-        std::cout << "[DEBUG] Transaction " << txn->get_transaction_id() 
-                  << " starting - current_next_ts: " << current_next 
-                  << ", last_commit_ts: " << last_commit << std::endl;
+        // std::cout << "[DEBUG] Transaction " << txn->get_transaction_id() 
+        //           << " starting - current_next_ts: " << current_next 
+        //           << ", last_commit_ts: " << last_commit << std::endl;
         
         // **关键修复**：对于快照隔离，事务应该获得一个唯一的开始时间戳
         // 并且能够看到在其开始之前已经提交的所有数据
@@ -65,8 +65,8 @@ Transaction * TransactionManager::begin(Transaction* txn, LogManager* log_manage
         txn->set_start_ts(read_ts);
         
         // **调试输出**
-        std::cout << "[DEBUG] Transaction " << txn->get_transaction_id() 
-                  << " assigned start_ts: " << read_ts << std::endl;
+        // std::cout << "[DEBUG] Transaction " << txn->get_transaction_id() 
+        //           << " assigned start_ts: " << read_ts << std::endl;
         
         // 更新水印 - 加入活跃事务列表
         running_txns_.AddTxn(read_ts);
@@ -110,15 +110,15 @@ void TransactionManager::commit(Transaction* txn, LogManager* log_manager) {
         
         // **调试输出**
         timestamp_t old_next = next_timestamp_.load();
-        std::cout << "[DEBUG] Transaction " << txn->get_transaction_id() 
-                  << " (start_ts: " << txn->get_start_ts() << ") committing - next_ts before: " << old_next << std::endl;
+        // std::cout << "[DEBUG] Transaction " << txn->get_transaction_id() 
+        //           << " (start_ts: " << txn->get_start_ts() << ") committing - next_ts before: " << old_next << std::endl;
         
         // 分配提交时间戳
         timestamp_t commit_ts = next_timestamp_.fetch_add(1);
         
-        // **调试输出**
-        std::cout << "[DEBUG] Transaction " << txn->get_transaction_id() 
-                  << " assigned commit_ts: " << commit_ts << std::endl;
+        // // **调试输出**
+        // std::cout << "[DEBUG] Transaction " << txn->get_transaction_id() 
+        //           << " assigned commit_ts: " << commit_ts << std::endl;
         
         // 更新所有该事务创建的版本链中的时间戳
         UpdateCommitTimestamp(txn, commit_ts);
@@ -130,7 +130,7 @@ void TransactionManager::commit(Transaction* txn, LogManager* log_manager) {
         }
         
         // **调试输出**
-        std::cout << "[DEBUG] Updated last_commit_ts to: " << commit_ts << std::endl;
+        // std::cout << "[DEBUG] Updated last_commit_ts to: " << commit_ts << std::endl;
         
         // 更新水印的提交时间戳
         running_txns_.UpdateCommitTs(commit_ts);
@@ -142,7 +142,7 @@ void TransactionManager::commit(Transaction* txn, LogManager* log_manager) {
         {
             std::unique_lock<std::mutex> lock(committed_txns_mutex_);
             committed_txns_.insert(commit_ts);  // **修复**：应该插入commit_ts而不是start_ts
-            std::cout << "[DEBUG] Added commit_ts=" << commit_ts << " to committed_txns_ (size now: " << committed_txns_.size() << ")" << std::endl;
+            // std::cout << "// std::cout << "[DEBUG]ed commit_ts=" << commit_ts << " to committed_txns_ (size now: " << committed_txns_.size() << ")" << std::endl;
         }
         
         ts_lock.unlock();
@@ -394,7 +394,7 @@ std::optional<UndoLink> TransactionManager::GetUndoLink(Rid rid) {
 std::optional<VersionUndoLink> TransactionManager::GetVersionLink(Rid rid) {
     // **新增：验证rid的合理性**
     if (rid.page_no < 0 || rid.slot_no < 0) {
-        std::cout << "[ERROR] GetVersionLink: Invalid rid (" << rid.page_no << "," << rid.slot_no << ")" << std::endl;
+        // std::cout << "[ERROR] GetVersionLink: Invalid rid (" << rid.page_no << "," << rid.slot_no << ")" << std::endl;
         return std::nullopt;
     }
     
@@ -411,21 +411,21 @@ std::optional<VersionUndoLink> TransactionManager::GetVersionLink(Rid rid) {
             
             // **新增：防护检查**
             if (!page_version_info) {
-                std::cout << "[WARNING] GetVersionLink: page_version_info is null for page " << rid.page_no << std::endl;
+                // std::cout << "[WARNING] GetVersionLink: page_version_info is null for page " << rid.page_no << std::endl;
                 return std::nullopt;
             }
         } catch (const std::exception& e) {
-            std::cout << "[ERROR] GetVersionLink: Exception accessing version_info_: " << e.what() << std::endl;
+            // std::cout << "[ERROR] GetVersionLink: Exception accessing version_info_: " << e.what() << std::endl;
             return std::nullopt;
         } catch (...) {
-            std::cout << "[ERROR] GetVersionLink: Unknown exception accessing version_info_" << std::endl;
+            // std::cout << "[ERROR] GetVersionLink: Unknown exception accessing version_info_" << std::endl;
             return std::nullopt;
         }
     }
     
     // **新增：再次检查page_version_info的有效性**
     if (!page_version_info) {
-        std::cout << "[WARNING] GetVersionLink: page_version_info became null" << std::endl;
+        // std::cout << "[WARNING] GetVersionLink: page_version_info became null" << std::endl;
         return std::nullopt;
     }
     
@@ -436,10 +436,10 @@ std::optional<VersionUndoLink> TransactionManager::GetVersionLink(Rid rid) {
         size_t container_size = page_version_info->prev_version_.size();
         (void)container_size; // 避免未使用变量警告
     } catch (const std::exception& e) {
-        std::cout << "[ERROR] GetVersionLink: PageVersionInfo appears corrupted: " << e.what() << std::endl;
+        // std::cout << "[ERROR] GetVersionLink: PageVersionInfo appears corrupted: " << e.what() << std::endl;
         return std::nullopt;
     } catch (...) {
-        std::cout << "[ERROR] GetVersionLink: PageVersionInfo appears corrupted (unknown exception)" << std::endl;
+        // std::cout << "[ERROR] GetVersionLink: PageVersionInfo appears corrupted (unknown exception)" << std::endl;
         return std::nullopt;
     }
     
@@ -449,7 +449,7 @@ std::optional<VersionUndoLink> TransactionManager::GetVersionLink(Rid rid) {
         
         // **新增：在find操作前再次验证容器状态**
         if (page_version_info->prev_version_.bucket_count() == 0) {
-            std::cout << "[WARNING] GetVersionLink: prev_version_ container is not properly initialized" << std::endl;
+            // std::cout << "[WARNING] GetVersionLink: prev_version_ container is not properly initialized" << std::endl;
             return std::nullopt;
         }
         
@@ -467,13 +467,13 @@ std::optional<VersionUndoLink> TransactionManager::GetVersionLink(Rid rid) {
         
         return it->second;
     } catch (const std::bad_alloc& e) {
-        std::cout << "[ERROR] GetVersionLink: Memory allocation error: " << e.what() << std::endl;
+        // std::cout << "[ERROR] GetVersionLink: Memory allocation error: " << e.what() << std::endl;
         return std::nullopt;
     } catch (const std::exception& e) {
-        std::cout << "[ERROR] GetVersionLink: Exception during slot access: " << e.what() << std::endl;
+        // std::cout << "[ERROR] GetVersionLink: Exception during slot access: " << e.what() << std::endl;
         return std::nullopt;
     } catch (...) {
-        std::cout << "[ERROR] GetVersionLink: Unknown exception during slot access" << std::endl;
+        // std::cout << "[ERROR] GetVersionLink: Unknown exception during slot access" << std::endl;
         return std::nullopt;
     }
 }
@@ -661,9 +661,9 @@ Transaction* TransactionManager::begin_read_only_snapshot(LogManager* log_manage
         // **调试输出**
         timestamp_t current_next = next_timestamp_.load();
         timestamp_t last_commit = last_commit_ts_.load();
-        std::cout << "[DEBUG] Read-only Transaction " << txn->get_transaction_id() 
-                  << " starting - current_next_ts: " << current_next 
-                  << ", last_commit_ts: " << last_commit << std::endl;
+        // std::cout << "[DEBUG] Read-only Transaction " << txn->get_transaction_id() 
+                //   << " starting - current_next_ts: " << current_next 
+                //   << ", last_commit_ts: " << last_commit << std::endl;
         
         timestamp_t read_ts;
         
@@ -680,8 +680,8 @@ Transaction* TransactionManager::begin_read_only_snapshot(LogManager* log_manage
         txn->set_start_ts(read_ts);
         
         // **调试输出**
-        std::cout << "[DEBUG] Read-only Transaction " << txn->get_transaction_id() 
-                  << " assigned start_ts: " << read_ts << std::endl;
+        // std::cout << "[DEBUG] Read-only Transaction " << txn->get_transaction_id() 
+                  //<< " assigned start_ts: " << read_ts << std::endl;
         
         // **重要**：只读快照事务不需要添加到running_txns_水印中，
         // 因为它们不会创建任何新版本，也不会影响垃圾回收
