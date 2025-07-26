@@ -1,0 +1,8 @@
+[file_hdr_] first_leaf_ = 2, last_leaf_ = 2
+=== B+ Tree Structure ===
+
+--- Level 0 ---
+Node[2] (Leaf) parent_page_no=-1, num_key=1, prev_leaf=1, next_leaf=1
+  Keys&Rids: [1,'test1'|rid=(1,0)] 
+  KeyRange: min=[1,'test1'], max=[1,'test1']
+

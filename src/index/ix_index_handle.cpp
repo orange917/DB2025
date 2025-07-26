@@ -671,28 +671,30 @@ void IxNodeHandle::insert_pair(int key_idx, const char* key, int child_page_no) 
  */
 page_id_t IxIndexHandle::insert_entry(const char *key, const Rid &value, Transaction *transaction) {
     // 唯一性检查
-    // if (index_meta_.unique) {
-    //     std::vector<Rid> result;
-    //     if (get_value(key, &result, transaction) && !result.empty()) {
-    //          // ******************** DEBUG CODE START ********************
-    //         // 发现唯一性冲突，打印出导致冲突的键的浮点数值
-    //         float conflict_key_val = *(float*)key;
-    //         std::cerr << "[DEBUG] Unique violation detected! Attempting to insert key with float value: " 
-    //                   << std::fixed << std::setprecision(20) << conflict_key_val << std::endl;
-    //         // ********************* DEBUG CODE END *********************
-    //         std::vector<std::string> col_names;
-    //         for (const auto& col : index_meta_.cols) {
-    //             col_names.push_back(col.name);
-    //         }
-    //         // 确保表名不为空，如果为空则使用默认值
-    //         std::string tab_name = index_meta_.tab_name.empty() ? "unknown_table" : index_meta_.tab_name;
-    //         // 如果列名为空，添加默认列名
-    //         if (col_names.empty()) {
-    //             col_names.push_back("unknown_column");
-    //         }
-    //         throw UniqueIndexViolationError(tab_name, col_names);
-    //     }
-    // }
+    if (index_meta_.unique) {
+        std::vector<Rid> result;
+        if (get_value(key, &result, transaction) && !result.empty()) {
+            // ******************** DEBUG CODE START ********************
+            // 发现唯一性冲突，打印出导致冲突的键的浮点数值
+            if (file_hdr_->col_num_ > 0 && file_hdr_->col_types_[0] == TYPE_FLOAT) {
+                float conflict_key_val = *(float*)key;
+                std::cerr << "[DEBUG] Unique violation detected! Attempting to insert key with float value: " 
+                          << std::fixed << std::setprecision(20) << conflict_key_val << std::endl;
+            }
+            // ********************* DEBUG CODE END *********************
+            std::vector<std::string> col_names;
+            for (const auto& col : index_meta_.cols) {
+                col_names.push_back(col.name);
+            }
+            // 确保表名不为空，如果为空则使用默认值
+            std::string tab_name = index_meta_.tab_name.empty() ? "unknown_table" : index_meta_.tab_name;
+            // 如果列名为空，添加默认列名
+            if (col_names.empty()) {
+                col_names.push_back("unknown_column");
+            }
+            throw UniqueIndexViolationError(tab_name, col_names);
+        }
+    }
     // Todo:
     // 1. 查找key值应该插入到哪个叶子节点
     // 2. 在该叶子节点中插入键值对
@@ -1246,6 +1248,16 @@ IxNodeHandle *IxIndexHandle::create_node() {
     PageId new_page_id = {.fd = fd_, .page_no = INVALID_PAGE_ID};
     // 从3开始分配page_no，第一次分配之后，new_page_id.page_no=3，file_hdr_.num_pages=4
     Page *page = buffer_pool_manager_->new_page(&new_page_id);
+    
+    // 初始化页面头部
+    IxPageHdr *page_hdr = reinterpret_cast<IxPageHdr *>(page->get_data());
+    page_hdr->next_free_page_no = IX_NO_PAGE;
+    page_hdr->parent = IX_NO_PAGE;
+    page_hdr->num_key = 0;
+    page_hdr->is_leaf = false;  // 默认为内部节点，后续会根据需要设置
+    page_hdr->prev_leaf = IX_NO_PAGE;
+    page_hdr->next_leaf = IX_NO_PAGE;
+    
     node = new IxNodeHandle(file_hdr_, page);
     return node;
 }

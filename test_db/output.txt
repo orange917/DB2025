@@ -1,0 +1,11 @@
+| id | name |
+| id | name |
+| 1 | test1 |
+| 1 | test1 |
+failure
+| warehouse | unique | (id,name) |
+failure
+failure
+| id | name |
+| 1 | test1 |
+| 1 | test2 |
