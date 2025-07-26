@@ -322,16 +322,18 @@ std::shared_ptr<Plan> Planner::physical_optimization(std::shared_ptr<Query> quer
         bool index_exist = get_index_cols(query->tables[0], query->conds, index_col_names);
         std::string original_tab_name = query->table_to_alias.count(query->tables[0]) ? query->table_to_alias[query->tables[0]] : query->tables[0];
         if(index_exist){
-            plan = std::make_shared<ScanPlan>(T_IndexScan, sm_manager_, query->tables[0], std::vector<Condition>(), index_col_names, original_tab_name);
+            // **修复：传递实际的查询条件，而不是空的条件列表**
+            plan = std::make_shared<ScanPlan>(T_IndexScan, sm_manager_, query->tables[0], query->conds, index_col_names, original_tab_name);
         }
         else {
             // 没有索引，用顺序扫描
             index_col_names.clear();
-            plan = std::make_shared<ScanPlan>(T_SeqScan, sm_manager_, query->tables[0], std::vector<Condition>(), index_col_names, original_tab_name);
+            plan = std::make_shared<ScanPlan>(T_SeqScan, sm_manager_, query->tables[0], query->conds, index_col_names, original_tab_name);
         }
         
-        // 如果有条件，创建FilterPlan
-        if (!query->conds.empty()) {
+        // **修复：如果使用索引扫描，不需要额外的FilterPlan，因为条件已经在索引扫描中处理**
+        // 只有在使用顺序扫描时才需要FilterPlan
+        if (!index_exist && !query->conds.empty()) {
             plan = std::make_shared<FilterPlan>(plan, query->conds);
         }
     }else if(query->tables.size() > 1){
@@ -563,13 +565,13 @@ std::shared_ptr<Plan> Planner::make_one_rel(std::shared_ptr<Query> query)
         std::string original_tab_name = query->table_to_alias.count(tables[i]) ? query->table_to_alias[tables[i]] : tables[i];
         if (index_exist == false) {
             index_col_names.clear();
-            scan_plan = std::make_shared<ScanPlan>(T_SeqScan, sm_manager_, tables[i], std::vector<Condition>(), index_col_names, original_tab_name);
+            scan_plan = std::make_shared<ScanPlan>(T_SeqScan, sm_manager_, tables[i], curr_conds, index_col_names, original_tab_name);
         } else {
-            scan_plan = std::make_shared<ScanPlan>(T_IndexScan, sm_manager_, tables[i], std::vector<Condition>(), index_col_names, original_tab_name);
+            scan_plan = std::make_shared<ScanPlan>(T_IndexScan, sm_manager_, tables[i], curr_conds, index_col_names, original_tab_name);
         }
         
         // 如果有条件，创建FilterPlan
-        if (!curr_conds.empty()) {
+        if (!index_exist && !curr_conds.empty()) {
             scan_plan = std::make_shared<FilterPlan>(scan_plan, curr_conds);
         }
         

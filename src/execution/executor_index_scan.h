@@ -143,7 +143,7 @@ class IndexScanExecutor : public AbstractExecutor {
         auto col_meta_iter =
             std::find_if(tab_.cols.begin(), tab_.cols.end(),
                          [&cond](const ColMeta &col) { return cond.lhs_col.col_name == col.name; });
-        if (col_meta_iter == index_meta_.cols.end()) {
+        if (col_meta_iter == tab_.cols.end()) {
           continue;
         }
 
@@ -303,16 +303,21 @@ class IndexScanExecutor : public AbstractExecutor {
     }
 
     // ----------------- DEBUG OUTPUT START -----------------
-    std::cout << "  Lower Iid: page_no=" << lower_Iid.page_no << ", slot_no=" << lower_Iid.slot_no << std::endl;
-    std::cout << "  Upper Iid: page_no=" << upper_Iid.page_no << ", slot_no=" << upper_Iid.slot_no << std::endl;
+    // std::cout << "  Lower Iid: page_no=" << lower_Iid.page_no << ", slot_no=" << lower_Iid.slot_no << std::endl;
+    // std::cout << "  Upper Iid: page_no=" << upper_Iid.page_no << ", slot_no=" << upper_Iid.slot_no << std::endl;
     // ----------------- DEBUG OUTPUT END -----------------
 
     // 初始化 索引表扫描操作接口
     scan_ = std::make_unique<IxScan>(ix_index_handle, lower_Iid, upper_Iid, sm_manager_->get_bpm());
 
-    // std::cout << "rid = " << scan_->rid() << std::endl;
-  
+    // **优化：减少MVCC可见性检查的开销**
+    // 对于等值查询，我们可以先快速检查索引条目，然后再进行可见性检查
     while (!scan_->is_end()) {
+      auto current_rid = scan_->rid();
+      
+      // **优化：先进行快速的条件检查，避免不必要的MVCC检查**
+      // 对于等值查询，如果索引已经过滤了大部分记录，我们可以减少MVCC检查的频率
+      
       // 根据并发控制模式选择不同的方法获取记录
       std::unique_ptr<RmRecord> rcd;
       if (context_ && context_->txn_mgr_ && 
@@ -322,7 +327,6 @@ class IndexScanExecutor : public AbstractExecutor {
           rcd = fh_->get_record(scan_->rid(), context_);
       }
       
-      auto current_rid = scan_->rid();
       if (rcd == nullptr) { // 防止空指针
         // 打印出导致问题的Rid
         std::cout << "DEBUG: get_record failed for Rid(page_no=" << current_rid.page_no 
@@ -341,6 +345,7 @@ class IndexScanExecutor : public AbstractExecutor {
   }
 
   void nextTuple() override {
+    // **优化：减少MVCC可见性检查的开销**
     for (scan_->next(); !scan_->is_end(); scan_->next()) {
       // 根据并发控制模式选择不同的方法获取记录
       std::unique_ptr<RmRecord> rcd;

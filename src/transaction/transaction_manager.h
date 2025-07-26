@@ -244,18 +244,18 @@ public:
     /** @brief 检查指定时间戳的事务是否在给定的读时间戳之前已提交（快照隔离专用） */
     bool IsCommittedBeforeReadTs(timestamp_t ts, timestamp_t read_ts) {
         // **调试输出**
-        std::cout << "[DEBUG] IsCommittedBeforeReadTs: checking ts=" << ts << " against read_ts=" << read_ts << std::endl;
+        // std::cout << "[DEBUG] IsCommittedBeforeReadTs: checking ts=" << ts << " against read_ts=" << read_ts << std::endl;
         
         // 特殊情况：时间戳为0的版本总是被认为已提交（初始数据）
         if (ts == 0) {
-            std::cout << "[DEBUG] ts=0, returning true (initial data)" << std::endl;
+            // std::cout << "[DEBUG] ts=0, returning true (initial data)" << std::endl;
             return true;
         }
         
         // **关键修复**：如果创建版本的时间戳大于等于读时间戳，则该版本肯定不可见
         // 这是快照隔离的核心原则：只能看到在事务开始之前的数据
         if (ts >= read_ts) {
-            std::cout << "[DEBUG] ts >= read_ts, returning false (future or concurrent data)" << std::endl;
+            // std::cout << "[DEBUG] ts >= read_ts, returning false (future or concurrent data)" << std::endl;
             return false;
         }
         
@@ -263,7 +263,7 @@ public:
         {
             std::unique_lock<std::mutex> lock(aborted_txns_mutex_);
             if (aborted_txns_.find(ts) != aborted_txns_.end()) {
-                std::cout << "[DEBUG] ts found in aborted list, returning false" << std::endl;
+                // std::cout << "[DEBUG] ts found in aborted list, returning false" << std::endl;
                 return false; // 已回滚的事务
             }
         }
@@ -271,17 +271,17 @@ public:
         // **新增**：检查是否在已提交事务列表中
         {
             std::unique_lock<std::mutex> lock(committed_txns_mutex_);
-            std::cout << "[DEBUG] committed_txns_ size: " << committed_txns_.size() << ", checking for ts=" << ts << std::endl;
+            // std::cout << "[DEBUG] committed_txns_ size: " << committed_txns_.size() << ", checking for ts=" << ts << std::endl;
             if (committed_txns_.find(ts) != committed_txns_.end()) {
-                std::cout << "[DEBUG] ts found in committed list, returning true" << std::endl;
+                // std::cout << "[DEBUG] ts found in committed list, returning true" << std::endl;
                 return true; // 已提交的事务
             }
             // **调试**：显示所有已提交事务的时间戳
-            std::cout << "[DEBUG] committed_txns_ contents: ";
-            for (const auto& committed_ts : committed_txns_) {
-                std::cout << committed_ts << " ";
-            }
-            std::cout << std::endl;
+            // std::cout << "[DEBUG] committed_txns_ contents: ";
+            // for (const auto& committed_ts : committed_txns_) {
+            //     std::cout << committed_ts << " ";
+            // }
+            // std::cout << std::endl;
         }
         
         // 查找对应的事务对象
@@ -289,10 +289,10 @@ public:
         if (txn != nullptr) {
             // 如果事务对象存在，检查其状态
             if (txn->get_state() == TransactionState::COMMITTED) {
-                std::cout << "[DEBUG] txn found, state=COMMITTED, returning true" << std::endl;
+                // std::cout << "[DEBUG] txn found, state=COMMITTED, returning true" << std::endl;
                 return true;
             }
-            std::cout << "[DEBUG] txn found but not committed, state=" << static_cast<int>(txn->get_state()) << std::endl;
+            // std::cout << "[DEBUG] txn found but not committed, state=" << static_cast<int>(txn->get_state()) << std::endl;
             return false; // 未提交的事务
         }
         
@@ -304,12 +304,12 @@ public:
             // 则认为是已提交的事务（因为只有已提交的事务才会被清理到水印以下）
             std::unique_lock<std::mutex> lock(aborted_txns_mutex_);
             bool result = aborted_txns_.find(ts) == aborted_txns_.end();
-            std::cout << "[DEBUG] txn not found but ts <= watermark(" << watermark << "), result=" << result << std::endl;
+            // std::cout << "[DEBUG] txn not found but ts <= watermark(" << watermark << "), result=" << result << std::endl;
             return result;
         }
         
         // 其他情况保守地认为不可见
-        std::cout << "[DEBUG] default case, returning false" << std::endl;
+        // std::cout << "[DEBUG] default case, returning false" << std::endl;
         return false;
     }
 
