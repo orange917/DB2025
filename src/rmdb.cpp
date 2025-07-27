@@ -53,20 +53,19 @@ static jmp_buf jmpbuf;
 void sigint_handler(int signo) {
     should_exit = true;
     log_manager->flush_log_to_disk();
-    
-    // **关键修复**：在程序退出前，确保时间戳被正确保存到数据库元数据中
+
     // 这样下次启动时就能正确恢复时间戳，避免时间戳重置导致的写写冲突误判
     if (txn_manager && sm_manager) {
         // 将当前的时间戳保存到SmManager的数据库元数据中
         timestamp_t current_ts = txn_manager->get_next_timestamp();
         sm_manager->set_next_timestamp(current_ts);
-        
+
         // 刷新元数据到磁盘
         sm_manager->flush_meta();
-        
+
         std::cout << "[DEBUG] Saved next_timestamp=" << current_ts << " to database metadata before exit" << std::endl;
     }
-    
+
     std::cout << "The Server receive Crtl+C, will been closed\n";
     longjmp(jmpbuf, 1);
 }
@@ -75,10 +74,10 @@ void sigint_handler(int signo) {
 void SetTransaction(txn_id_t *txn_id, Context *context) {
     context->txn_mgr_ = txn_manager.get(); // 设置事务管理器
     context->sm_manager_ = sm_manager.get(); // 设置系统管理器
-    
+
     // 检查是否有活跃的显式事务
     Transaction* existing_txn = txn_manager->get_transaction(*txn_id);
-    
+
     if (existing_txn != nullptr && 
         existing_txn->get_state() != TransactionState::COMMITTED &&
         existing_txn->get_state() != TransactionState::ABORTED &&
@@ -87,7 +86,7 @@ void SetTransaction(txn_id_t *txn_id, Context *context) {
         context->txn_ = existing_txn;
     } else {
         // 没有活跃的显式事务，需要创建新事务或使用只读快照
-        
+
         // 检查当前语句类型
         bool is_read_only_stmt = false;
         if (context->parse_tree) {
@@ -98,7 +97,7 @@ void SetTransaction(txn_id_t *txn_id, Context *context) {
                 is_read_only_stmt = true;
             }
         }
-        
+
         if (is_read_only_stmt && txn_manager->get_concurrency_mode() == ConcurrencyMode::MVCC) {
             // 对于MVCC模式下的只读语句，创建一个特殊的只读快照事务
             // 这个事务的时间戳固定为当前的全局时间戳，确保看到已提交的数据
@@ -144,7 +143,7 @@ void *client_handler(void *sock_fd) {
             std::cout << "Client read error!" << std::endl;
             break;
         }
-        
+
         printf("i_recvBytes: %d \n ", i_recvBytes);
 
         if (strcmp(data_recv, "exit") == 0) {

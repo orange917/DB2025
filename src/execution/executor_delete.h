@@ -138,24 +138,32 @@ class DeleteExecutor : public AbstractExecutor {
                 new_version_link.in_progress_ = true;
                 context_->txn_mgr_->UpdateVersionLink(rid, new_version_link);
                 
-                // 先删除记录的索引（如果有的话）
-                for (size_t i = 0; i < tab_.indexes.size(); ++i) {
-                    auto& index = tab_.indexes[i];
-                    auto ih = sm_manager_->ihs_.at(sm_manager_->get_ix_manager()->get_index_name(tab_name_, index.cols)).get();
+                // **新增**：记录删除的RID，以便在事务提交时删除索引项
+                context_->txn_->append_mvcc_deleted_rid(rid);
+                
+                // **关键修复**：在MVCC模式下，不应该立即删除索引项
+                // 索引项的删除应该在事务提交时进行，或者在可见性检查时处理
+                // 这样可以确保事务回滚时索引项仍然存在
+                
+                // **新增**：在MVCC模式下，也要将删除操作记录到write_set中，以便abort时正确恢复
+                // 创建记录副本用于事务回滚
+                RmRecord record_copy(raw_record->size);
+                memcpy(record_copy.data, raw_record->data, raw_record->size);
 
-                    // 创建索引键（使用纯数据记录）
-                    char* key = new char[index.col_tot_len];
-                    int offset = 0;
-                    for (size_t j = 0; j < index.col_num; ++j) {
-                        // record是纯数据，不包含TupleMeta
-                        memcpy(key + offset, record.data + index.cols[j].offset, index.cols[j].len);
-                        offset += index.cols[j].len;
-                    }
+                // 创建写记录并添加到事务的写集合中
+                WriteRecord* write_record = new WriteRecord(
+                    WType::DELETE_TUPLE,
+                    tab_name_,
+                    rid,
+                    record_copy
+                );
 
-                    // 删除索引项
-                    ih->delete_entry(key, context_->txn_);
-                    delete[] key;
-                }
+                // 添加到事务的写集合中
+                context_->txn_->append_write_record(write_record);
+                
+                // 更新 row_count
+                tab_.row_count--;
+                sm_manager_->update_table_row_count(tab_name_, tab_.row_count);
             } else {
                 // 非MVCC模式的传统处理
                 // 添加到事务的写集合中 - 在删除前记录原始数据

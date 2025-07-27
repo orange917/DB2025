@@ -326,6 +326,22 @@ public:
             version_link.in_progress_ = true;
             txn_mgr->UpdateVersionLink(rid, std::make_optional(version_link));
             
+            // **新增**：在MVCC模式下，也要将update操作记录到write_set中，以便abort时正确恢复
+            // 创建原始记录的副本用于事务回滚
+            RmRecord original_record_copy(raw_record->size);
+            memcpy(original_record_copy.data, raw_record->data, raw_record->size);
+
+            // 创建写记录并添加到事务的写集合中
+            WriteRecord* write_record = new WriteRecord(
+                WType::UPDATE_TUPLE,
+                tab_name_,
+                rid,
+                original_record_copy
+            );
+
+            // 添加到事务的写集合中
+            context_->txn_->append_write_record(write_record);
+            
             // The old WriteRecord logic is now replaced by the UndoLog mechanism
         }
         return nullptr;
