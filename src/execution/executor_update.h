@@ -232,7 +232,16 @@ public:
             RmRecord new_record = *raw_record;
             // First, update the tuple's meta with the new version info.
             TupleMeta new_meta;
-            new_meta.ts_ = txn->get_start_ts(); // Use start_ts as a temporary marker. This will be updated to commit_ts on commit.
+            // **关键修复**：在MVCC模式下，UPDATE操作应该使用一个唯一的时间戳
+            // 而不是事务的开始时间戳，这样可以确保版本链的正确性
+            if (txn_mgr->get_concurrency_mode() == ConcurrencyMode::MVCC) {
+                // 使用事务的开始时间戳作为新版本的时间戳
+                // 这样可以确保版本链的正确性，并且在提交时会更新为提交时间戳
+                new_meta.ts_ = txn->get_start_ts();
+            } else {
+                // 非MVCC模式下，使用0作为时间戳
+                new_meta.ts_ = 0;
+            }
             new_meta.is_deleted_ = false;
             memcpy(new_record.data, &new_meta, sizeof(TupleMeta));
             

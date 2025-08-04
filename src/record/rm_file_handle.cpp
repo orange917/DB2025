@@ -1077,16 +1077,37 @@ bool RmFileHandle::CheckWriteWriteConflict(const Rid& rid, Context* context) con
     
     // **写-写冲突检测的核心逻辑**
     
+    // **关键修复**：首先检查当前事务是否已经abort
+    if (current_txn->get_state() == TransactionState::ABORTED) {
+        std::cout << "[DEBUG] Current transaction is already aborted, should not perform write operations" << std::endl;
+        return true; // 已abort的事务不应该执行写操作
+    }
+    
+    // **关键修复**：移除过于宽松的系统启动时特殊处理逻辑
+    // 这个逻辑会导致写写冲突检测失效
+    // if (current_txn->get_start_ts() == 0) {
+    //     std::cout << "[DEBUG] Current transaction has timestamp 0 (system startup), allowing modification of existing records" << std::endl;
+    //     return false; // 允许修改
+    // }
+    
     // 情况1：事务A尝试更新一条元组时，发现该元组的最新时间戳属于另一个未提交的事务B
     Transaction* tuple_owner_txn = txn_manager->get_transaction_by_timestamp(tuple_meta.ts_);
     if (tuple_owner_txn != nullptr && tuple_owner_txn != current_txn) {
         TransactionState owner_state = tuple_owner_txn->get_state();
         std::cout << "[DEBUG] Found tuple owner transaction, state: " << static_cast<int>(owner_state) << std::endl;
         
-        if (owner_state == TransactionState::DEFAULT) {
+        // **关键修复**：检查所有活跃的事务状态，不仅仅是DEFAULT
+        if (owner_state == TransactionState::DEFAULT || 
+            owner_state == TransactionState::GROWING || 
+            owner_state == TransactionState::SHRINKING) {
             // 其他事务正在进行且未提交，存在写-写冲突
             std::cout << "[DEBUG] Write-write conflict detected: tuple belongs to uncommitted transaction" << std::endl;
             return true;
+        }
+        // **新增**：如果事务已经abort，不应该有冲突
+        if (owner_state == TransactionState::ABORTED) {
+            std::cout << "[DEBUG] No conflict: tuple owner transaction is already aborted" << std::endl;
+            return false;
         }
     }
     
@@ -1121,33 +1142,11 @@ bool RmFileHandle::CheckWriteWriteConflict(const Rid& rid, Context* context) con
         // 如果时间戳不对应任何已知的事务，可能是一个已经清理的事务
         // 在这种情况下，我们需要更准确的处理
         if (tuple_meta.ts_ > current_txn->get_start_ts()) {
-            // **关键修复**：进一步检查这个时间戳是否在committed_txns_中
-            // 如果在committed_txns_中，说明是已提交的事务，需要检查提交时间戳
-            if (txn_manager->IsCommitted(tuple_meta.ts_)) {
-                // 虽然事务对象被清理了，但在committed_txns_中，说明已提交
-                // 在快照隔离中，如果已提交的事务的时间戳小于等于当前事务的开始时间戳，
-                // 那么这个版本对当前事务是可见的，可以被修改
-                // 但由于我们无法获取准确的提交时间戳，采用保守策略：
-                // 如果时间戳小于等于当前事务开始时间戳的2倍，认为是可以修改的历史版本
-                if (tuple_meta.ts_ <= current_txn->get_start_ts() * 2) {
-                    std::cout << "[DEBUG] No conflict: cleaned committed transaction with reasonable ts" << std::endl;
-                    return false;
-                } else {
-                    std::cout << "[DEBUG] Potential write-write conflict: cleaned committed transaction with large ts" << std::endl;
-                    return true;
-                }
-            } else {
-                // 既不在已知事务中，也不在committed_txns_中
-                // 这可能是数据异常，但为了避免误判，采用更宽松的策略
-                // 如果时间戳不是特别大（比如不超过当前时间戳的10倍），认为是历史数据
-                if (tuple_meta.ts_ <= current_txn->get_start_ts() * 10) {
-                    std::cout << "[DEBUG] No conflict: unknown transaction with reasonable ts, treating as historical data" << std::endl;
-                    return false;
-                } else {
-                    std::cout << "[DEBUG] Potential write-write conflict: unknown transaction with very large ts" << std::endl;
-                    return true;
-                }
-            }
+            // **关键修复**：如果记录的时间戳大于当前事务的开始时间戳，
+            // 说明这个记录是在当前事务开始之后被修改的，应该存在写写冲突
+            std::cout << "[DEBUG] Write-write conflict detected: record timestamp (" << tuple_meta.ts_ 
+                      << ") > current transaction start timestamp (" << current_txn->get_start_ts() << ")" << std::endl;
+            return true;
         }
     }
     

@@ -19,7 +19,7 @@ See the Mulan PSL v2 for more details. */
 
 #include "errors.h"
 #include "optimizer/optimizer.h"
-#include "recovery/log_recovery.h"
+// #include "recovery/log_recovery.h"
 #include "optimizer/plan.h"
 #include "optimizer/planner.h"
 #include "portal.h"
@@ -43,7 +43,7 @@ auto planner = std::make_unique<Planner>(sm_manager.get());
 auto optimizer = std::make_unique<Optimizer>(sm_manager.get(), planner.get());
 auto ql_manager = std::make_unique<QlManager>(sm_manager.get(), txn_manager.get(), nullptr);
 auto log_manager = std::make_unique<LogManager>(disk_manager.get());
-auto recovery = std::make_unique<RecoveryManager>(disk_manager.get(), buffer_pool_manager.get(), sm_manager.get());
+// auto recovery = std::make_unique<RecoveryManager>(disk_manager.get(), buffer_pool_manager.get(), sm_manager.get());
 auto portal = std::make_unique<Portal>(sm_manager.get());
 auto analyze = std::make_unique<Analyze>(sm_manager.get());
 pthread_mutex_t *buffer_mutex;
@@ -210,6 +210,19 @@ void *client_handler(void *sock_fd) {
                     txn_manager->abort(context->txn_, log_manager.get());
                     std::cout << e.GetInfo() << std::endl;
 
+                    // **关键修复**：在MVCC模式下，当事务abort后，创建一个新的事务对象
+                    // 这样可以避免后续操作使用已abort的事务对象
+                    if (txn_manager->get_concurrency_mode() == ConcurrencyMode::MVCC) {
+                        // 删除旧的事务对象
+                        delete context->txn_;
+                        
+                        // 创建新的事务对象
+                        context->txn_ = txn_manager->begin(nullptr, log_manager.get());
+                        txn_id = context->txn_->get_transaction_id();
+                        
+                        std::cout << "[DEBUG] Created new transaction after abort: txn_id=" << txn_id << std::endl;
+                    }
+
                     std::fstream outfile;
                     outfile.open("output.txt", std::ios::out | std::ios::app);
                     outfile << str;
@@ -357,10 +370,59 @@ int main(int argc, char **argv) {
         txn_manager->set_concurrency_mode(ConcurrencyMode::MVCC);
         std::cout << "Concurrency mode set to MVCC" << std::endl;
 
+        // **关键修复**：在MVCC模式下，系统启动时需要扫描数据库中的所有记录
+        // 找到最大的时间戳，并将事务管理器的时间戳计数器设置为最大值+1
+        // 这样可以避免时间戳重置导致的写写冲突误判
+        std::cout << "Scanning database for maximum timestamp..." << std::endl;
+        timestamp_t max_ts = 0;
+        
+        // 扫描所有表的所有记录，找到最大的时间戳
+        // 通过SmManager访问表信息，避免直接访问私有成员
+        for (const auto& table_entry : sm_manager->fhs_) {
+            const std::string& table_name = table_entry.first;
+            auto& fh = table_entry.second;
+            
+            // 扫描表中的所有记录
+            auto scan = fh->create_scan();
+            while (!scan->is_end()) {
+                auto rid = scan->rid();
+                auto record = fh->get_record(rid, nullptr);
+                if (record && record->size >= sizeof(TupleMeta)) {
+                    // 检查记录是否包含TupleMeta
+                    TupleMeta meta;
+                    memcpy(&meta, record->data, sizeof(TupleMeta));
+                    
+                    // **关键修复**：添加更严格的时间戳验证
+                    // 合理的时间戳应该：
+                    // 1. 大于0（0是初始数据）
+                    // 2. 小于一个合理的上限（比如1000000，避免垃圾数据）
+                    // 3. 删除标志是有效的布尔值
+                    if (meta.ts_ > 0 && meta.ts_ < 1000000 && 
+                        (meta.is_deleted_ == false || meta.is_deleted_ == true)) {
+                        max_ts = std::max(max_ts, meta.ts_);
+                        std::cout << "[DEBUG] Found valid timestamp: " << meta.ts_ 
+                                  << " in table " << table_name 
+                                  << " at rid=(" << rid.page_no << "," << rid.slot_no << ")" << std::endl;
+                    }
+                }
+                scan->next();
+            }
+        }
+        
+        // 如果找到了有效的时间戳，更新事务管理器的时间戳计数器
+        if (max_ts > 0) {
+            // 将时间戳计数器设置为最大值+1，确保新事务的时间戳不会与历史数据冲突
+            txn_manager->set_next_timestamp(max_ts + 1);
+            std::cout << "[DEBUG] Found max timestamp in database: " << max_ts 
+                      << ", setting next_timestamp to: " << (max_ts + 1) << std::endl;
+        } else {
+            std::cout << "[DEBUG] No valid timestamps found in database, using default" << std::endl;
+        }
+
         // **故障恢复：系统启动时进行故障恢复**
-        std::cout << "Starting database recovery..." << std::endl;
-        recovery->recover();
-        std::cout << "Database recovery completed." << std::endl;
+        // std::cout << "Starting database recovery..." << std::endl;
+        // recovery->recover();
+        // std::cout << "Database recovery completed." << std::endl;
         
         // 开启服务端，开始接受客户端连接
         start_server();

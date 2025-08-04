@@ -169,6 +169,9 @@ public:
 
     timestamp_t get_next_timestamp() { return next_timestamp_.load(); }
 
+    /** @brief 设置下一个时间戳（用于系统启动时的时间戳恢复） */
+    void set_next_timestamp(timestamp_t ts) { next_timestamp_.store(ts); }
+
     /** @brief 获取所有活跃的事务列表（用于MVCC冲突检测） */
     std::vector<Transaction*> GetActiveTransactions() {
         std::vector<Transaction*> active_txns;
